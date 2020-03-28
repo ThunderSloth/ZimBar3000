@@ -1,2 +1,2 @@
 # ZimBar3000
-Discworld Plugins
+Various Discworld MUD Plugins for Mushclient by Zimbus

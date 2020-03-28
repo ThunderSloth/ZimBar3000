@@ -17,34 +17,6 @@
 <script>
 <![CDATA[
 dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)) .. ".lua")
---[[
---in
-THING enters the game.
-
-The young truffle pig follows THING in.
-THING stumbles in from one of the alleys.
-
-THING emerges from a thaumic door which appears in midair.
-
-
-There is the faintest of sounds, as of a gnat yawning, then a WHOOSH sound.  Suddenly there is pandemonium as THING arrives on her broomstick from somewhere above and barrels into you, almost knocking you down.  She apologises sheepishly.
-
-THING visits you unexpectedly!
-
-THING and THING swim in from elsewhere.
-THING appears with a gentle fall of thistle green fluff.
-A brief splattering of raindrops land on the ground as THING appears, accompanied by the tang of ozone.
-A torrent of water appears suddenly, depositing THING with a loud squelch.
---out
-THING moves through the mysterious oak door.
-THING stumbles off to the south.
-THING deals the death blow to the Triad thug.
-You kill the THING.
-THING follows somebody out.
-THING leaves the game.
-]]
-SetTriggerOption ("medina_mob_enter", "enabled", "y")
-SetTriggerOption ("medina_mob_exit", "enabled", "y")
 ]]>
 </script>
 <triggers>
@@ -63,7 +35,7 @@ SetTriggerOption ("medina_mob_exit", "enabled", "y")
   ></trigger>
 <!--  mob tracking  -->
   <trigger
-   group="medinaTEST"
+   group="medina"
    keep_evaluating="y"
    match="(?(DEFINE)(?'enter_game'enters the game)(?'visit'visits you unexpectedly)(?'follow_in'follows? .* in)(?'from_door'emerges? from a thaumic door which appears in midair)(?'from_room'((stumble|storm)s? in from one of the alleys|arrives? from the \w+))(?'divine_hand1'(A torrent of water appears suddenly, depositing|A brief splattering of raindrops land on the ground as) )(?'divine_hand2'(with a loud squelch|appears?, accompanied by the tang of ozone))(?'divine_hand3'appears? with a gentle fall of thistle green fluff))^(?<dh>(?P>divine_hand1))?(?<thyngs>.*) (?(dh)|((?P>divine_hand2)|(?P>divine_hand3)|(?P>enter_game)|(?P>visit)|(?P>follow_in)|(?P>from_door)|(?P>from_room)))[.!]$"
    name="medina_mob_enter"
@@ -73,7 +45,7 @@ SetTriggerOption ("medina_mob_exit", "enabled", "y")
    send_to="12"
   ></trigger>
   <trigger
-   group="medinaTEST"
+   group="medina"
    keep_evaluating="y"
    match="(?(DEFINE)(?'leave_game'leaves the game)(?'kill'.* (kill|deals the death blow to) )(?'follow_out'follows? .* out)(?'to_door'moves? through the \w+ ((\w+){1,2} door|piece of fur))(?'to_room'(leaves?|stumbles? off to the) )(?'directions'(north|northeast|east|southeast|south|southwest|west|northwest)))^(?<death>(?P>kill))?(?<thyngs>.*)(?(death)| ((?P>leave_game)|(?P>follow_out)|(?P>to_door)|(?P>to_room)(?<direction>(?P>directions))))\.$"
    name="medina_mob_exit"

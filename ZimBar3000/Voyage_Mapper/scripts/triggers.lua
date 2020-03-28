@@ -139,14 +139,15 @@ function voyage_get_triggers(col)
     triggers[16] = {}
     triggers[19] = {}
 
-    for _, v in pairs(triggers) do
+    for i, v in pairs(triggers) do
         if v.match then
             AddTrigger(v.name, v.match, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", v.script)
             SetTriggerOption (v.name, "group", v.group)
             SetTriggerOption (v.name, "multi_line", "y")
             SetTriggerOption (v.name, "lines_to_match", v.count)
             SetTriggerOption (v.name, "enabled", "n")
-			if _ == 5 then
+            local match_to_print = false -- for debugging regex
+			if i == match_to_print then
 				print(v.match)
 			end
         end

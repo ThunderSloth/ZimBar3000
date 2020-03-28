@@ -1,0 +1,56 @@
+<muclient>
+<plugin
+   name="Mob_Colours"
+   author="Zimbus"
+   id="a030635d2bf914aa685e24e7"
+   language="Lua"
+   purpose="colour mobs based on relative xp"
+   date_written="2016-01-17 01:39:17"
+   requires="1.00"
+   version="2"
+   ></plugin>
+<script>
+<![CDATA[
+
+function on_trigger_colour_mobs(name, line, wildcards, styles)
+    
+end
+
+mobs = {
+    -- low xp
+    "(^| )(zombie|mendicant|schoolboy|cadger|potter|child|hen|tortoise|rat|duckling|duck|scorpion|crow|boy|seagull|girl|children|tortoise|drunkard|cabbage|bullfrog|snake|mouse|youth|rat)s?[.,]?( |$)",
+    -- medium-low xp
+    "(^| )(adelphe|sandy ptate|sle-pingh-beuh-tei|stone mason|engineer|cynere|architect|lea|limos|odeas|calleis|dinoe|snaxabraxas|ulive|juggler|shopkeeper|dog|starlet|drunk guest|dwarf|ylit|servant|mother|father|accountant|brat|old lad(y|ies)|farmer|goat|sensei|docker|driver|old m.n|old wom.n|beggar|cat|citizen|m.n|wom.n|labourer|cadger|sow|sweeper|pickpocket|believer|sailor|paperboy|nacirrut|seller|troll|ambassador|artisan|slave|thief)s?[.,]?( |$)",
+    -- medium xp
+    "(^| )(flamboyant|grinning young man|souvlakios|lip-phon lap-top|daft bugger|zevgatis|fair wenche|(sniffy young|wispy.haired old|colourful middle-aged) woman|excited old man|hopper|vendor|travelling troll|tallyman|hrun|tourist|onuwen|stren|crewman|conwom.n|conm.n|gnirble|lotheraniel|notserp|dogbottler|adnew|protester|hag|dwarf warrior|trickster|lawyer|corporal nobbs|deborah macghi|masqued magician|gritjaw thighsplitter|ebony|tuchoille|tfat chick|crier|Thibeau|recruit|trader|mandarin|scribe|silversmith|salesm.n|saleswom.n|fibre|courtesan|poet|actor|merchant|calligrapher|fisherman|athlete|brawler|royal judge|civil servant|philosopher|official|cobbler|bureaucrat|housewife|(?!old )lad(y|ies)|wenche|druid|hawker|banker|wizard|jeweller|dealer|donkey)s?[.,]?( |$)",
+    -- medium-high xp
+    "(^| )(red.beared dwarf|teh-takk-eht|cheerful kebab vendor|orangutan|barbarian|frail old lady|splatter|the weasel|khepresh|prodo|assassin|(stern.looking|golden.muscled young|tough|wiry|twisty|bury|muscular|muscled|sinewy|grizzled|hefty) m.n|security guard|smuggler|pirate|brindisian (boy|m.n|wom.n|girl|nonna)|noblem.n|sebboh|watchm.n|powerful athlete|thug|noblewom.n|bodyguard|grflx(en)?|(swarthy|burly|muscular) slave|priestess|priest|crocodile|lascarim|(athletic|rowdy|sophisticated) wom.n|genteel lad(y|ies)|bois|mugger|cutthroat|captain|soldier|mercenar(y|ies)|monk|tsimo handler|tsimo wrestler|mercenerie|nitsuni|gentlem.n|drunk patron|stevedore|skipper|sergeant|warrior|noble wom.n|dancer|officer|fighter|weapon master|evil cabbage|triad heav(y|ies)|character|courtesan)s?[.,]?( |$)",
+    -- high xp
+    "(^| )(d'reg|ms. crane|rahn-fara-wai|phos-phor|scowling dark.skinned man|mr. hyena|casanunda|helmsman|vyrt|heric|casso|kang wu|grflx soldier|(citadel|palace|hattian|imperial|ceremonial|city) guard|the grflx|smuggler captain|clemence|gumboni|cicone|althea|debois|marchella|persuica|harvard|ciaco|rujona|hoplite|student|outlaw|samurai|ronin|ninja|ceremonial sentr(y|ies)|hippopotamus(')?|hamish|truckle|giant(?! (tortoise|fruit bat))|(hulking|towering|lumbering|mean|terrifying|looming|huge) troll|triad boss|vincent|willie|sentries|knight)s?[.,]?( |$)"
+
+}
+
+colours = {"beige", "khaki", "darkgoldenrod", "darkorange", "red"}
+
+for i, v in ipairs(mobs) do
+    local name = "colour_mobs"..tostring(i)
+    AddTrigger(name, v, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.CustomOther, 0, "", "on_trigger_colour_mobs")
+    SetTriggerOption (name, "group", "colour_mobs")
+    SetTriggerOption (name, "enabled", "y")
+    SetTriggerOption (name, "repeat", "y")
+    SetTriggerOption (name, "custom_colour", 17)
+    SetTriggerOption (name, "colour_change_type", 0)
+    SetTriggerOption (name, "other_text_colour", ColourNameToRGB(colours[i]))
+    SetTriggerOption (name, "other_back_colour", GetInfo(271)) -- bg colour
+end
+
+]]>
+</script>    
+<!--  Triggers  -->
+<triggers>
+</triggers>
+<!--  Aliases  -->
+<aliases>
+</aliases>
+
+</muclient>

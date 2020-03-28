@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="Smugs_Mapper_5"
+   author="Zimbus"
+   id="fa2bff8d7c84f6e3f847d411"
+   language="Lua"
+   purpose="graphically map smugs"
+   save_state="y"
+   date_written="2020-03-22 12:00:00"
+   requires="3.00"
+   version="5"
+   >
+</plugin>
+<script>
+<![CDATA[
+dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)) .. ".lua")
+]]>
+</script>
+<triggers>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^Removed queue\.$"
+   name="smugs_remove_queue"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_remove_queue"
+  ></trigger>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^You follow .* (?<direction>north|northeast|east|southeast|south|southwest|west|northwest)\.$"
+   name="smugs_you_follow"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_you_follow"
+  ></trigger>
+</triggers>
+<aliases>
+  <alias
+   group="smugs"
+   name="smugs_move_room"
+   match="^(?<direction>n|ne|e|se|s|sw|w|nw|north|northeast|east|southeast|south|southwest|west|northwest|look|l)$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_move_room"
+ ></alias>
+  <alias
+   group="smugs"
+   name="smugs_stop"
+   match="^stop$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_stop"
+  ></alias>
+</aliases>
+</muclient>

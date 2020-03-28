@@ -1,0 +1,2641 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="CURRENT_PROJECT"
+   author="Zimbus"
+   id="fa3bff8d7c84e7e3f847d414"
+   language="Lua"
+   purpose="graphically map medina and normalize directions"
+   save_state="y"
+   date_written="2019-11-14 23:17:25"
+   requires="3.00"
+   version="4.0"
+   >
+</plugin>
+<script>
+<![CDATA[--[[
+   _____             .___.__                   _____                                    ._.
+  /     \   ____   __| _/|__| ____ _____      /     \ _____  ______ ______   ___________| |
+ /  \ /  \_/ __ \ / __ | |  |/    \\__  \    /  \ /  \\__  \ \____ \\____ \_/ __ \_  __ \ |
+/    Y    \  ___// /_/ | |  |   |  \/ __ \_ /    Y    \/ __ \|  |_> >  |_> >  ___/|  | \/\|
+\____|__  /\___  >____ | |__|___|  (____  / \____|__  (____  /   __/|   __/ \___  >__|   __
+        \/     \/     \/         \/     \/          \/     \/|__|   |__|        \/       \]]
+--------------------------------------------------------------------------------
+--   INSTALL AND SAVE
+--------------------------------------------------------------------------------
+function on_plugin_start()
+    require "tprint"
+    require "serialize"
+    win = "medina_map"..GetPluginID() -- define window name
+    medina_get_variables()
+    medina_window_setup(WINDOW_WIDTH, WINDOW_HEIGHT) -- define window attributes
+    if (type(WINDOW_POS_X) == "number") and (type(WINDOW_POS_Y) == "number") then
+	   WindowPosition(win, WINDOW_POS_X, WINDOW_POS_Y, 0, 2)
+    end
+    --medina_get_timers()
+end
+
+function medina_get_variables() -- load variables
+    DEFUALT_WINDOW_WIDTH = 300
+    DEFUALT_WINDOW_HEIGHT = 300
+    WINDOW_WIDTH, WINDOW_HEIGHT = tonumber(GetVariable("WINDOW_WIDTH") or DEFUALT_WINDOW_WIDTH), tonumber(GetVariable("WINDOW_HEIGHT") or DEFUALT_WINDOW_HEIGHT)
+    WINDOW_POS_X, WINDOW_POS_Y = tonumber(GetVariable("WINDOW_POS_X")), tonumber(GetVariable("WINDOW_POS_Y"))
+    assert(loadstring(GetVariable("med_rooms") or ""))()
+    if not med_rooms then medina_reset_metatable() end
+    med_exit_counts = medina_get_exit_counts(med_rooms)
+    medina_get_colours()
+    med_queued_commands = {}
+    med_room_sequence = {}
+    med_queued_look_commands = {}
+    med_is_in_medina = false
+end
+
+function OnPluginSaveState () -- save variables
+	SetVariable("med_rooms", "med_rooms = "..serialize.save_simple(med_rooms))
+	SetVariable("WINDOW_WIDTH", WINDOW_WIDTH)
+	SetVariable("WINDOW_HEIGHT", WINDOW_HEIGHT)
+	SetVariable("WINDOW_POS_X", WindowInfo(win, 10))
+	SetVariable("WINDOW_POS_Y", WindowInfo(win, 11))
+end
+
+function OnPluginInstall() end
+function OnPluginEnable() WindowShow(win, true) end -- show miniwindow on enable
+function OnPluginDisable() WindowShow(win, false) end -- hide miniwindow on disable
+function OnPluginClose() WindowShow(win, false) end -- hide miniwindow on close
+--------------------------------------------------------------------------------
+--   MINIWINDOW SETUP
+--------------------------------------------------------------------------------
+function medina_window_setup(window_width, window_height) -- define window attributes
+    
+    local function get_window_dimensions(window_width, window_height)
+        med_window_dimensions = {}
+        med_window_dimensions.window = {
+            x = window_width, 
+            y = window_height}
+        med_window_dimensions.buffer = {
+            x = window_width  * .05, 
+            y = window_height * .05}
+        med_window_dimensions.map = {
+            x = window_width  - med_window_dimensions.buffer.x * 2, 
+            y = window_height - med_window_dimensions.buffer.y * 2}
+        med_window_dimensions.block = {
+            x = med_window_dimensions.map.x/6, 
+            y = med_window_dimensions.map.y/6} 
+        med_window_dimensions.room = {
+            x = med_window_dimensions.block.x * .5, 
+            y = med_window_dimensions.block.y * .5}
+        med_window_dimensions.exit = {
+            x = (med_window_dimensions.block.x - med_window_dimensions.room.x) / 2, 
+            y = (med_window_dimensions.block.y - med_window_dimensions.room.y) / 2}
+        return med_window_dimensions
+    end
+
+    local function get_room_coordinates(dim) --dimensions
+
+        local function get_exit_coordinates(dim, k, v, origin)
+
+            local function give_direction(exit)
+                if exit == "n" then return 0, 1 end
+                if exit == "ne" then return 1, 1 end
+                if exit == "e" then return 1, 0 end
+                if exit == "se" then return 1, -1 end
+                if exit == "s" then return 0, -1 end
+                if exit == "sw" then return -1, -1 end
+                if exit == "w" then return -1, 0 end
+                if exit == "nw" then return -1, 1 end
+            end
+
+            med_map_coordinates.rooms[k].exit = {}
+            local exit_center = {}
+            for dir, _ in pairs(v.normalized) do
+                local x_dir, y_dir = give_direction(dir) 
+                local exit_center = {
+                    x = origin.x + ((dim.room.x + dim.exit.x) / 2) * x_dir,
+                    y = origin.y + ((dim.room.y + dim.exit.y) / 2) *-y_dir,}
+                local x1 = exit_center.x - dim.exit.x/2
+                local y1 = exit_center.y - dim.exit.y/2
+                local x2 = exit_center.x + dim.exit.x/2
+                local y2 = exit_center.y + dim.exit.y/2
+                med_map_coordinates.rooms[k].exit[dir] = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+            end
+        end
+
+        local function get_letter_coordinates(dim, k, v, origin)
+            local width = WindowTextWidth(win, "f", k)
+            local x1 = origin.x - (dim.room.x / 2) + (dim.room.x - width) / 2
+            local y1 = origin.y - (dim.room.y / 2) + (dim.room.y - dim.font.y) / 2
+            local x2, y2 = 0, 0
+            med_map_coordinates.rooms[k].letter = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+        end
+
+        med_map_coordinates = {rooms = {}, title_text = {}, exit_text = {}}
+        med_map_coordinates.exit_text.y1 = dim.buffer.y + dim.block.y * 5.5
+        for k, v in pairs(med_rooms) do
+            med_map_coordinates.rooms[k] = {}
+            med_map_coordinates.rooms[k].room = {outter = {}, inner = {}}
+            local room_center = {
+                x = dim.buffer.x + (v.location.x * dim.block.x) - (dim.block.x / 2),
+                y = dim.buffer.y + (v.location.y * dim.block.y)}
+            local x1 = room_center.x - (dim.room.x / 2)
+            local y1 = room_center.y - (dim.room.y / 2)
+            local x2 = room_center.x + (dim.room.x / 2)
+            local y2 = room_center.y + (dim.room.y / 2)
+            med_map_coordinates.rooms[k].room.outter = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+            get_exit_coordinates(dim, k, v, room_center)
+            get_letter_coordinates(dim, k, v, room_center)
+            x1 = room_center.x - ((dim.room.x * .75) / 2)
+            y1 = room_center.y - ((dim.room.y * .75) / 2)
+            x2 = room_center.x + ((dim.room.x * .75) / 2)
+            y2 = room_center.y + ((dim.room.y * .75) / 2)
+            med_map_coordinates.rooms[k].room.inner  = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+        end
+    end
+
+    local function get_windows(dim) -- dimensions 
+        WindowCreate(win.."copy_from", 0, 0, dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, ColourNameToRGB("black")) -- for loading images
+        WindowCreate(win.."base", 0, 0, dim.window.x, dim.window.y, miniwin.pos_center_all, 0, ColourNameToRGB("white")) -- base: room structure, static objects and bmp images
+        WindowResize(win, dim.window.x, dim.window.y, ColourNameToRGB("white")) -- display window: only dynamic objects will be printed directly here
+        WindowCreate(win.."overlay", 0, 0, dim.window.x, dim.window.y, miniwin.pos_center_all, 0, ColourNameToRGB("white")) --overlay: room-letters
+    end
+
+    local function get_font(dim) -- dimensions
+        -- to do: use window_width, window_height to determine font-size
+        FONT_SIZE = 14
+        WindowFont(win, "f", "Dina", FONT_SIZE, false, false, false, false)
+        WindowFont(win.."overlay", "f", "Dina", FONT_SIZE, false, false, false, false)
+        med_window_dimensions.font = {y = WindowFontInfo(win, "f", 1)} -- font height
+    end
+
+    local function get_hotspots(dim) -- dimensions
+        WindowAddHotspot(win, "z_body", -- prioritized alphabetically
+             0, 0, dim.window.x, dim.window.y, 
+             "",   -- MouseOver
+             "",   -- CancelMouseOver
+             "mousedown",
+             "cancelmousedown", 
+             "mouseup", 
+            "Left-click to drag!", -- tooltip text
+             1, 0)  -- hand cursor
+        WindowDragHandler(win, "z_body", "dragmove", "dragrelease", 0)
+    end
+
+    local function get_images(dim) -- dimensions
+        file_path = (GetPluginInfo(GetPluginID(), 6)):match("^(.*\\).*$")
+        local dir = {"n", "ne", "e", "se", "s", "sw", "w", "nw"}
+        for _, v in ipairs(dir) do
+            WindowLoadImage (win.."copy_from", v, file_path.."arrows\\"..v..".bmp")
+            WindowDrawImage(win.."copy_from", v, 0, 0, dim.exit.x - 4, dim.exit.y - 4, 2)
+            WindowImageFromWindow(win.."base", v, win.."copy_from")
+        end
+    end
+
+    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, ColourNameToRGB("white")) -- load dummy window
+    local dimensions, colours = get_window_dimensions(window_width, window_height), med_colours
+    get_windows(dimensions)
+    get_font(dimensions)
+    get_room_coordinates(dimensions)
+    get_hotspots(dimensions)
+    get_images(dimensions)
+    medina_draw_base(dimensions, colours)
+    medina_draw_overlay(dimensions, colours)
+end
+
+function medina_get_colours()
+    med_colours = {
+        window = {
+            background = ColourNameToRGB("black"),
+            border =     ColourNameToRGB("white"),
+            transparent =ColourNameToRGB("teal"),},
+        rooms = {
+            solved =     ColourNameToRGB("white"),
+            unsolved =   ColourNameToRGB("red"),
+            ghost =      ColourNameToRGB("yellow"),
+            herd_path =  ColourNameToRGB("blue"),
+            look =       ColourNameToRGB("white"), 
+            scry =       ColourNameToRGB("white"),},
+        exits = {
+            solved =     ColourNameToRGB("gray"),
+            unsolved =   ColourNameToRGB("red"),
+            herd_path =  ColourNameToRGB("blue"),
+            static =     ColourNameToRGB("white"),},
+        thyngs = {
+            you =        ColourNameToRGB("yellow"),
+            boss =       ColourNameToRGB("fuchsia"),
+            heavy =      ColourNameToRGB("yellow"),
+            thug =       ColourNameToRGB("white"),
+            xp = {"#003300", "#004c00", "#006600", "#007f00", "#009900", "#00b200", "#00cc00", "#00e500", "#00ff00",},
+            players =    ColourNameToRGB("blue"),
+            others =     ColourNameToRGB("gray"),},
+        text = {
+            room = {
+                visited =   ColourNameToRGB("gray"),
+                unvisited = ColourNameToRGB("lightblue"),},
+            title = {
+                medina =    ColourNameToRGB("red"),
+                path =      ColourNameToRGB("gray"),
+                brackets =  ColourNameToRGB("white"),},
+            exit = {
+                bracket =   ColourNameToRGB("white"),
+                comma =     ColourNameToRGB("white"),
+                unsolved =  ColourNameToRGB("red"),},
+            note = {
+                bracket =   ColourNameToRGB("white"),
+                error =     ColourNameToRGB("red"),
+                text =      ColourNameToRGB("gray"),},}}
+end
+--------------------------------------------------------------------------------
+--   RESET FUNCTIONS
+--------------------------------------------------------------------------------
+function medina_reset_metatable()
+    med_rooms = {
+        A = {exit_rooms = {B = "e", E = "se", D = "s"},                             location = {x = 1, y = 1}}, -- nw exit room
+        B = {exit_rooms = {C = "e", E = "s", A = "w"},                              location = {x = 2, y = 1}},
+        C = {exit_rooms = {F = "s", B = "w"},                                       location = {x = 3, y = 1}},
+        D = {exit_rooms = {A = "n", E = "e", H = "se"},                             location = {x = 1, y = 2}},
+        E = {exit_rooms = {B = "n", F = "e", I = "se", D = "w", A = "nw"},          location = {x = 2, y = 2}}, -- five-exit room
+        F = {exit_rooms = {C = "n", G = "e", I = "s", E = "w"},                     location = {x = 3, y = 2}},
+        G = {exit_rooms = {K = "se", F = "w"},                                      location = {x = 4, y = 2}},
+        H = {exit_rooms = {I = "e", L = "se", D = "nw", },                          location = {x = 2, y = 3}},
+        I = {exit_rooms = {F = "n", J = "e", M = "se", L = "s", H = "w", E = "nw"}, location = {x = 3, y = 3}}, -- heart
+        J = {exit_rooms = {K = "e", N = "se", I = "w"},                             location = {x = 4, y = 3}},
+        K = {exit_rooms = {J = "w", G = "nw"},                                      location = {x = 5, y = 3}},
+        L = {exit_rooms = {I = "n", M = "e", O = "s", H = "nw"},                    location = {x = 3, y = 4}},
+        M = {exit_rooms = {N = "e", P = "s", L = "w", I = "nw"},                    location = {x = 4, y = 4}},
+        N = {exit_rooms = {Q = "s", M = "w", J = "nw"},                             location = {x = 5, y = 4}},
+        O = {exit_rooms = {L = "n", P = "e"},                                       location = {x = 3, y = 5}},
+        P = {exit_rooms = {M = "n", Q = "e", O = "w"},                              location = {x = 4, y = 5}},
+        Q = {exit_rooms = {N = "n", R = "e", P = "w"},                              location = {x = 5, y = 5}},
+        R = {exit_rooms = {Q = "w"},                                                location = {x = 6, y = 5}},} -- se exit room
+	for room, _ in pairs(med_rooms) do medina_reset_room(room) end
+end
+
+function medina_reset_room(room)
+    medina_reset_room_exits(room)
+    med_rooms[room].visited = false
+    med_rooms[room].thyngs = {xp = false, players = false, others = false}
+    if (tonumber(WindowInfo(win.."overlay", 3)) > 0) and med_map_coordinates then -- if overlay has been constructed,
+        medina_draw_room_letter(room, med_map_coordinates.rooms[room], med_colours) -- reprint letter
+    end
+    --DeleteTimer(room) --delete expiration timer
+end
+
+function medina_reset_room_exits(room)
+    if room then
+        for _, dir in pairs(med_rooms[room].exit_rooms) do
+            med_rooms[room].normalized = med_rooms[room].normalized or {}
+            med_rooms[room].normalized[dir] = false
+        end
+        med_rooms[room].solved = false
+        med_rooms[room].exits = false
+        if room == "A" then med_rooms.A.normalized.nw = "nw" end -- these are the static exits to medina
+        if room == "R" then med_rooms.R.normalized.se = "se" end
+        if (tonumber(WindowInfo(win.."base", 3)) > 0) and med_map_coordinates then -- if base layer has been constructed,
+            medina_draw_room(room, med_map_coordinates.rooms[room], med_colours, win.."base") -- redraw room
+            medina_draw_room_exits(room, med_map_coordinates.rooms[room], med_colours, win.."base") -- redraw exits
+        end
+    end
+end
+
+--------------------------------------------------------------------------------
+--   HOTSPOT HANDLERS
+--------------------------------------------------------------------------------
+function dragmove(flags, hotspot_id)
+	if hotspot_id == "z_body" then
+		local posx, posy = WindowInfo(win, 17), WindowInfo(win, 18)
+		WindowPosition(win, posx - startx, posy - starty, 0, 2) -- move the window to the new location
+		if posx < 0 or posx > GetInfo(281) or
+		posy < 0 or posy > GetInfo(280) then -- change the mouse cursor shape appropriately
+			check(SetCursor(11)) -- x cursor
+		else
+			check(SetCursor(1)) -- hand cursor
+		end
+	end
+end
+function dragrelease(flags, hotspot_id) end
+function mousedown(flags, hotspot_id)
+    if hotspot_id == "z_body" then
+		startx, starty = WindowInfo(win, 14), WindowInfo (win, 15)
+    end
+end
+--------------------------------------------------------------------------------
+--   GRAPHICAL FUNCTIONS
+--------------------------------------------------------------------------------
+function medina_draw_room(room, coor, col, mw) -- room, coordinates, colours, miniwindow
+    local border_colour = med_rooms[room].solved and col.rooms.solved or col.rooms.unsolved
+    WindowCircleOp(mw, 2, -- draw room
+	    coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2,            
+	    border_colour, 0, 1,
+	    col.window.background, miniwin.brush_null)
+end
+
+function medina_draw_room_exits(room, coor, col, mw) --room, coordinates, colours, miniwindow
+    for norm, dir in pairs(med_rooms[room].normalized) do
+        local border_colour = dir and col.exits.solved or col.exits.unsolved
+        WindowCircleOp(mw, 2, -- draw exit
+            coor.exit[norm].x1, coor.exit[norm].y1, coor.exit[norm].x2, coor.exit[norm].y2,            
+            border_colour, 0, 1,
+            col.window.background, miniwin.brush_solid)
+        if dir then WindowDrawImage(mw, dir, coor.exit[norm].x1 + 2, coor.exit[norm].y1 + 2, 0, 0, 1) end --if solved draw arrow
+    end
+end
+
+function medina_draw_base(dim, col) -- dimensions, colours
+    WindowCircleOp( -- window border
+        win.."base", miniwin.circle_rectangle, 
+        0, 0, dim.window.x, dim.window.y,
+        col.window.border, miniwin.pen_solid, 1,
+        col.window.background, 0) 
+    WindowLine( -- nw exit
+        win.."base", 
+        0, dim.block.y / 2, dim.buffer.x, dim.buffer.y + (dim.block.y / 2), 
+        col.exits.static, miniwin.pen_dot, 1)
+    WindowLine( -- se exit
+        win.."base", 
+        (dim.block.x * 6) + dim.buffer.x, (dim.block.y * 5.5) + dim.buffer.y, dim.window.x, dim.window.y - (dim.block.y / 2), 
+        col.exits.static, miniwin.pen_dot, 1)
+    local coordinates = med_map_coordinates
+    for room, coor in pairs(coordinates.rooms) do
+        medina_draw_room(room, coor, col, win.."base") -- draw room
+        medina_draw_room_exits(room, coor, col, win.."base") -- draw exits
+    end
+end
+
+function medina_draw_room_letter(room, coor, col) -- room, coordinates, colours
+    local letter_colour = med_rooms[room].visited and col.text.room.visited or col.text.room.unvisited
+    WindowText (win.."overlay", "f", room,
+        coor.letter.x1, coor.letter.y1, 0, 0,
+        letter_colour, 
+        false)
+end
+
+function medina_draw_overlay(dim, col) -- dimensions, colours
+    WindowCircleOp( -- transparent background
+        win.."overlay", miniwin.circle_rectangle, 
+        0, 0, dim.window.x, dim.window.y,
+        col.window.transparent, miniwin.pen_solid, 1,
+        col.window.transparent, 0)
+    local coordinates = med_map_coordinates
+    for room, coor in pairs(coordinates.rooms) do
+        medina_draw_room_letter(room, coor, col)
+    end
+end
+
+function medina_print_map(looked_room)
+    local start_time = os.clock()
+    local function draw_exit_text(coor, dim, current_room)
+        local function order_exits(t1) -- order exits
+            local t2 = {}
+            for k, _ in pairs(t1) do table.insert(t2, k) end
+            local order = {n = 1, ne = 2, e = 3, se = 4, s = 5, sw = 6, w = 7, nw = 8}
+            table.sort(t2, function(a,b) return order[a]<order[b] end)
+            local i = 0
+            return function() i = i + 1; if t2[i] then return t2[i], t1[t2[i]] end end
+        end
+        local function get_exit_text_info(unsolved_exits, exit_col)
+            local exit_text, for_text_length, comma = {}, "[", false
+            for _, v in ipairs(unsolved_exits) do
+                if comma then
+                    table.insert(exit_text, {colour = exit_col.comma, text = ", "})
+                    for_text_length = for_text_length..", "
+                else
+                    table.insert(exit_text, {colour = exit_col.bracket, text = "["})
+                end
+                table.insert(exit_text, {colour = exit_col.unsolved, text = v})
+                for_text_length = for_text_length..v
+                comma = true
+            end
+            for_text_length = for_text_length.."]"
+            table.insert(exit_text, {colour = exit_col.bracket, text = "]"})
+            return WindowTextWidth(win, "f", for_text_length), exit_text
+        end
+        local directions = {n = true, ne = true, e = true, se = true, s = true, sw = true, w = true, nw = true}
+        for dir, _ in pairs(directions) do WindowDeleteHotspot(win, dir) end
+        local unsolved_exits = {}
+        if current_room and med_rooms[current_room].exits then
+            for dir, solved in order_exits(med_rooms[current_room].exits) do
+                if not(current_room == "A" and dir == "nw") and not(current_room == "R" and dir == "se") and not(solved.room) then table.insert(unsolved_exits, dir) end
+            end
+        elseif med_room_uncertainty and med_room_uncertainty.exits then
+            for dir, _ in order_exits(med_room_uncertainty.exits) do
+                table.insert(unsolved_exits, dir)
+            end
+        end
+        local text_width, exit_text = get_exit_text_info(unsolved_exits, med_colours.text.exit)
+        local x1 = (dim.window.x - text_width) / 2
+        local y1 = coor.y1
+        local y2 = y1 + dim.font.y
+        for _, v in ipairs(exit_text) do
+            local x2 = x1 + WindowTextWidth(win, "f", v.text)
+            if directions[v.text] then
+                 WindowAddHotspot(win, v.text,  
+                    x1, y1, x2, y2,
+                    "mouseover", 
+                    "cancelmouseover", 
+                    "mousedown",
+                    "cancelmousedown", 
+                    "mouseup", 
+                    "Look "..v.text, -- tooltip text
+                    miniwin.cursor_hand, 0) -- hand cursor  
+            end
+            x1 = x1 + WindowText(win, "f", v.text, x1, y1, x2, y2, v.colour)
+        end
+    end
+    local function draw_dynamic(coordinates, col, current_room, looked_room)
+        local function draw_thyng(room, coor, colour, is_uncertainty) -- room, coordinates, colours, uncertainty
+            local fill_style = is_uncertainty and 8 or 0
+            WindowCircleOp(win, 2,
+                coor.room.inner.x1, coor.room.inner.y1, coor.room.inner.x2, coor.room.inner.y2,            
+                col.window.background, 0, 0,
+                colour, fill_style)
+            WindowRectOp (win, 1, coor.room.inner.x1, coor.room.inner.y1, coor.room.inner.x2, coor.room.inner.y2, colour)
+            
+        end
+        local function draw_border(room, coor, colour)
+            WindowRectOp(win, miniwin.rect_frame, 
+                coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2,
+                colour)
+        end
+        local trajectory_room = med_room_sequence[#med_room_sequence]
+        if trajectory_room and med_is_in_medina then draw_border(trajectory_room , coordinates.rooms[trajectory_room ], col.rooms.ghost) end
+        if looked_room then
+            if type(looked_room) == "table" then
+                for _, possible_look_room in ipairs(looked_room) do
+                    if coordinates.rooms[possible_look_room] then
+                        draw_thyng(possible_look_room, coordinates.rooms[possible_look_room], col.rooms.look, "uncertainty")
+                    end
+                end
+            else
+                draw_thyng(looked_room, coordinates.rooms[looked_room], col.rooms.look) 
+            end
+        end
+        if current_room then 
+            draw_thyng(current_room, coordinates.rooms[current_room], col.thyngs.you)
+        elseif med_room_uncertainty then
+            for _, possible_room in ipairs(med_room_uncertainty) do
+                if coordinates.rooms[possible_room] then
+                    draw_thyng(possible_room, coordinates.rooms[possible_room], col.thyngs.you, "uncertainty")
+                end
+            end
+        end
+    end
+    local current_room = med_room_sequence[1] or false
+    WindowImageFromWindow(win, "base", win.."base")
+    WindowDrawImage(win, "base", 0, 0, 0, 0, 1) -- copy base
+    draw_dynamic(med_map_coordinates, med_colours, current_room, looked_room) -- add dynamic
+    if med_is_in_medina and (current_room and not(med_rooms[current_room].solved)) or med_room_uncertainty then
+        draw_exit_text(med_map_coordinates.exit_text, med_window_dimensions, current_room)  -- add exit text
+    end
+    WindowImageFromWindow(win, "overlay", win.."overlay")
+    WindowDrawImage(win, "overlay", 0, 0, 0, 0, 3) -- copy overlay
+    WindowShow(win, true)
+    --print(os.clock() - start_time) -- speed test
+end
+
+--need text exits and title
+-------------------------------------------------------------------------------
+--  GMCP EVENTS
+-------------------------------------------------------------------------------
+function OnPluginBroadcast(msg, id, name, text) --get gmcp for enter/exit events
+    EnableGroup("medina_enter_and_exit", false) --turn off enter/exit triggers if gmcp is connected
+    if text:match("^room.info .*") then
+        local room_id = text:match('^.*"identifier":"(.*)".*$')
+        if room_id == "BPMedina" then medina_enter() else medina_exit() end
+    end
+end
+--------------------------------------------------------------------------------
+--   TRIGGER EVENTS
+--------------------------------------------------------------------------------
+function on_trigger_medina_enter(name, line, wildcards, styles) 
+    medina_enter(); 
+    if wildcards.exits ~= "" then -- entering medina in brief-mode with no gmcp
+        on_trigger_medina_room_brief(name, line, wildcards, styles)
+        EnableTrigger("medina_enter", false) -- disable to avoid redundant triggering from enter and brief triggers
+    end 
+end
+
+function on_trigger_medina_exit(name, line, wildcards, styles) medina_exit() end
+
+function on_trigger_medina_room_brief(name, line, wildcards, styles)
+    local function get_brief_exits(str)
+        local t = {}
+        str = str..","
+        for dir in str:gmatch("(.-),") do
+            if dir:match("^[nsew][ew]?$") then
+               table.insert(t, dir) 
+            end
+        end
+        return t
+    end
+    local function list_to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
+    local exits = get_brief_exits(wildcards.exits)
+    local room = medina_get_brief_room(exits, med_room_sequence)
+    exits = list_to_set(exits)
+    medina_log_exits(room, exits)
+    medina_auto_solve_R(room)
+    medina_move_room(room, exits)
+    medina_print_map()
+end
+
+function on_trigger_medina_room(name, line, wildcards, styles)
+    local exits = medina_exit_string_to_set(wildcards.exits)
+    local room = name:match("medina_room_([A-R])$") or medina_H_or_N(exits)
+    medina_log_exits(room, exits)
+    medina_auto_solve_R(room)
+    medina_move_room(room, exits)
+    medina_print_map()
+    --medina_print_text()
+end
+
+function on_trigger_medina_dark_room(name, line, wildcards, styles)
+    local function list_to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
+    local exits = medina_exit_string_to_list(wildcards.exits)
+    local room = medina_get_brief_room(exits, med_room_sequence)
+    exits = list_to_set(exits)
+    medina_log_exits(room, exits)
+    medina_auto_solve_R(room)
+    medina_move_room(room, exits)
+    medina_print_map()
+end
+
+function on_trigger_medina_too_dark(name, line, wildcards, styles)
+    if med_room_sequence[1] and med_queued_look_commands[1] and med_rooms[med_room_sequence[1]] and med_rooms[med_room_sequence[1]].exits and med_rooms[med_room_sequence[1]].exits[med_queued_look_commands[1]] and med_rooms[med_room_sequence[1]].exits[med_queued_look_commands[1]].room then
+        medina_print_map(med_rooms[med_room_sequence[1]].exits[med_queued_look_commands[1]].room)
+    end
+    table.remove(med_queued_look_commands, 1)
+end
+
+function on_trigger_medina_look_room(name, line, wildcards, styles)
+    --[[local exits = medina_exit_string_to_set(wildcards.exits)
+    local room = name:match("medina_look_room_([A-R])$") or medina_H_or_N(exits)
+    medina_log_look_exits(room, exits)
+    medina_auto_solve_R(room)
+    medina_look_room(room, exits)
+    medina_print_map(room)]]
+    on_trigger_medina_look_dark_room(name, line, wildcards, styles) -- simulating dark-mode
+end
+
+function on_trigger_medina_look_out_of_bounds(name, line, wildcards, styles)
+    table.remove(med_queued_look_commands, 1)
+end
+
+function on_trigger_medina_look_dark_room(name, line, wildcards, styles)
+    local function list_to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
+    local exits, current_room = medina_exit_string_to_list(wildcards.exits), med_room_sequence[1]
+    local room, look_uncertainty = medina_get_dark_room(current_room, exits)
+    room, look_uncertainty = medina_room_uncertainty_on_look(current_room, med_room_uncertainty, room, look_uncertainty, exits, #exits)
+    exits = list_to_set(exits)
+    medina_log_look_exits(room, exits)
+    medina_auto_solve_R(room)
+    medina_look_room(room, exits)
+    medina_print_map(room or look_uncertainty)
+end
+
+function on_trigger_medina_scry_room(name, line, wildcards, styles)
+    local exits = medina_exit_string_to_set(wildcards.exits)
+    local room = name:match("medina_scry_room_([A-R])$") or medina_H_or_N(exits, "scry")
+    --print(name, room)
+end
+
+function on_trigger_medina_thyngs_in_room(name, line, wildcards, styles)
+    local exits = medina_exit_string_to_set(wildcards.exits)
+    --local room = name:match("medina_thyngs_in_room_([A-R])$") or medina_H_or_N(exits)
+    --print(name, room)
+end
+
+function on_trigger_medina_look_thyngs_in_room(name, line, wildcards, styles)
+    local exits = medina_exit_string_to_set(wildcards.exits)
+    local room = name:match("medina_look_thyngs_in_room_([A-R])$") or medina_H_or_N(exits)
+    --print(name, room)
+end
+
+function on_trigger_medina_scry_thyngs_in_room(name, line, wildcards, styles)
+    local exits = medina_exit_string_to_set(wildcards.exits)
+    local room = name:match("medina_scry_thyngs_in_room_([A-R])$") or medina_H_or_N(exits, "scry")
+    --print(name, room)
+end
+
+function on_trigger_medina_remove_queue(name, line, wildcards, styles)
+    -- we can't just clear the tables entirely because commands may have been entered after 'stop'
+    while(med_queued_look_commands[med_look_count + 1]) do
+	   table.remove(med_queued_look_commands, (med_look_count + 1))
+    end
+    while(med_queued_commands[med_command_count + 1] ~= nil) do
+	   table.remove(med_queued_commands, (med_command_count + 1))
+    end
+    while(med_room_sequence[med_command_count + 2]) do
+	   table.remove(med_room_sequence, (med_command_count + 2))
+    end
+    medina_print_map()
+end
+
+function on_trigger_medina_command_fail(name, line, wildcards, styles)
+    table.remove(med_queued_commands, 1);table.remove(med_room_sequence, 2)
+end
+
+function on_trigger_medina_you_follow(name, line, wildcards, styles)
+    med_command_count = (med_command_count or 0) + 1 -- used in 'stop' handling
+    local direction = medina_format_direction(wildcards.direction)
+    table.insert(med_queued_commands, 1, direction)
+	while(med_room_sequence[2]) do table.remove(med_room_sequence, 2) end -- clear room sequence except current room
+    for _, direction in ipairs(med_queued_commands) do -- rebuild room sequence
+        local trajectory_room = med_room_sequence[#med_room_sequence]
+        if direction:match("l") then
+            table.insert(med_room_sequence, trajectory_room)
+        elseif med_rooms[trajectory_room] and med_rooms[trajectory_room].exits 
+            and med_rooms[trajectory_room].exits[direction] and med_rooms[trajectory_room].exits[direction].room then
+            table.insert(med_room_sequence, med_rooms[trajectory_room].exits[direction].room)
+        elseif med_rooms[trajectory_room] and med_rooms[trajectory_room].exits and not(med_rooms[trajectory_room].exits[direction]) 
+            and not(trajectory_room == "R" and direction == "se") and not(trajectory_room == "A" and direction == "nw") then
+            --if we know that the exit does not exist
+            table.insert(med_room_sequence, trajectory_room)
+        else
+            table.insert(med_room_sequence, false)
+        end
+    end
+end
+
+--------------------------------------------------------------------------------
+--   ALIAS EVENTS
+--------------------------------------------------------------------------------
+
+--movement/look handlers
+
+function on_alias_medina_move_room(name, line, wildcards)
+    med_command_count = (med_command_count or 0) + 1 -- used in 'stop' handling
+	local direction = medina_format_direction(wildcards.direction)
+    local current_room, trajectory_room, to_send = med_room_sequence[1], med_room_sequence[#med_room_sequence], direction
+	if direction:match("l") then
+        table.insert(med_queued_commands, false)
+		table.insert(med_room_sequence, trajectory_room)
+	elseif med_rooms[trajectory_room] and med_rooms[trajectory_room].normalized[direction] then
+        -- we are normalizing directions based on the room sequence table, this keeps track of queued trajectory
+        to_send = med_rooms[trajectory_room].normalized[direction]
+        table.insert(med_queued_commands, med_rooms[trajectory_room].normalized[direction])
+        if med_rooms[trajectory_room].exits then
+            table.insert(med_room_sequence, med_rooms[trajectory_room].exits[med_rooms[trajectory_room].normalized[direction]].room)
+        else
+            table.insert(med_room_sequence, false)
+            -- don't touch med_room_uncertainty here
+            --med_room_uncertainty = {}
+            --for room, _ in pairs(med_rooms[trajectory_room].exit_rooms) do
+                --table.insert(med_room_uncertainty, room)
+            --end
+        end
+    elseif med_rooms[trajectory_room] and med_rooms[trajectory_room].exits 
+        and med_rooms[trajectory_room].exits[direction] and med_rooms[trajectory_room].exits[direction].room then
+        --if we know where we're going but it wasn't from a normalized command
+        table.insert(med_queued_commands, direction)
+        table.insert(med_room_sequence, med_rooms[trajectory_room].exits[direction].room)
+    elseif med_rooms[trajectory_room] and med_rooms[trajectory_room].exits and not(med_rooms[trajectory_room].exits[direction]) 
+        and not(trajectory_room == "R" and direction == "se") and not(trajectory_room == "A" and direction == "nw") then
+        --if we know that the exit does not exist
+        table.insert(med_queued_commands, direction)
+        table.insert(med_room_sequence, trajectory_room)
+    else
+        table.insert(med_queued_commands, direction)
+		table.insert(med_room_sequence, false)
+	end
+    Send(to_send)
+    medina_print_map()
+    --debug
+    medina_debug_movement()
+end
+
+function on_alias_medina_look_room(name, line, wildcards)
+    med_look_count = (med_look_count or 0) + 1
+    local direction = medina_format_direction(wildcards.direction)
+	local trajectory_room, to_send = med_room_sequence[#med_room_sequence], "l "
+	if trajectory_room and med_rooms[trajectory_room].solved and med_rooms[trajectory_room].normalized[direction]then 
+        -- unlike movement, look-directions only normalize after all exits in a room are solved
+        to_send = to_send..med_rooms[trajectory_room].normalized[direction] -- normalized
+        table.insert(med_queued_look_commands, med_rooms[trajectory_room].normalized[direction])
+	else
+		to_send = to_send..direction --unaltered
+		table.insert(med_queued_look_commands, direction)
+	end
+    Send(to_send)
+    --debug
+    medina_debug_movement()
+end
+
+function on_alias_medina_stop(name, line, wildcards)
+    med_command_count, med_look_count = 0, 0
+    Send("stop")
+end
+
+-- debugging
+
+function on_alias_medina_table(name, line, wildcards) -- 'medt'
+    local room = wildcards.room:upper()
+    if room:match("^[A-R]$") then
+        print("med_rooms:",room..":");tprint(med_rooms[room])
+    else
+        print("med_rooms");tprint(med_rooms)
+        print("med_queued_commands");tprint(med_queued_commands)
+        print("med_room_sequence");tprint(med_room_sequence)
+        print("med_queued_look_commands");tprint(med_queued_look_commands)
+    end
+end
+
+-- commands
+
+function on_alias_medina_reset(name, line, wildcards) -- 'medr'
+    local current_room, is_reset_room, reset_room = med_room_sequence[1] or false, wildcards.is_reset_room, wildcards.room:upper()
+    if reset_room:match("^[A-R]$") then -- room specified
+        medina_reset_room(reset_room); medina_print_map()
+        if current_room and current_room == reset_room then Send("l") end -- gather exits
+    elseif is_reset_room ~= "" then
+        if current_room then medina_reset_room(current_room); medina_print_map(); Send("l") end -- 'room' with no argument
+    else
+        medina_reset_metatable(); medina_print_map() -- no arguments: reset everything
+        if med_is_in_medina then Send("l") end
+    end
+end
+
+function on_alias_medina_window_open(name, line, wildcards) medina_print_map() end -- 'medwo'
+
+function on_alias_medina_window_exit(name, line, wildcards) WindowShow(win, false) end -- 'medwx'
+
+function on_alias_medina_window_center(name, line, wildcards) WindowPosition(win, 0, 0, miniwin.pos_center_all, 0); medina_print_map() end -- 'medwc'
+--------------------------------------------------------------------------------
+--  ENTER AND EXIT HANDLING
+--------------------------------------------------------------------------------
+function medina_enter()
+    if not(med_is_in_medina) then
+        med_is_in_medina,  med_room_uncertainty = true, false
+        med_queued_commands, med_room_sequence, med_queued_look_commands = {}, {}, {}
+        med_command_count, med_look_count = 0, 0
+        EnableGroup("medina", true)
+        -- delete timer med_timer_reset_thyngs
+        -- delete timer med_timer_reset_visited
+    end
+end
+
+function medina_exit()
+    if med_is_in_medina then
+        med_is_in_medina, med_room_uncertainty = false, false
+        local previous_room = med_room_sequence[1] or false
+        med_room_sequence = {}; med_room_sequence[0] = previous_room
+        EnableGroup("medina", false)
+        if GetTriggerInfo("medina_exit", 8) then -- no need to enable if gmcp is active
+            EnableTrigger("medina_enter", true)
+        end
+        -- set timer med_timer_reset_thyngs
+        -- set timer med_timer_reset_visited
+    end
+    WindowShow(win, false)
+end
+--------------------------------------------------------------------------------
+--   EXIT LOGGING
+--------------------------------------------------------------------------------
+function medina_H_or_N(exits, is_scry)
+    local match = true
+    if     not(is_scry) and med_room_sequence[1] and med_room_sequence[1]:match("^[ILDH]$") then
+        return "H"
+    elseif not(is_scry) and med_room_sequence[1] and med_room_sequence[1]:match("^[JMNQ]$") then
+        return "N"
+    elseif not(is_scry) and med_room_sequence[0] and med_room_sequence[0]:match("^[ILDH]$") then
+        return "H"
+    elseif not(is_scry) and med_room_sequence[0] and med_room_sequence[0]:match("^[JMNQ]$") then
+        return "N"
+    elseif med_rooms.H.exits and med_rooms.N.exits then
+        for dir, _ in pairs(med_rooms.H.exits) do
+            if not(med_rooms.N.exits[dir]) then match = false; break end
+        end
+        if match then med_room_uncertainty = {"H", "N"}; med_room_uncertainty.exits = exits; return false end -- exit lists are identical
+    end
+    match = true
+    if med_rooms.H.exits then
+        for dir, _ in pairs(med_rooms.H.exits) do
+            if not(exits[dir]) then match = false; break end
+        end
+        if match then return "H" else return "N" end
+    elseif med_rooms.N.exits then
+			for dir, _ in pairs(med_rooms.N.exits) do
+				if not(exits[dir]) then match = false; break end
+			end
+			if match then return "N" else return "H" end	
+    end
+    med_room_uncertainty = {"H", "N"}; med_room_uncertainty.exits = exits
+    return false
+end
+
+function medina_log_exits(room, exits)
+    if room then -- only log exits if we have certainty
+        if not(med_rooms[room].exits) then --if exits are not logged yet
+            med_rooms[room].exits = {}
+            for dir, _ in pairs(exits) do
+                med_rooms[room].exits[dir] = {room = false, exits = false} --log them
+            end
+        else --check if exits have changed
+            local exit_change = false
+            for dir, _ in pairs(exits) do
+                if not(med_rooms[room].exits[dir]) then
+                    exit_change = true
+                    break
+                end
+            end
+            if exit_change then -- if exits have changed, update them
+                medina_reset_room_exits(room)
+                med_rooms[room].exits = {}
+                for dir, _ in pairs(exits) do
+				    med_rooms[room].exits[dir] = {room = false, exits = false}
+			     end
+            end
+        end
+    end
+end
+
+function medina_log_look_exits(room, exits)
+    local current_room, looked_direction = med_room_sequence[1], med_queued_look_commands[1]
+    if current_room then -- only log exits if we have certainty
+        local current_room, looked_direction = med_room_sequence[1], med_queued_look_commands[1]
+        print(current_room,looked_direction)
+        if current_room and looked_direction then
+            if med_rooms[current_room].exits then
+                if med_rooms[current_room].exits[looked_direction] ~= nil then
+                    med_rooms[current_room].exits[looked_direction].exits = {}
+                    for dir, _ in pairs(exits) do
+                       med_rooms[current_room].exits[looked_direction].exits[dir] = true
+                       -- logging adjacent-room exit-lists, this will come in handy when dealing with specific cases of uncertainty
+                    end
+                end
+            end
+        end
+    end
+    medina_log_exits(room, exits)
+end
+
+function medina_exit_string_to_set(str)
+    local t = {}
+    if str:match(" north[%s%.,]") then t.n = true end
+    if str:match(" northeast[%s%.,]") then t.ne = true end
+    if str:match(" east[%s%.,]") then t.e = true end
+    if str:match(" southeast[%s%.,]") then t.se = true end
+    if str:match(" south[%s%.,]") then t.s = true end
+    if str:match(" southwest[%s%.,]") then t.sw = true end
+    if str:match(" west[%s%.,]") then t.w = true end
+    if str:match(" northwest[%s%.,]") then t.nw = true end  
+    return t
+end
+
+function medina_exit_string_to_list(str)
+    local t = {}
+	if str:match(" north[%s%.,]") then table.insert(t, "n") end
+	if str:match(" northeast[%s%.,]") then table.insert(t, "ne") end
+	if str:match(" east[%s%.,]") then table.insert(t, "e") end
+	if str:match(" southeast[%s%.,]") then table.insert(t, "se") end
+	if str:match(" south[%s%.,]") then table.insert(t, "s") end
+	if str:match(" southwest[%s%.,]") then table.insert(t, "sw") end
+	if str:match(" west[%s%.,]") then table.insert(t, "w") end
+	if str:match(" northwest[%s%.,]") then table.insert(t, "nw") end
+    return t
+end
+--------------------------------------------------------------------------------
+--   MOVEMENT AND LOOK HANDLING
+--------------------------------------------------------------------------------
+function medina_move_room(room, exits)
+    local exit_change = false
+    if med_room_sequence[1] then
+        med_room_sequence[0] = med_room_sequence[1]
+    end
+    table.remove(med_room_sequence, 1)
+    if (med_room_sequence[1] ~= room) and med_room_sequence[1] then exit_change = true end -- if we move to an unexpected room then the exits have changed
+    med_room_sequence[1] = room 
+    if med_queued_commands[1] then
+        med_queued_commands[0] = med_queued_commands[1]
+    end
+    if room then med_room_uncertainty = false end
+    table.remove(med_queued_commands, 1)
+    local previous_room, current_room, movement_direction = med_room_sequence[0], med_room_sequence[1], med_queued_commands[0]
+    if exit_change then medina_reset_room_exits(previous_room) end -- if exits have changed, reset previous room
+    if previous_room and movement_direction and current_room then
+        medina_solve_exit(previous_room, movement_direction, current_room) -- solve exit from previous room based on where we end up
+    end
+    if current_room then 
+        med_rooms[current_room].visited = true
+        medina_draw_room_letter(room, med_map_coordinates.rooms[current_room], med_colours) 
+    end
+    --debug
+    medina_debug_movement()
+end
+
+function medina_look_room(room, exits)
+    local current_room, direction, looked_room = med_room_sequence[1], med_queued_look_commands[1], room
+    if current_room and direction and looked_room then medina_solve_exit(current_room, direction, looked_room) end
+    med_queued_look_commands[0] = med_queued_look_commands[1] or false
+    table.remove(med_queued_look_commands, 1)
+    if looked_room then
+        med_rooms[looked_room].visited = true
+        medina_draw_room_letter(room, med_map_coordinates.rooms[looked_room], med_colours)
+    end
+    --debug
+    medina_debug_movement()
+end
+
+function medina_format_direction(long_direction)
+    local direction = string.lower(long_direction)
+	direction = direction:gsub("north", "n")
+	direction = direction:gsub("east", "e")
+	direction = direction:gsub("south", "s")
+	direction = direction:gsub("west", "w")
+	direction = direction:gsub("look", "l")
+    return direction
+end
+--------------------------------------------------------------------------------
+--   EXIT SOLVING
+--------------------------------------------------------------------------------
+function medina_solve_exit(from_room, direction, to_room)
+    if med_rooms[from_room].exits and med_rooms[from_room].exit_rooms[to_room] then
+        if med_rooms[from_room].exits[direction] then
+            local normalized = med_rooms[from_room].exit_rooms[to_room]
+            med_rooms[from_room].exits[direction].room = to_room
+            med_rooms[from_room].normalized[normalized] = direction
+        end
+    end
+    medina_solve_final_count_matches(from_room)
+    medina_solve_final_exit(from_room)
+    medina_draw_room(from_room, med_map_coordinates.rooms[from_room], med_colours, win.."base")
+    medina_draw_room_exits(from_room, med_map_coordinates.rooms[from_room], med_colours, win.."base")
+end
+
+function medina_solve_final_count_matches(room, is_adjacent)
+    local function get_table_length(t) local count = 0; for _, _2 in pairs(t) do count = count + 1 end; return count end
+    local function get_possible_rooms(room, exit_count)
+        t = {}; for _, v in pairs(med_exit_counts[room].adj_room_exit_count[exit_count].rooms) do t[v] = true end; return t
+    end
+    if med_rooms[room].exits and not(med_rooms[room].solved) then
+        local matches, direction = {}, false
+        for dir, v in pairs(med_rooms[room].exits) do
+            if v.room then
+                local exit_count = med_exit_counts[v.room].adj_room_count
+                matches[exit_count] = matches[exit_count] or {possible_rooms = get_possible_rooms(room, exit_count)}
+                matches[exit_count].possible_rooms[v.room] = false
+            elseif v.exits then
+                local exit_count = get_table_length(v.exits)
+                matches[exit_count] = matches[exit_count] or {possible_rooms = get_possible_rooms(room, exit_count)}
+                direction = dir
+            end
+        end
+        for exit_count, v in pairs(matches) do
+            local match, count = false, 0
+            for possible_room, is_possible in pairs(v.possible_rooms) do
+                if is_possible then
+                    match = possible_room; count = count + 1
+                    if count > 1 then match = false; break end
+                end
+            end
+            if match and direction then
+                print("match!",match,direction)
+                med_rooms[room].exits[direction].room = match
+                med_rooms[room].normalized[med_rooms[room].exit_rooms[match]] = direction
+            end
+        end
+    end
+end
+
+function medina_solve_final_exit(from_room)
+    local count, final_exit = 0, ""
+    if med_rooms[from_room].exits then
+        for dir, v in pairs(med_rooms[from_room].exits) do
+            if not(v.room) and not(from_room == "R" and dir == "se") and not(from_room == "A" and dir == "nw") then
+                final_exit = dir
+                count = count + 1
+                if count > 1 then break end
+            end
+        end
+        if count == 1 then
+            local final_room = ""
+            for to_room, dir in pairs(med_rooms[from_room].exit_rooms) do
+                if not(med_rooms[from_room].normalized[dir]) then
+                    med_rooms[from_room].normalized[dir] = final_exit
+                    final_room = to_room
+                    break
+                end
+            end
+            med_rooms[from_room].exits[final_exit].room = final_room
+            med_rooms[from_room].solved = os.time()
+            -- set expiration timer
+        elseif not(med_rooms[from_room].solved) and count == 0 then
+            med_rooms[from_room].solved = os.time()
+        end
+    end
+end
+
+function medina_auto_solve_R(room)
+     if room == "R" and not(med_rooms.R.solved) then 
+        medina_solve_final_exit("R")
+        medina_draw_room("R", med_map_coordinates.rooms.R, med_colours, win.."base")
+        medina_draw_room_exits("R", med_map_coordinates.rooms.R, med_colours, win.."base") 
+    end
+end
+
+function medina_get_dark_room(current_room, exits)
+    local look_direction, exit_count, possible_rooms = med_queued_look_commands[1], #exits, {}
+    if exit_count == 6 then -- heart
+        return "I"
+    elseif exit_count == 5 then -- 5-exit room
+        return "E"
+    elseif current_room and med_exit_counts[current_room].adj_room_exit_count[exit_count] then -- exit counts match
+        if med_exit_counts[current_room].adj_room_exit_count[exit_count].number_of_rooms == 1 then -- there is only one possible match
+            return med_exit_counts[current_room].adj_room_exit_count[exit_count].rooms[1]
+        else
+            local match = true
+            for _, room in ipairs(med_exit_counts[current_room].adj_room_exit_count[exit_count].rooms) do -- possible matches based on exit count
+                match = true
+                if med_rooms[room].exits then -- exits are logged
+                    for _2, dir in ipairs(exits) do
+                        if not(med_rooms[room].exits[dir]) then match = false; break end -- make sure the exits match
+                    end
+                    if match then -- we now have a likely canidate
+                        table.insert(possible_rooms, room)
+                    end
+                else -- exits are not logged
+                    table.insert(possible_rooms, room)
+                end
+            end
+            local match_count = #possible_rooms
+            if match_count > 1 then 
+                if current_room and look_direction and med_rooms[current_room].exits[look_direction].room then
+                    return med_rooms[current_room].exits[look_direction].room -- already had info but can't confirm
+                else
+                    if previous_room == "E" then
+                        local is_nw_exit = false
+                        for _, v in ipairs(exits) do if v == "nw" then is_nw_exit = true end end
+                        if not(is_nw_exit) then 
+                            return "F" -- if there's no nw exit, it can't be 'A'
+                        end
+                    end
+                    return false, possible_rooms -- uncertainty
+                end
+            elseif match_count == 1 then 
+                return possible_rooms[1] -- only one match
+            elseif current_room and look_direction and med_rooms[current_room].exits[look_direction].room then -- if we know where we're looking but the exits have changed
+                local look_room = med_rooms[current_room].exits[look_direction].room
+                medina_reset_room(look_room)
+                return look_room
+            else
+                return false
+            end
+        end
+    else
+        return false
+    end
+end
+
+function medina_get_brief_room(exits, r_seq)
+    local function get_room(exit_count, previous_room, presumed_room, is_uncertainty)
+        local match, possible_rooms = true, {}
+        for _, room in ipairs(med_exit_counts[previous_room].adj_room_exit_count[exit_count].rooms) do -- possible matches based on exit count
+            if presumed_room == room then -- no reason to think we are not where we predicted we would be
+                return room, false
+            else
+                match = true
+                if med_rooms[room].exits then -- exits are logged
+                    for _2, dir in ipairs(exits) do
+                        if not(med_rooms[room].exits[dir]) then match = false; break end -- make sure exits match
+                    end
+                    if match then 
+                        table.insert(possible_rooms, room)
+                    end
+                else
+                    table.insert(possible_rooms, room)
+                end
+            end
+        end
+        if #possible_rooms == 1 then
+            return possible_rooms[1], false
+        elseif previous_room == "E" then
+            local is_nw_exit = false
+            for _, v in ipairs(exits) do if v == "nw" then is_nw_exit = true end end
+            if not(is_nw_exit) then 
+                return "F", false -- if there's no nw exit, it can't be 'A'
+            end
+        end
+        if not(is_uncertainty) then
+            possible_rooms.exits = {}
+            for _, dir in ipairs(exits) do possible_rooms.exits[dir] = true end
+        end
+        return false, possible_rooms
+    end
+    local exit_count, previous_room, presumed_room = #exits, r_seq[1], r_seq[2]
+    if exit_count == 6 then -- heart
+        return "I"
+    elseif exit_count == 5 then -- 5-exit room
+        return "E"
+    elseif previous_room and med_exit_counts[previous_room].adj_room_exit_count[exit_count] then -- exit counts match
+        if med_exit_counts[previous_room].adj_room_exit_count[exit_count].number_of_rooms == 1 then -- there is only one possible match
+            return med_exit_counts[previous_room].adj_room_exit_count[exit_count].rooms[1]
+        else
+            local to_return = false
+            to_return, med_room_uncertainty = get_room(exit_count, previous_room, presumed_room)
+            return to_return
+        end
+    elseif med_room_uncertainty then
+        local function to_list(t1) t2 = {}; for k, _ in pairs(t1) do table.insert(t2, k) end; return t2 end
+        local uncertainty = {}
+        for _, room in ipairs(med_room_uncertainty) do
+            if room and med_exit_counts[room].adj_room_exit_count[exit_count] then
+                local canidate, canidates = get_room(exit_count, room, presumed_room, "uncertainty")
+                if canidate then
+                    uncertainty[canidate] = true
+                elseif canidates then
+                    for _2, canidate_2 in ipairs(canidates) do
+                        uncertainty[canidate_2] = true
+                    end
+                end
+            end
+        end
+        uncertainty = to_list(uncertainty)
+        if #uncertainty == 1 then
+            med_room_uncertainty = false
+            return uncertainty[1]
+        end
+        med_room_uncertainty = uncertainty
+        med_room_uncertainty.exits = {}
+        for _, dir in ipairs(exits) do med_room_uncertainty.exits[dir] = true end
+        return false
+    elseif exit_count == 4 then
+        return "A"
+    elseif exit_count == 2 then
+        return "R"
+    else
+        return false
+    end
+end 
+
+function medina_room_uncertainty_on_look(current_room, room_uncertainty, looked_room, look_uncertainty, look_exits, look_exit_count)
+    local function to_list(t1) t2 = {}; for k, _ in pairs(t1) do table.insert(t2, k) end; return t2 end
+    local function to_set(t1) t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
+    local possible_rooms, look_uncertainty = {}, look_uncertainty or {}
+    if room_uncertainty and not(current_room) then -- we don't know where we are
+        look_uncertainty = {}
+        for _, possible_room in ipairs(room_uncertainty) do
+            if looked_room then -- if we know where we're looking
+                if med_rooms[possible_room].exit_rooms[looked_room] then -- make sure it's adjacent
+                    if med_rooms[looked_room].exits then -- if exits are logged
+                        local match = true
+                        for _2, dir in ipairs(look_exits) do
+                            if not(med_rooms[looked_room].exits[dir]) then match = false; break end --  make sure exits match
+                        end
+                        if match then -- if they do
+                            table.insert(possible_rooms, possible_room)
+                        end
+                    else -- if exits are not logged
+                        table.insert(possible_rooms, possible_room)
+                    end
+                end
+            else -- we don't know where we're looking or where we are
+                if med_exit_counts[possible_room].adj_room_exit_count[look_exit_count] then -- if there are adjacent rooms with equal exit count
+                    for _2, possible_look_room in ipairs(med_exit_counts[possible_room].adj_room_exit_count[look_exit_count].rooms) do
+                        if med_rooms[possible_look_room].exits then -- if exits are logged
+                            local match = true
+                            for _3, dir in ipairs(look_exits) do
+                                if not(med_rooms[possible_look_room].exits[dir]) then match = false; break end --  make sure exits match
+                            end
+                            if match then -- if they do
+                                look_uncertainty[possible_look_room] = true
+                                table.insert(possible_rooms, possible_room)
+                            end
+                        else -- if exits are not logged
+                            look_uncertainty[possible_look_room] = true
+                            table.insert(possible_rooms, possible_room)
+                        end
+                    end
+                end
+
+            end
+        end
+        local current_room_exits = med_room_uncertainty and med_room_uncertainty.exits or false
+        look_uncertainty = to_list(look_uncertainty)
+        if current_room_exits then
+            if #possible_rooms == 1 then
+                current_room = possible_rooms[1]
+                med_room_sequence[1] = current_room
+                med_room_uncertainty = false
+                medina_log_exits(current_room, current_room_exits)
+            else
+                med_room_uncertainty = possible_rooms
+                med_room_uncertainty.exits = current_room_exits
+            end
+        end
+        if #look_uncertainty == 1 then
+            looked_room = look_uncertainty[1]
+            look_uncertainty = false
+        end
+    end
+    return looked_room, look_uncertainty -- if we don't have room uncertainty there is nothing more we can do to narrow look uncertainty that was not already done
+end
+
+function medina_get_exit_counts(t) -- compile data relating to exit counts, useful for cases of uncertainty from dark/brief
+    local function get_exit_count(room)
+        local count = 0
+        for _, _2 in pairs(t[room].exit_rooms) do count = count + 1 end
+        if room == "A" or room == "R" then count = count + 1 end
+        return count
+    end
+    local exit_counts = {}
+    for room, v in pairs(t) do
+        exit_counts[room] = {adj_room_exit_count = {}}
+        local adj_room_count = 0
+        for adj_room, _ in pairs(v.exit_rooms) do
+            local n = get_exit_count(adj_room)
+            exit_counts[room].adj_room_exit_count[n] = exit_counts[room].adj_room_exit_count[n] or {}
+            exit_counts[room].adj_room_exit_count[n].number_of_rooms = (exit_counts[room].adj_room_exit_count[n].number_of_rooms and exit_counts[room].adj_room_exit_count[n].number_of_rooms + 1) or 1
+            exit_counts[room].adj_room_exit_count[n].rooms = exit_counts[room].adj_room_exit_count[n].rooms or {}
+            table.insert(exit_counts[room].adj_room_exit_count[n].rooms, adj_room)
+            adj_room_count = adj_room_count + 1
+        end
+        if room == "A" or room == "R" then adj_room_count = adj_room_count + 1 end
+        exit_counts[room].adj_room_count = adj_room_count
+    end
+    return exit_counts
+end
+--------------------------------------------------------------------------------
+--   DEBUG FUNCTIONS
+--------------------------------------------------------------------------------
+function medina_debug_movement()
+    if false then
+        print("room sequence:");tprint(med_room_sequence)
+        print("queued commands:");tprint(med_queued_commands)
+        print("queued look commands:");tprint(med_queued_look_commands)
+    end
+end
+--------------------------------------------------------------------------------
+--   START EXECUTION HERE
+--------------------------------------------------------------------------------
+on_plugin_start()
+
+--local start_time = os.clock()
+--print(os.clock() - start_time) --speed test
+
+--tprint(med_rooms)
+tprint(med_exit_counts)
+--tprint(med_colours)
+--tprint(med_map_coordinates)
+--tprint(med_room_sequence)
+--tprint(med_queued_commands)
+--tprint(med_queued_look_commands)
+    
+]]>
+</script>
+<triggers>
+<!--  on_trigger_medina_enter  -->
+  <trigger
+   group="medina_enter_and_exit"
+   enabled="y"
+   keep_evaluating="y"
+   match="^(> )?(\[somewhere in an alleyway\]|Somewhere in an alleyway \[(?P&lt;exits&gt;.*)\]\.)$"
+   name="medina_enter"
+   regexp="y"
+   send_to="12"
+   sequence="99"
+   script="on_trigger_medina_enter"
+  ></trigger>
+<!--  on_trigger_medina_exit  -->
+  <trigger
+   group="medina_enter_and_exit"
+   enabled="y"
+   keep_evaluating="y"
+   match="^(> )?(\[(?!(> )?(somewhere in an alleyway|.*(specialized|birthday|Discworld|achievement|first time|killed by|gains a level|Cpu|Machine|Reclaimed|Cleaning|joined the|now worshipping|now a member of).*)).*\]|(?!Somewhere in an alleyway).* \[[nesw,]+\]\.)$"
+   name="medina_exit"
+   regexp="y"
+   send_to="12"
+   sequence="98"
+   script="on_trigger_medina_exit"
+  ></trigger>
+<!--  on_trigger_medina_room_brief()  -->
+  <trigger
+   group="medina"
+   keep_evaluating="y"
+   match="^(> )?Somewhere in an alleyway \[(?P&lt;exits&gt;.*)\]\.$"
+   name="medina_room_brief"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room_brief"
+  ></trigger>
+<!--  on_trigger_medina_room()  -->
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a small winding alleyway\, and there are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_A"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?Standing in an alleyway\, surrounded by buildings and other alleys\, your head spins as you struggle to get your bearings\.  You fail miserably\.  Alleys lead in several directions\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_B"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?The alleyway gets very narrow here\. There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_C"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a small winding alleyway with a T\-junction\.  All three possible exits look very similar and very alley\-ly\.  The alleys are narrow\, winding and difficult to navigate safely without a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_D"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are five obvious exits\:(?!(> )?(.*enter door\.)).*|There are six obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_E"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a cross alleyways\.  Like a cross\-roads\, but with alleyways\.  They go this way and that\.  You can\'t work out which way is north and you wish you\'d brought a compass\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_F"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?At least at this point in the maze your decision is simple\.  Either go that way\, or that way\.  The alleyway simply bends here\, and you can continue or go back\.  It\'s entirely up to you\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_G"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are three obvious exits\:(?!(> )?(.*enter door\.)).*|There are four obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_H_or_N"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?In the heart of the Red Triangle maze\, alleys lead in all directions\, and you are unsure which way to turn\.  Six alleys meet here\, or possibly\, depending on your point of view leave from here\.  Either way\, there are a lot of possible exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_I"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?Three alleyways merge here\.  They all look the same\, and all go in different directions\.  Small buildings line the alleyways\.  The exit ahead of you looks familiar\, or does it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_J"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?Isn\'t this the same place you were in 5 minutes ago\?  Maybe not\.  But perhaps it is\, who knows\?  The alleyway bends here and you have a choice of two identical exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_K"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?As an Empire the Aurient is complex and easy to get lost in\.  This set of alleyways could easily be a metaphor for the whole of Agatea\.  They are complex and\, you\'ve guessed it\, easy to get lost in\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_L"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are four obvious exits\:(?!(> )?(.*enter door\.)).*|There are five obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_M"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are two obvious exits\:(?!(> )?(.*enter door\.)).*|There are three obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_O"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The alley leads north and south\.  Or is it east and west\?  You are completely unsure\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_P"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?The alleys twist and turn\, until you eventually arrive here\.  Here is nowhere special\, just another junction within the maze of alleys in the Red Triangle\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_Q"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a small winding alleyway\, dark and with other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_room_R"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_room"
+  ></trigger>
+<!--  on_trigger_medina_dark_room()  -->
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?(Somewhere in an alleyway|Something)\.  It's dark here\, isn't it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_dark_room"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_dark_room"
+   ></trigger>
+<!--  on_trigger_medina_too_dark()  -->
+  <trigger
+   keep_evaluating="y"
+   group="medina"
+   lines_to_match="3"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nIt's dark here, isn't it\?\n(?!(> )?There are (\w)+ obvious exits\:.*enter door\.).+\Z"
+   multi_line="y"
+   name="medina_too_dark"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_too_dark"
+  ></trigger>
+<!--  on_trigger_medina_look_room()  -->
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a small winding alleyway\, and there are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_A"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nStanding in an alleyway\, surrounded by buildings and other alleys\, your head spins as you struggle to get your bearings\.  You fail miserably\.  Alleys lead in several directions\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_B"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThe alleyway gets very narrow here\. There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_C"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a small winding alleyway with a T\-junction\.  All three possible exits look very similar and very alley\-ly\.  The alleys are narrow\, winding and difficult to navigate safely without a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_D"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are five obvious exits\:(?!(> )?(.*enter door\.)).*|There are six obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_E"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a cross alleyways\.  Like a cross\-roads\, but with alleyways\.  They go this way and that\.  You can\'t work out which way is north and you wish you\'d brought a compass\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_F"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nAt least at this point in the maze your decision is simple\.  Either go that way\, or that way\.  The alleyway simply bends here\, and you can continue or go back\.  It\'s entirely up to you\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_G"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are three obvious exits\:(?!(> )?(.*enter door\.)).*|There are four obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_H_or_N"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nIn the heart of the Red Triangle maze\, alleys lead in all directions\, and you are unsure which way to turn\.  Six alleys meet here\, or possibly\, depending on your point of view leave from here\.  Either way\, there are a lot of possible exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_I"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThree alleyways merge here\.  They all look the same\, and all go in different directions\.  Small buildings line the alleyways\.  The exit ahead of you looks familiar\, or does it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_J"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nIsn\'t this the same place you were in 5 minutes ago\?  Maybe not\.  But perhaps it is\, who knows\?  The alleyway bends here and you have a choice of two identical exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_K"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nAs an Empire the Aurient is complex and easy to get lost in\.  This set of alleyways could easily be a metaphor for the whole of Agatea\.  They are complex and\, you\'ve guessed it\, easy to get lost in\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_L"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are four obvious exits\:(?!(> )?(.*enter door\.)).*|There are five obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_M"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are two obvious exits\:(?!(> )?(.*enter door\.)).*|There are three obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_O"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The alley leads north and south\.  Or is it east and west\?  You are completely unsure\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_P"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThe alleys twist and turn\, until you eventually arrive here\.  Here is nowhere special\, just another junction within the maze of alleys in the Red Triangle\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_Q"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a small winding alleyway\, dark and with other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_room_R"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_room"
+  ></trigger>
+<!--  on_trigger_medina_look_out_of_bounds()  -->   
+  <trigger
+   enabled="n"
+   group="medina"
+   keep_evaluating="y"
+   match="^(> )?(A bright red danger pictogram is on the side of a building.*|The Lover's Lane entrance to the Medina\.  It's dark here, isn't it\?|The middle of Ricecake Alley\.  It's dark here, isn't it\?|Cannot find \&quot;(n|ne|e|se|s|sw|w|nw|north|northeast|east|southeast|south|southwest|west|northwest)\&quot;, no match.)$"
+   name="medina_look_out_of_bounds"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_out_of_bounds"
+  ></trigger>
+<!--  on_trigger_medina_look_dark_room()  -->
+  <trigger
+   group="medina"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(Somewhere in an alleyway|Something)\.  It's dark here\, isn't it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_look_dark_room"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_dark_room"
+   ></trigger>
+<!--  on_trigger_medina_scry_room()  -->
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a small winding alleyway\, and there are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_A"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?Standing in an alleyway\, surrounded by buildings and other alleys\, your head spins as you struggle to get your bearings\.  You fail miserably\.  Alleys lead in several directions\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_B"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?The alleyway gets very narrow here\. There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_C"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a small winding alleyway with a T\-junction\.  All three possible exits look very similar and very alley\-ly\.  The alleys are narrow\, winding and difficult to navigate safely without a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_D"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are five obvious exits\:(?!(> )?(.*enter door\.)).*|There are six obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_E"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a cross alleyways\.  Like a cross\-roads\, but with alleyways\.  They go this way and that\.  You can\'t work out which way is north and you wish you\'d brought a compass\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_F"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?At least at this point in the maze your decision is simple\.  Either go that way\, or that way\.  The alleyway simply bends here\, and you can continue or go back\.  It\'s entirely up to you\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_G"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are three obvious exits\:(?!(> )?(.*enter door\.)).*|There are four obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_H_or_N"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?In the heart of the Red Triangle maze\, alleys lead in all directions\, and you are unsure which way to turn\.  Six alleys meet here\, or possibly\, depending on your point of view leave from here\.  Either way\, there are a lot of possible exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_I"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?Three alleyways merge here\.  They all look the same\, and all go in different directions\.  Small buildings line the alleyways\.  The exit ahead of you looks familiar\, or does it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_J"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?Isn\'t this the same place you were in 5 minutes ago\?  Maybe not\.  But perhaps it is\, who knows\?  The alleyway bends here and you have a choice of two identical exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_K"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?^(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?As an Empire the Aurient is complex and easy to get lost in\.  This set of alleyways could easily be a metaphor for the whole of Agatea\.  They are complex and\, you\'ve guessed it\, easy to get lost in\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_L"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are four obvious exits\:(?!(> )?(.*enter door\.)).*|There are five obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_M"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are two obvious exits\:(?!(> )?(.*enter door\.)).*|There are three obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_O"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The alley leads north and south\.  Or is it east and west\?  You are completely unsure\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_P"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?The alleys twist and turn\, until you eventually arrive here\.  Here is nowhere special\, just another junction within the maze of alleys in the Red Triangle\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_Q"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry"
+   lines_to_match="6"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a small winding alleyway\, dark and with other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\Z"
+   multi_line="y"
+   name="medina_scry_room_R"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_room"
+  ></trigger>
+<!--  on_trigger_medina_thyngs_in_room()  -->
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a small winding alleyway\, and there are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_A"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?Standing in an alleyway\, surrounded by buildings and other alleys\, your head spins as you struggle to get your bearings\.  You fail miserably\.  Alleys lead in several directions\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_B"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?The alleyway gets very narrow here\. There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_C"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a small winding alleyway with a T\-junction\.  All three possible exits look very similar and very alley\-ly\.  The alleys are narrow\, winding and difficult to navigate safely without a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_D"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are five obvious exits\:(?!(> )?(.*enter door\.)).*|There are six obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_E"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a cross alleyways\.  Like a cross\-roads\, but with alleyways\.  They go this way and that\.  You can\'t work out which way is north and you wish you\'d brought a compass\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_F"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?At least at this point in the maze your decision is simple\.  Either go that way\, or that way\.  The alleyway simply bends here\, and you can continue or go back\.  It\'s entirely up to you\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_G"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are three obvious exits\:(?!(> )?(.*enter door\.)).*|There are four obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_H_or_N"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?In the heart of the Red Triangle maze\, alleys lead in all directions\, and you are unsure which way to turn\.  Six alleys meet here\, or possibly\, depending on your point of view leave from here\.  Either way\, there are a lot of possible exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_I"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?Three alleyways merge here\.  They all look the same\, and all go in different directions\.  Small buildings line the alleyways\.  The exit ahead of you looks familiar\, or does it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_J"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?Isn\'t this the same place you were in 5 minutes ago\?  Maybe not\.  But perhaps it is\, who knows\?  The alleyway bends here and you have a choice of two identical exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_K"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?As an Empire the Aurient is complex and easy to get lost in\.  This set of alleyways could easily be a metaphor for the whole of Agatea\.  They are complex and\, you\'ve guessed it\, easy to get lost in\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_L"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are four obvious exits\:(?!(> )?(.*enter door\.)).*|There are five obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_M"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are two obvious exits\:(?!(> )?(.*enter door\.)).*|There are three obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_O"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The alley leads north and south\.  Or is it east and west\?  You are completely unsure\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_P"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?The alleys twist and turn\, until you eventually arrive here\.  Here is nowhere special\, just another junction within the maze of alleys in the Red Triangle\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_Q"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?\[somewhere in an alleyway\]\n(.*\n|)(> )?This is a small winding alleyway\, dark and with other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_thyngs_in_room_R"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_thyngs_in_room"
+  ></trigger>
+<!--  on_trigger_medina_look_thyngs_in_room()  -->
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a small winding alleyway\, and there are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_A"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nStanding in an alleyway\, surrounded by buildings and other alleys\, your head spins as you struggle to get your bearings\.  You fail miserably\.  Alleys lead in several directions\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_B"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThe alleyway gets very narrow here\. There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_C"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a small winding alleyway with a T\-junction\.  All three possible exits look very similar and very alley\-ly\.  The alleys are narrow\, winding and difficult to navigate safely without a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_D"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are five obvious exits\:(?!(> )?(.*enter door\.)).*|There are six obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_E"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a cross alleyways\.  Like a cross\-roads\, but with alleyways\.  They go this way and that\.  You can\'t work out which way is north and you wish you\'d brought a compass\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_F"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nAt least at this point in the maze your decision is simple\.  Either go that way\, or that way\.  The alleyway simply bends here\, and you can continue or go back\.  It\'s entirely up to you\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_G"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are three obvious exits\:(?!(> )?(.*enter door\.)).*|There are four obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_H_or_N"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nIn the heart of the Red Triangle maze\, alleys lead in all directions\, and you are unsure which way to turn\.  Six alleys meet here\, or possibly\, depending on your point of view leave from here\.  Either way\, there are a lot of possible exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_I"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThree alleyways merge here\.  They all look the same\, and all go in different directions\.  Small buildings line the alleyways\.  The exit ahead of you looks familiar\, or does it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_J"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nIsn\'t this the same place you were in 5 minutes ago\?  Maybe not\.  But perhaps it is\, who knows\?  The alleyway bends here and you have a choice of two identical exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_K"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nAs an Empire the Aurient is complex and easy to get lost in\.  This set of alleyways could easily be a metaphor for the whole of Agatea\.  They are complex and\, you\'ve guessed it\, easy to get lost in\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_L"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are four obvious exits\:(?!(> )?(.*enter door\.)).*|There are five obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_M"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are two obvious exits\:(?!(> )?(.*enter door\.)).*|There are three obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_O"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nYou are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The alley leads north and south\.  Or is it east and west\?  You are completely unsure\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_P"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThe alleys twist and turn\, until you eventually arrive here\.  Here is nowhere special\, just another junction within the maze of alleys in the Red Triangle\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_Q"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+  <trigger
+   group="medina"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\n(?!(> )?((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.|\[somewhere in an alleyway\])).*\nThis is a small winding alleyway\, dark and with other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_look_thyngs_in_room_R"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_look_thyngs_in_room"
+  ></trigger>
+<!--  on_trigger_medina_scry_thyngs_in_room()  -->
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a small winding alleyway\, and there are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_A"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?Standing in an alleyway\, surrounded by buildings and other alleys\, your head spins as you struggle to get your bearings\.  You fail miserably\.  Alleys lead in several directions\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_B"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?The alleyway gets very narrow here\. There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_C"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a small winding alleyway with a T\-junction\.  All three possible exits look very similar and very alley\-ly\.  The alleys are narrow\, winding and difficult to navigate safely without a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_D"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are five obvious exits\:(?!(> )?(.*enter door\.)).*|There are six obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_E"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a cross alleyways\.  Like a cross\-roads\, but with alleyways\.  They go this way and that\.  You can\'t work out which way is north and you wish you\'d brought a compass\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_F"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?At least at this point in the maze your decision is simple\.  Either go that way\, or that way\.  The alleyway simply bends here\, and you can continue or go back\.  It\'s entirely up to you\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_G"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are three obvious exits\:(?!(> )?(.*enter door\.)).*|There are four obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_H_or_N"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?In the heart of the Red Triangle maze\, alleys lead in all directions\, and you are unsure which way to turn\.  Six alleys meet here\, or possibly\, depending on your point of view leave from here\.  Either way\, there are a lot of possible exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_I"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?Three alleyways merge here\.  They all look the same\, and all go in different directions\.  Small buildings line the alleyways\.  The exit ahead of you looks familiar\, or does it\?\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_J"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?Isn\'t this the same place you were in 5 minutes ago\?  Maybe not\.  But perhaps it is\, who knows\?  The alleyway bends here and you have a choice of two identical exits\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_K"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?^(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?As an Empire the Aurient is complex and easy to get lost in\.  This set of alleyways could easily be a metaphor for the whole of Agatea\.  They are complex and\, you\'ve guessed it\, easy to get lost in\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_L"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are four obvious exits\:(?!(> )?(.*enter door\.)).*|There are five obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_M"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are two obvious exits\:(?!(> )?(.*enter door\.)).*|There are three obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_O"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?You are standing in a small winding alleyway\.  There are other alleys leading off it\.  They are all small and winding too\.  The alley leads north and south\.  Or is it east and west\?  You are completely unsure\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_P"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?The alleys twist and turn\, until you eventually arrive here\.  Here is nowhere special\, just another junction within the maze of alleys in the Red Triangle\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_Q"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+  <trigger
+   enabled="y"
+   group="medina_scry_thyngs_in_room"
+   lines_to_match="7"
+   keep_evaluating="y"
+   match="^(> )?(?!(> )?\[somewhere in an alleyway\])((The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered\.\.\.|You briefly see a vision\.)\n(.*\n|)(> )?This is a small winding alleyway\, dark and with other alleys leading off it\.  They are all small and winding too\.  The walls are too high to see over\, and buildings block your view in all directions\.  A person could easily get lost in here unless they had a good memory\, or a map\.\n(.*\n|)(> )?(.*\n|)(> )?(?P&lt;exits&gt;There are (\w)+ obvious exits\:(?!(> )?(.*enter door\.)).*|There are (\w)+ obvious exits\:.*enter door\.)\n(> )?(?P&lt;thyngs&gt;.+)\Z"
+   multi_line="y"
+   name="medina_scry_thyngs_in_room_R"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_medina_scry_thyngs_in_room"
+  ></trigger>
+<!--  on_trigger_medina_remove_queue()  -->
+  <trigger
+   group="medina"
+   keep_evaluating="y"
+   match="^(> )?Removed queue\.$"
+   name="medina_remove_queue"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_medina_remove_queue"
+  ></trigger>
+<!--  on_trigger_medina_command_fail()  -->
+  <trigger
+   group="medina"
+   keep_evaluating="y"
+   match="^(> )?(That doesn't work\.|What\?|Try something else\.)$"
+   name="medina_command_fail"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_medina_command_fail"
+  ></trigger>
+<!--  on_trigger_medina_you_follow()  -->
+  <trigger
+   group="medina"
+   keep_evaluating="y"
+   match="^(> )?You follow .* (?P&lt;direction&gt;north|northeast|east|southeast|south|southwest|west|northwest)\.$"
+   name="medina_you_follow"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_medina_you_follow"
+  ></trigger>
+</triggers>
+<!--  Aliases  -->
+<aliases>
+  <alias
+   group="medina"
+   name="medina_move_room"
+   match="^(?P&lt;direction&gt;n|ne|e|se|s|sw|w|nw|north|northeast|east|southeast|south|southwest|west|northwest|look|l)$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_move_room"
+ ></alias>
+  <alias
+   group="medina"
+   name="medina_look_room"
+   match="^l(ook)? (?P&lt;direction&gt;n|ne|e|se|s|sw|w|nw|north|northeast|east|southeast|south|southwest|west|northwest)$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_look_room"
+  ></alias>
+  <alias
+   group="medina"
+   name="medina_stop"
+   match="^stop$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_stop"
+  ></alias>
+  <alias
+   enabled="y"
+   group="medina_debug"
+   name="medina_table"
+   match="^med(ina)? ?t(able|bl)? ?(?P&lt;room&gt;[A-Ra-r])?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_table"
+  ></alias>
+  <alias
+   enabled="y"
+   group="medina_commands"
+   name="medina_reset"
+   match="^med(ina)? ?r(eset|s)? ?((?P&lt;is_reset_room&gt;r)(oom)?)? ?(?P&lt;room&gt;[A-Ra-r])?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_reset"
+  ></alias>
+  <alias
+   enabled="y"
+   group="medina_commands"
+   name="medina_window_view"
+   match="^med(ina)? ?w(indow)? ?o(pen)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_window_open"
+  ></alias>
+  <alias
+   enabled="y"
+   group="medina_commands"
+   name="medina_window_exit"
+   match="^med(ina)? ?w(indow)? ?(exit|x)$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_window_exit"
+  ></alias>
+  <alias
+   enabled="y"
+   group="medina_commands"
+   name="medina_window_center"
+   match="^med(ina)? ?w(indow)? ?c(enter)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_window_center"
+  ></alias>
+</aliases>
+</muclient>		

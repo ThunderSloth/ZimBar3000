@@ -1,0 +1,1096 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="Voyage_Mapper"
+   author="Zimbus"
+   id="fa3bee8d7c84e7e3f847d414"
+   language="Lua"
+   purpose="interactive graphical map of the ss unsinkable"
+   save_state="y"
+   date_written="2020-03-22 12:00:00"
+   requires="3.00"
+   version="1.0"
+   >
+</plugin>
+<script>
+<![CDATA[
+dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)) .. ".lua")
+]]>
+</script>
+<triggers>
+<!-- movement tracking -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You follow .*? ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<command>up|down|(over)?board))\.$"
+   name="voyage_you_follow"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_you_follow"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.*, you're thrown (off your feet (towards|out to) )?((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<command>up|down|(over)?board)).$"
+   name="voyage_you_stumble"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_you_follow"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(That doesn't work\.|What\?|Try something else\.)$"
+   name="voyage_command_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_command_fail"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^Cannot find \&quot;(?!(((?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore))|(up|down|(over)?board)))(?<object>\w+)\&quot;, no match.$"
+   name="voyage_drag_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_drag_fail"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You can't wander around belowdecks with a rope tied to yourself!  It\'d get tangled on everything and be a tripping hazard\.$"
+   name="voyage_rope_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_command_fail"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(You struggle to leave (.*) but,?( with .*)? you can't make any headway.*|You're too (weary|fatigued|tired) to (swim|board).* at the moment.)$"
+   name="voyage_swim_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_command_fail"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^Removed queue\.$"
+   name="voyage_remove_queue"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_remove_queue"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<players>.*) ((?<board>climbs? aboard from the sea)|(?<overboard>jumps? in from above with a splash)|(arrives?|swaggers? in nautically|floats? in|tumbles? in) from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(above|below)))).$"
+   name="voyage_player_enter"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_player_enter"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<players>.*) ((?<board>climbs? aboard the ship)|(?<overboard>climbs? over the railing and jumps? into the sea with a splash)|(leaves?|swaggers? out nautically|floats?|is thrown off (his|her|its) feet (out to|towards)) ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(up|down)))).$"
+   name="voyage_player_leave"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_player_leave"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragons>.*) flutters? in from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(above|below))).$"
+   name="voyage_dragon_enter"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_enter"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragons>.*) flutters? away (to )?((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(up|down))).$"
+   name="voyage_dragon_leave"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_leave"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="You slip on the slippery floor and skid a short distance to ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<command>up|down|(over)?board)), painfully hurting .*$"
+   name="voyage_you_skid"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_you_skid"
+  ></trigger>
+<!-- look tracking -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="2"
+   multi_line="y"
+   match="^A heavy wooden (door|hatch) .*\.\nIt is closed.\Z"
+   name="voyage_door_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_look_fail"
+  ></trigger>    
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.*  It's dark here, isn't it\?$"
+   name="voyage_look_dark"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_look_fail"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^Cannot find \&quot;((((?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(up|down|(over)?board))\&quot;, no match.$"
+   name="voyage_look_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_look_fail"
+  ></trigger>
+<!-- hull: condition -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^\[.*\] \w+: .*[^?]$"
+   name="voyage_group_update"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_group_update"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The SS Unsinkable\'s hull .*$"
+   name="voyage_hull_condition"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_hull_condition"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(\w+ (clumsily )?nails? \w+ boards? onto the ship's hull, bringing it back to top condition|The ship\'s hull doesn't need any repair just yet).$"
+   name="voyage_hull_fix"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_hull_fix"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^\w+ nails? \w+ boards? onto the ship's hull, sealing some of the worse holes in it.$"
+   name="voyage_hull_fix_partial"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_hull_fix_partial"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(The hull groans alarmingly.  .*|The groaning and snapping of timber strained beyond limit resonates through the ship.  The hull has been breached!)$"
+   name="voyage_hull_damaged"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_hull_hit"
+  ></trigger>
+<!-- hull: seaweed -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(\w+ manages? to hack off all the remaining dire seaweed from the hull|There\'s no dire seaweed (left )?on the hull(, so you decide not to do any cutting after all| right now)|You see some dire seaweed drifting off into the sea, complaining seaweedily.  Looks like it didn\'t like the cold).$"
+   name="voyage_seaweed_fix"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_seaweed_fix"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^\w+ manages? to hack off some of the dire seaweed from the hull.$"
+   name="voyage_seaweed_fix_partial"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_seaweed_fix_partial"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The ship plows through a field of floating dire seaweed, some of which glows green and latches onto the hull aggressively!$"
+   name="voyage_seaweed_hit"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_seaweed_hit"
+  ></trigger>
+<!-- hull: ice -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(\w+ manages? to shatter all the remaining sea ice on the hull|There\'s no sea ice (left )?on the hull(, so you decide not to do any breaking after all| right now)|You see some ice that used to be on the hull drifting off into the sea, accompanied by the sound of seaweedy complaining from below).$"
+   name="voyage_ice_fix"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_ice_fix"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^\w+ manages? to shatter some of the sea ice on the hull.$"
+   name="voyage_ice_fix_partial"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_ice_fix_partial"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^A .* It sounds like ice might be forming on the hull!$"
+   name="voyage_ice_hit"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_ice_hit"
+  ></trigger>
+<!-- Rope -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="2"
+   multi_line="y"
+   match="^It is tying you to a railing\.\nIt(\'s)? (?<condition>.*)\.\Z"
+   name="voyage_rope_condition"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_rope_condition"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You tie (one of )?the? coils? of ropes? securely in a .* around your waist.$"
+   name="voyage_rope_on"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_rope_on"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(You untie (one of )?the? coils? of ropes? from around your waist and coil it up on the deck|This rope isn't tied to anything).$"
+   name="voyage_rope_off"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_rope_off"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="6"
+   multi_line="y"
+   match="^(?!A long piece of thick, waterproof rope, useful for all sorts of nautical reasons.  You might use it for tying sailors to the ship while they dive into the water for any emergency repairs the ship might need, or tying crates down so that they don't slide around.\nIt is .*\nIt.*\n)(.*\n){3}A long piece of thick, waterproof rope, useful for all sorts of nautical reasons.  You might use it for tying sailors to the ship while they dive into the water for any emergency repairs the ship might need, or tying crates down so that they don't slide around.\nIt is (tying (?<tying>\w+) .*|.*).\nIt(\'s)? (?<condition>.*)\Z"
+   name="voyage_rope_first"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_rope_first"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="6"
+   multi_line="y"
+   match="^A long piece of thick, waterproof rope, useful for all sorts of nautical reasons.  You might use it for tying sailors to the ship while they dive into the water for any emergency repairs the ship might need, or tying crates down so that they don't slide around.\nIt is .*\nIt.*\nA long piece of thick, waterproof rope, useful for all sorts of nautical reasons.  You might use it for tying sailors to the ship while they dive into the water for any emergency repairs the ship might need, or tying crates down so that they don't slide around.\nIt is (tying (?<tying>\w+) .*|.*).\nIt(\'s)? (?<condition>.*)\Z"
+   name="voyage_rope"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_rope"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="10"
+   multi_line="y"
+   match="^(?!(This is a heavy wooden crate.*\nIt is tied down securely with rope, preventing it from sliding around.\n|.*\nThis is a heavy wooden crate.*\n)It appears to have something written on it.\nIt is .*\nIt is \w+.\n)(.*\n){5}This is a heavy wooden crate.*\n(?<tied>It is tied down securely with rope, preventing it from sliding around.\n)?It appears to have something written on it.\nIt is .*\nIt is \w+.\Z"
+   name="voyage_crate_first"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_crate_first"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="10"
+   multi_line="y"
+   match="^This is a heavy wooden crate.*\n(It is tied down securely with rope, preventing it from sliding around.\n)?It appears to have something written on it.\nIt is .*\nIt is \w+.\nThis is a heavy wooden crate.*\n(?<tied>It is tied down securely with rope, preventing it from sliding around.\n)?It appears to have something written on it.\nIt is .*\nIt is \w+.\Z"
+   name="voyage_crate"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_crate"
+  ></trigger>
+<!-- Kraken -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^A massive kraken crests from the water ahead of the ship.*$"
+   name="voyage_stage_change_kraken"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_stage_change"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((Spraying seawater in a huge arc|Bellowing fiercely|Moving with incredible speed for something of its size), )?[Tt]he kraken ((raises a massive tentacle from the sea|coils up a tentacle like a spring), then (whips it towards|launches it forward at)|reaches for) you from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<direction>(above|overboard))).  Run!$"
+   name="voyage_kraken_attack_on_you"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_kraken_attack_on_you"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((Spraying seawater in a huge arc|Bellowing fiercely|Moving with incredible speed for something of its size), )?[Tt]he kraken ((raises a massive tentacle from the sea|coils up a tentacle like a spring), then (whips it towards|launches it forward at)|reaches for) (?!you ).*$"
+   name="voyage_kraken_attack_on_other"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_kraken_attack_on_other"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((The kraken('s tentacle wraps around nothing but air, its prey having escaped| aborts its strike, readying another tentacle to chase its missing prey)|The claws on the end of the kraken's tentacle gouge long scratches in the deck as its strike misses).|At the last moment before the kraken's tentacle ensnares.*|.* somehow avoids? being caught in the kraken's grasp.*|.* charges, whether out of courage or confusion, right into the grasping kraken tentacle.*)$"
+   name="voyage_kraken_attack_off"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_kraken_attack_off"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You turn and run \- right into the grasping kraken tentacle.*$"
+   name="voyage_kraken_attack_off_command_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_kraken_attack_off_command_fail"
+  ></trigger>
+<!-- Serpent -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^A massive sea serpent crests from the water ahead of the ship.*$"
+   name="voyage_stage_change_serpent"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_stage_change"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((With a hungry glint in its eye|Fangs out and dripping deadly venom|Moving with incredible speed for something of its size), )?[Tt]he sea serpent (lunges towards|reaches for|strikes forward swiftly at) you from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<direction>(above|overboard))).  Run!$"
+   name="voyage_serpent_attack_on_you"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_serpent_attack_on_you"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((With a hungry glint in its eye|Fangs out and dripping deadly venom|Moving with incredible speed for something of its size), )?[Tt]he sea serpent (lunges towards|reaches for|strikes forward swiftly at) (?!you ).*$"
+   name="voyage_serpent_attack_on_other"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_serpent_attack_on_other"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(The sea serpent( chomps down on nothing but air, its prey having escaped|'s venomous fangs gouge long scratches in the deck as its strike misses| aborts its strike and draws its head back, looking for its missing prey).|At the last moment before the sea serpent's mouth engulfs.*|.* somehow avoids? the sea serpent's maw .*|.* charges, whether out of courage or confusion, right into the sea serpent's gaping maw.*)$"
+   name="voyage_serpent_attack_off"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_serpent_attack_off"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You turn and run \- right into the sea serpent's gaping maw.*$"
+   name="voyage_serpent_attack_off_command_fail"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_serpent_attack_off_command_fail"
+  ></trigger>
+<!-- Part -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^As you (finish|complete) the (?<leg>(first|second|third)) leg of your impossible voyage.*\((?<xp>\d+) xp\)$"
+   name="voyage_complete_part"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_complete_part"
+  ></trigger>
+  <trigger
+   group="post_voyage"
+   enabled="y"
+   keep_evaluating="y"
+   match="^You have been awarded \d+ experience points for delivering (?<crates>\w+) out of eight cargo crates to your destination, working with a group of (?<group>\w+)\.$"
+   name="voyage_complete_voyage"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_complete_voyage"
+  ></trigger>
+<!-- Calm --> 
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(The .* the weather calms.|With that last blow, the (kraken|sea serpent) .*|The grinding of scales .* It sounds like victory.)$"
+   name="voyage_stage_change_calm"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_stage_change"
+  ></trigger>
+<!-- Wind -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The .* rimwards gale starts building up, the sheer force of the wind pushing the ship backwards.$"
+   name="voyage_stage_change_wind"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_stage_change"
+  ></trigger>
+<!-- Fog -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The .* the ship enters a huge bank of fog.$"
+   name="voyage_stage_change_fog"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_stage_change"
+  ></trigger>
+<!-- Ice -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The .* hailstones begin to rain from the sky.$"
+   name="voyage_stage_change_ice"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_stage_change"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^Ice slowly gathers on the ground.$"
+   name="voyage_ice_on"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_ice_on"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(.* breaks? up the ice on the floor and clears? it away, tidying up the place|There's no ice on the floor right now|The fire melts the ice on the floor into water).$"
+   name="voyage_ice_off"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_ice_off"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(.* breaks? up some of the ice on the floor and clears? it away, tidying up the place|The fire melts some of the ice on the floor into water).$"
+   name="voyage_ice_shrink"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_ice_shrink"
+  ></trigger>
+<!-- Fire -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The .* lightning flashes and thunder booms, the beginning of a thunderstorm.$"
+   name="voyage_stage_change_fire"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_stage_change"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^To (?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore))), ([Aa] (bolt|spear) of )?[Ll]ightning (strikes|pierces|arcs)( down from (above|the clouds) to( strike)?)? the (?<location>(deck|mast))(,? (accompanied by thunder|with the thunderous sound of, well, thunder|its thunderous report booming across the sea)).$"
+   name="voyage_lightning_hit"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_lightning_hit"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The room catches on fire!$"
+   name="voyage_fire_on"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_fire_on"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(.* putting it out in a (cloud|gush) of steam|.* st[ao]mps? out the fire|There's no fire here!  Yet).$"
+   name="voyage_fire_off"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_fire_off"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The fire intensifies.$"
+   name="voyage_fire_grow"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_fire_grow"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* putting some of it out in a cloud of steam.$"
+   name="voyage_fire_shrink"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_fire_shrink"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((Fiery|Scorching) heat (rushes|blasts) in from|Long shadows dance as (flickering|red\-orange) firelight from|The distinctive (snapping and popping|crackling) of a wood fire comes from) (?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))( (casts light on|illuminates) the room)?.$"
+   name="voyage_fire_adjacent"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_fire_adjacent"
+  ></trigger>
+<!-- Junk -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You think you can spot (?<junk>.*) hidden in there, but it'd take a good search to be sure.$"
+   name="voyage_junk_look"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_junk_look"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You can't spot anything useful in the junk.$"
+   name="voyage_junk_none"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_junk_none"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* rummages around in the junk and finds (?<quantity>\w+) (?<object>.*).$"
+   name="voyage_junk_find_other"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_junk_find"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You rummage around and dig (?<quantity>\w+) (?<object>.*) out of the junk .*$"
+   name="voyage_junk_find_you_1"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_junk_find"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You lose track of what you were looking for, but manage to dig (?<quantity>\w+) (?<object>.*) out of the junk .*$"
+   name="voyage_junk_find_you_2"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_junk_find"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You can't see any .* in this room, but rummage around and manage to dig (?<quantity>\w+) (?<object>.*) out of the junk .*$"
+   name="voyage_junk_find_you_3"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_junk_find"
+  ></trigger>
+<!-- Dragons -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="4"
+   multi_line="y"
+   match="^This little swamp dragon .*  It has shiny (?<colour>.*) scales and looks (?<condition>.*)\.\nIt is in .*\nIt is (?<position>.*).(\n(?<powering>It is breathing fire onto the MK I Boiling Engine.))?\Z"
+   name="voyage_dragon_look"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_look"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* wakes? up (?<dragon>\w+) the .* dragon\.$"
+   name="voyage_dragon_wake_1"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_wake"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* dragon opens its eyes, looking fuzzily confused.$"
+   name="voyage_dragon_wake_2"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_wake"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* hits? (?<dragon>\w+) the .* dragon over the head firmly with the control rod.  It immediately slumps over.$"
+   name="voyage_dragon_sleep"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_sleep"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* dragon is already asleep!$"
+   name="voyage_dragon_sleep_2"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_sleep"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* dragon gets off the small red circle and stands up.$"
+   name="voyage_dragon_uncircle"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_uncircle"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* dragon looks too \w+ to keep working.$"
+   name="voyage_dragon_uncircle_2"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_uncircle"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* places? (?<dragon>\w+) the .* dragon into the small red circle.*$"
+   name="voyage_dragon_circle"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_circle"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* gets? (?<dragon>\w+) the .* dragon from .*$"
+   name="voyage_dragon_get"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_get"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* drops? (?<dragon>\w+) the .* dragon.$"
+   name="voyage_dragon_drop"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_drop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match=".* places? (?<dragon>\w+) the .* dragon into the small red circle, which it immediately rolls out of in its sleep."
+   name="voyage_dragon_drop_and_uncircle"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_drop_and_wake"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* swamp dragon gets bored of being carried around and wriggles free of .*$"
+   name="voyage_dragon_drop_3"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_drop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* throws? the ball a few more times, getting a little further each time to keep (?<dragon>\w+) the .* dragon entertained, until a particularly hard throw sends it bouncing right off the ship.  Oh well.$"
+   name="voyage_dragon_play_balls"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_play"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* dragon leaps upon the squeaky toy animal and spends an enjoyable three and a half minutes tearing it to squeaking shreds.  Finally, it climbs atop the pile of rubber scraps and sits there triumphantly.$"
+   name="voyage_dragon_play_toys"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_play"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* dragon flutters onto( one of)? the (medium sized lumps? of coal|tins? of shoe polish|large brown bottles?) and (takes a bite out of it, chewing thoughtfully|tips it over to drink from it).$"
+   name="voyage_dragon_feed_initiate"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_feed_initiate"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^^(?<dragon>\w+) the .* dragon (eats another piece of|chews on a piece of|takes another bite out of|(drinks some more|gulps down) dark rum from)( one of)? the (medium sized lumps? of coal|tins? of shoe polish|large brown bottles?).$"
+   name="voyage_dragon_feed_continue"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_feed_continue"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(?<dragon>\w+) the .* dragon finishes (off the last|the contents) of( one of)? the (?<objects>medium sized lumps? of coal|tins? of shoe polish|large brown bottles? and shatters it on the \w+).$"
+   name="voyage_dragon_feed_complete"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_dragon_feed_complete"
+  ></trigger>
+<!-- Objects -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* gets? (?<objects>.*) from (the ((?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)) (side|end|corner|corridor)|middle) of the (upper|lower) deck|the (bridge of|Circle Sea near the) the SS Unsinkable|the \w+ boiler room|Store [A-C]).$"
+   name="voyage_object_get"
+   regexp="y"
+   sequence="100"
+   script="voyage_object_get"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((?<you>You)|.*) drops? (?<objects>.*).$"
+   name="voyage_object_drop"
+   regexp="y"
+   sequence="101"
+   script="voyage_object_drop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(Whoops!  (?<you>You) tried to carry too many things|.* juggles around \w+ stuff) and fumble[sd] (?<objects>.*).$"
+   name="voyage_object_fumble"
+   regexp="y"
+   sequence="101"
+   script="voyage_object_drop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^((?<you>You)|.*) toss(es)? (?<objects>.*) to .* swamp dragon.$"
+   name="voyage_object_toss"
+   regexp="y"
+   sequence="101"
+   script="voyage_object_drop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* throws? (?<objects>the rubber toy ball), which bounces some distance across the floor.$"
+   name="voyage_object_toss_ball"
+   regexp="y"
+   sequence="101"
+   script="voyage_object_drop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* squeezes? (?<objects>the squeaky toy animal), which squeaks obediently, and then quickly drops? it and backs? away.$"
+   name="voyage_object_toss_toy"
+   regexp="y"
+   sequence="101"
+   script="voyage_object_drop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^.* tid(ies|y) up the place, clearing away (?<objects>.*).$"
+   name="voyage_object_bury"
+   regexp="y"
+   sequence="100"
+   script="voyage_object_bury"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^\w+ drags a large water tank in behind \w+.$"
+   name="voyage_object_tank_in"
+   regexp="y"
+   sequence="100"
+   script="voyage_object_tank_in"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^\w+ drags the large water tank away behind \w+.$"
+   name="voyage_object_tank_out"
+   regexp="y"
+   sequence="100"
+   script="voyage_object_tank_out"
+  ></trigger>
+<!-- Mast and Shelves -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match=".* chops? the tall wooden mast down at the base, then quickly divides it into boards with a few deft strokes of \w+ axe."
+   name="voyage_mast_down"
+   regexp="y"
+   sequence="100"
+   script="voyage_mast_down"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match=".* hacks? the large table into conveniently\-sized planks with \w+ axe, sending the clutter that used to be on it cascading onto the floor."
+   name="voyage_shelf_down"
+   regexp="y"
+   sequence="100"
+   script="voyage_shelf_down"
+  ></trigger>
+<!-- Tools -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="2"
+   multi_line="y"
+   match="^You are (un)?burdened \(\d+[%]\) by:\n((Holding :( (an? )?(?<left>.*) \(left hand\))?( and)?( (an? )?(?<right>.*) \(right hand\))?.)|.+)\Z"
+   name="voyage_tools_holding"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_tools_holding"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You hold (two (?<pair>.*)s|(an? )?(?(?=.* left hand)(?<left>.*)(?(?=.* right hand) and |)|))((an? )?(?<right>.*)) in your \w+ hand.*$"
+   name="voyage_tools_hold"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_tools_hold"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You put down (two (?<pair>.*)|.*? from your (?<left>left hand)?( and )?(?<right>right hand)?\.|(an? )?(?<tool1>.*?)(\.| and (an? )?(?<tool2>.*)\.))$"
+   name="voyage_tools_unhold"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_tools_unhold"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You draw (?<plural>one of )?(the )?(?<tool>.*?)(?(plural)s|) from .* into your ((?<L>left)|(?<R>right)) hand.$"
+   name="voyage_tools_draw"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_tools_draw"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You sheathe (?<tools>.*) in .*$"
+   name="voyage_tools_sheath"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_tools_sheathe"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You (struggle to )?throw (?<plural>one of )?your (?<tools>.*)(?(plural)s|) at .*$"
+   name="voyage_tools_throw"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_tools_sheathe"
+  ></trigger>
+<!-- Steering -->
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You take a firm grip on the ship's wheel.$"
+   name="voyage_steering_on"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_steering_on"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You release the ship's wheel.$"
+   name="voyage_steering_off"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_steering_off"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   lines_to_match="6"
+   multi_line="y"
+   match="^(?(DEFINE)(?'sea'[-?~=.*HGOP$v^@_n ]{5}))^You look out over the sea:\n((?P>sea)).*\n((?P>sea)).*\n((?P>sea)).*\n((?P>sea)).*\n((?P>sea)).*\Z"
+   name="voyage_look_sea"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_look_sea"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(You feel|Steam whistles from the smokestack as) the ship begins? to move.$"
+   name="voyage_boat_start"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_boat_start"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(You feel|The steam from the smokestack dwindles to nothing as) the ship slows? to a halt.$"
+   name="voyage_boat_stop"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_boat_stop"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(The powerful headwind causes the ship to drift off course |The ship shudders around you as it turns (?<sharply>(sharply )?))to (?<direction>port|starboard).$"
+   name="voyage_boat_turn"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_boat_turn"
+  ></trigger>
+</triggers>
+<!-- Movement Commands -->
+<aliases>
+  <alias
+   group="voyage"
+   name="voyage_move_room"
+   match="^((?<cardinal>(?(?=n(orth)?|s(outh)?)(n(orth)?|s(outh)?)(e(ast)?|w(est)?)?|(e(ast)?|w(est)?)))|(?<nautical>(?(?=starboard|port)(starboard|port) ?(aft|fore)?|(aft|fore)))|(?<command>up?|d(own)?|o(verboard)?|b(oard)|l(ook)?))$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_move_room"
+ ></alias>
+  <alias
+   group="voyage"
+   name="voyage_drag_room"
+   match="^(drag (?<object>\w+)|dt) ((?<cardinal>(?(?=n(orth)?|s(outh)?)(n(orth)?|s(outh)?)(e(ast)?|w(est)?)?|(e(ast)?|w(est)?)))|(?<nautical>(?(?=starboard|port)(starboard|port) ?(aft|fore)?|(aft|fore)))|(?<command>up?|d(own)?|o(verboard)?|b(oard)|l(ook)?))$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_drag_room"
+ ></alias>
+  <alias
+   group="voyage"
+   name="voyage_drag_toggle"
+   match="^(drag( (?<object>\w+))?|dt)$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_drag_toggle"
+ ></alias>
+<alias
+   group="voyage"
+   name="voyage_look_to_room"
+   match="^l(ook)?(?(?=o\w*)| )((?<cardinal>(?(?=n(orth)?|s(outh)?)(n(orth)?|s(outh)?)(e(ast)?|w(est)?)?|(e(ast)?|w(est)?)))|(?<nautical>(?(?=starboard|port)(starboard|port) ?(aft|fore)?|(aft|fore)))|(?<command>up?|d(own)?|o(verboard)?|b(oard)?))$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_look_to"
+ ></alias>
+  <alias
+   group="voyage"
+   name="voyage_stop"
+   match="^stop$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_stop"
+  ></alias>
+<!-- Non-Movement Commands -->
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_configure"
+   match="^voyage configure$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_configure"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_add_tool"
+   match="^voyage add tool ?= ?(?<tool>.*)$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_add_tool"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_add_container"
+   match="^voyage add container ?= ?(?<container>.*)$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_add_container"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_group_repor_xp"
+   match="^voyage group report xp$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_print_xp"
+   enabled="y"
+  ></alias>
+</aliases>
+</muclient>

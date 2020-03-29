@@ -21,9 +21,11 @@ function medina_get_mobs(wildcards, sign, room)
 	end
 	room = room or med.sequence[1] or {}
 	local text = string.lower(wildcards.thyngs)
-	local direction = wildcards.direction
+	local direction = wildcards.direction or false
 	if direction == "" then
 		direction = false
+	elseif direction then
+		direction = medina_format_direction(direction)
 	end
 	regex.verbiage:gmatch(text, function (_, t)
 		text = text:gsub(t.verbiage, "")
@@ -58,14 +60,14 @@ function medina_get_mobs(wildcards, sign, room)
 			if mob == "thugs" or mob == "heavies" and tonumber(n) then
 				for i, r in ipairs(room) do
 					med.rooms[r].thyngs.mobs[mob] = med.rooms[r].thyngs.mobs[mob] + n * sign > 0 and med.rooms[r].thyngs.mobs[mob] + n * sign or 0
-					print(r, med.rooms[r].thyngs.mobs[mob], n * sign)
 				end
 				if direction then
-					for i, r in ipairs(room) do
-						if med.rooms[r].exits[direction] then
-							med.rooms[r].exits[direction].thyngs.mobs[mob] = med.rooms[r].exits[direction].thyngs.mobs[mob] + n
+					for _, r in ipairs(room) do
+						local adj_room = med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
+						if adj_room then
+							med.rooms[adj_room].thyngs.mobs[mob] = med.rooms[adj_room].thyngs.mobs[mob] + n
 						end
-					end	
+					end
 				end 
 			elseif mob == "boss" then
 				for r, v in pairs(med.rooms) do
@@ -75,13 +77,15 @@ function medina_get_mobs(wildcards, sign, room)
 					med.rooms[r].thyngs.mobs.boss = sign < 0 and 0 or sign
 				end
 				if direction then
-					for i, r in ipairs(room) do
-						if med.rooms[r].exits[direction] then
-							med.rooms[r].exits[direction].thyngs.mobs.boss = 1
+					for _, r in ipairs(room) do
+						local adj_room = med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
+						if adj_room then
+							med.rooms[dj_room].exits[direction].thyngs.mobs.boss = 1
 						end
-					end	
-				end
+					end
+				end 
 			end
 		end
 	end
+	medina_print_map()
 end

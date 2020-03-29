@@ -6,7 +6,7 @@ Various Discworld MUD Plugins for MUSHclient
 * shades mapper --> graphically map shades and normalize directions
 * smugs mapper  --> graphically map smugs
 * mob colouring --> colour mob names according to relative xp
-* acceleraters  --> very basic script for manually setting numpad key macros
+* spot timers   --> display hotspot timers in sidebar miniwindow
 ## resources:
 ### regular expressions:
 #### general:

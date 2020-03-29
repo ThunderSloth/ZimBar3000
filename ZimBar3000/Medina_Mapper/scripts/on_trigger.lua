@@ -35,7 +35,7 @@ function on_trigger_medina_room(name, line, wildcards, styles)
             on_trigger_medina_dark_room(name, line, wildcards, styles)
         else
             if wildcards.thyngs ~= '' then
-                --print('thyngs spotted in look room')
+                on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, room)
             else
                 medina_look_room(room, exits)
             end
@@ -48,7 +48,7 @@ function on_trigger_medina_dark_room(name, line, wildcards, styles)
     local current_room = med.sequence[1]
     if wildcards.title ~= '' then
         if wildcards.thyngs ~= '' then
-            --print('thyngs spotted in dark room')
+            on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, room)
         else
             local exits  = medina_exit_string_to_list(wildcards.exits)
             local room = medina_get_room(current_room, exits)
@@ -56,7 +56,7 @@ function on_trigger_medina_dark_room(name, line, wildcards, styles)
         end
     elseif wildcards.look ~= '' then
         if wildcards.thyngs ~= '' then
-            --print('thyngs spotted in look dark room')
+            on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, room)
         else
             local exits = medina_exit_string_to_list(wildcards.exits)
             local room = medina_get_room(current_room, exits)

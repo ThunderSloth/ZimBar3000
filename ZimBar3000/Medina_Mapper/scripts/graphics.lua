@@ -181,10 +181,10 @@ function medina_print_map(look_room)
 			end
         end
         local trajectory_room = #med.sequence ~= 0 and med.sequence[#med.sequence] or {}
-		draw_population(coordinates, col)
-        draw_border(trajectory_room, coordinates.rooms, col.rooms.ghost) -- ghost
-        draw_thyng(look_room, coordinates.rooms, col.rooms.look) -- look
-        draw_thyng(current_room, coordinates.rooms, col.thyngs.you) -- you
+		--draw_population(coordinates, col)
+		draw_border(trajectory_room, coordinates.rooms, col.rooms.ghost) -- ghost
+		draw_thyng(look_room, coordinates.rooms, col.rooms.look) -- look
+		draw_thyng(current_room, coordinates.rooms, col.thyngs.you) -- you
     end
     local current_room, look_room = med.sequence[1] or {}, look_room or {}
     WindowImageFromWindow(win, "base", win.."base")

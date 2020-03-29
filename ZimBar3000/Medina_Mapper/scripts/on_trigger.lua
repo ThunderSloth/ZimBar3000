@@ -15,7 +15,12 @@ function on_trigger_medina_room_brief(name, line, wildcards, styles)
     local function list_to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
     local exits = get_brief_exits(wildcards.exits)
     local room = medina_get_room(med.sequence[1], exits)
-    medina_move_room(room, list_to_set(exits))
+    medina_reset_thyngs(room)
+    if wildcards.thyngs ~= '' then
+		on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, room)
+    else
+		medina_move_room(room, list_to_set(exits))
+    end
 end
 
 function on_trigger_medina_room(name, line, wildcards, styles)
@@ -35,7 +40,7 @@ function on_trigger_medina_room(name, line, wildcards, styles)
             on_trigger_medina_dark_room(name, line, wildcards, styles)
         else
             if wildcards.thyngs ~= '' then
-                on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, room)
+                on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, room)
             else
                 medina_look_room(room, exits)
             end
@@ -56,7 +61,7 @@ function on_trigger_medina_dark_room(name, line, wildcards, styles)
         end
     elseif wildcards.look ~= '' then
         if wildcards.thyngs ~= '' then
-            on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, room)
+            on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, room)
         else
             local exits = medina_exit_string_to_list(wildcards.exits)
             local room = medina_get_room(current_room, exits)

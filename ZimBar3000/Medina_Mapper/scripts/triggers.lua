@@ -116,9 +116,10 @@ function medina_get_triggers()
 			</send>]]):gsub('\t\t\t', '')
 		return xml:gsub('"%s*>',  '">\n' .. code)
 	end
-	
-    ImportXML ( get_xml_injection( ExportXML (0, "medina_mob_enter") ) )
-	ImportXML ( get_xml_injection( ExportXML (0, "medina_mob_exit" ) ) )
+
+	for i, v in ipairs({"medina_room_brief", "medina_mob_enter", "medina_mob_exit"}) do
+		ImportXML ( get_xml_injection( ExportXML (0, v) ) )
+    end
     
     for _, v in pairs(triggers) do
         if v.match then

@@ -140,6 +140,7 @@ function medina_print_map(look_room)
         end
     end
     local function draw_dynamic(coordinates, col, current_room, look_room)
+		-- draw room fill
         local function draw_thyng(room, coor, colour) -- room, coordinates, colours
             local fill_style = #room == 1 and 0 or 8
             for _ , r in ipairs(room) do
@@ -150,6 +151,7 @@ function medina_print_map(look_room)
                 WindowRectOp (win, 1, coor[r].room.inner.x1, coor[r].room.inner.y1, coor[r].room.inner.x2, coor[r].room.inner.y2, colour)
             end
         end
+        -- colour room border
         local function draw_border(room, coor, colour)
             for _ , r in ipairs(room) do
                 WindowRectOp(win, miniwin.rect_frame, 
@@ -157,18 +159,40 @@ function medina_print_map(look_room)
                     colour)
             end
         end
+        -- insert players/mobs
+        local function draw_population(coordinates, col)
+			for room, v in pairs(med.rooms) do
+				local room_colour = false
+				for p, c in pairs(v.thyngs.players) do
+					room_colour = v
+				end
+				if not room_colour then
+					room_colour = v.thyngs.mobs.boss == 1 and col.thyngs.boss or false
+				end
+				if not room_colour then
+					local xp = v.thyngs.mobs.thugs + 2 * v.thyngs.mobs.heavies
+					if xp > 0 then
+						room_colour = col.thyngs.xp[xp > 9 and 9 or xp]
+					end
+				end
+				if room_colour then
+					draw_thyng({room}, coordinates.rooms, room_colour)
+				end
+			end
+        end
         local trajectory_room = #med.sequence ~= 0 and med.sequence[#med.sequence] or {}
-        draw_border(trajectory_room, coordinates.rooms, col.rooms.ghost)
-        draw_thyng(look_room, coordinates.rooms, col.rooms.look)
-        draw_thyng(current_room, coordinates.rooms, col.thyngs.you)
+		draw_population(coordinates, col)
+        draw_border(trajectory_room, coordinates.rooms, col.rooms.ghost) -- ghost
+        draw_thyng(look_room, coordinates.rooms, col.rooms.look) -- look
+        draw_thyng(current_room, coordinates.rooms, col.thyngs.you) -- you
     end
     local current_room, look_room = med.sequence[1] or {}, look_room or {}
     WindowImageFromWindow(win, "base", win.."base")
-    WindowDrawImage(win, "base", 0, 0, 0, 0, 1) -- copy base
+    WindowDrawImage(win, "base", 0, 0, 0, 0, 1) -- draw base
     draw_dynamic(med.coordinates, med.colours, current_room, look_room) -- add dynamic
     draw_exit_text(med.coordinates.exit_text, med.dimensions, current_room)
     WindowImageFromWindow(win, "overlay", win.."overlay")
-    WindowDrawImage(win, "overlay", 0, 0, 0, 0, 3) -- copy overlay
+    WindowDrawImage(win, "overlay", 0, 0, 0, 0, 3) -- draw overlay
     WindowShow(win, true)
     --print(os.clock() - start_time) -- speed test
 end

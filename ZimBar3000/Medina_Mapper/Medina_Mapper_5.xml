@@ -31,7 +31,6 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    regexp="y"
    sequence="100"
    script="on_trigger_medina_receive_sync"
-   send_to="12"
   ></trigger>
 <!--  mob tracking  -->
   <trigger
@@ -58,11 +57,14 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="medina"
    keep_evaluating="y"
-   match="^Somewhere in an alleyway \[(?<exits>.*)\]\.$"
+   lines_to_match="2"
+   match="^Somewhere in an alleyway \[(?<exits>.*)\]\.(\n(?<thyngs>.* here.))?\Z"
+   multi_line="y"
    name="medina_room_brief"
    regexp="y"
    sequence="100"
    script="on_trigger_medina_room_brief"
+   send_to="12"
   ></trigger>
 <!--  complete darkness  -->
   <trigger
@@ -75,6 +77,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    regexp="y"
    sequence="100"
    script="on_trigger_medina_too_dark"
+   send_to="12"
   ></trigger>
 <!--  out of bounds  -->   
   <trigger
@@ -94,7 +97,6 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    match="^Removed queue\.$"
    name="medina_remove_queue"
    regexp="y"
-   send_to="12"
    sequence="100"
    script="on_trigger_medina_remove_queue"
   ></trigger>
@@ -104,7 +106,6 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    match="^(That doesn't work\.|What\?|Try something else\.)$"
    name="medina_command_fail"
    regexp="y"
-   send_to="12"
    sequence="100"
    script="on_trigger_medina_command_fail"
   ></trigger>
@@ -114,7 +115,6 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    match="^You follow .* (?<direction>north|northeast|east|southeast|south|southwest|west|northwest)\.$"
    name="medina_you_follow"
    regexp="y"
-   send_to="12"
    sequence="100"
    script="on_trigger_medina_you_follow"
   ></trigger>

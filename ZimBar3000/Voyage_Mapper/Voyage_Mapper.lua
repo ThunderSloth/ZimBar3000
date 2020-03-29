@@ -10,9 +10,11 @@ ____   ____                                    _____
 --------------------------------------------------------------------------------
 local funcs = {
 
-	'initialize', -- load: variables, metatable, resets, colours, plugin callbacks
+	'initialize', -- load: variables, metatable, resets, plugin callbacks
 	
 	'setup',      -- create windows, calculate dimensions/coordinates, resize windows, load fonts/images, generate sea-map elements
+	
+	'colours',    -- get coulours        
 	
 	'regex',	  -- compiler regular expressions: mdt, hull condition, fires, dragons, title-stripping
 	

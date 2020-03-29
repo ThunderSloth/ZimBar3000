@@ -32,7 +32,7 @@ local funcs = {
 	
 	'on_trigger', -- trigger events
 	
-	'on_alias',    -- alias events
+	'on_alias',   -- alias events
 	
 	'toggle',     -- enter/exit handling
 	

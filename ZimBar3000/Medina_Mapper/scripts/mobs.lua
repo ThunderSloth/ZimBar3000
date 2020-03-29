@@ -6,8 +6,10 @@ function medina_get_mobs(wildcards, sign, room)
 		local number = {the = 1, two = 2, three = 3, four = 4, five = 5, six = 6, seven = 7, eight = 8, nine = 9, ten = 10, eleven = 11, twelve = 12, thirteen = 13, fourteen = 14, fifteen = 15, sixteen = 16, seventeen = 17, eighteen = 18, nineteen = 19, twenty = 20, many = 21,}
 		mob = mob:gsub("^an? ", "the ")
 		local n = ""
-		n, mob = mob:match("^(%w+) (.*)")
-		n = number[n] or 0
+		if mob:match("^(%w+) (.*)") then
+			n, mob = mob:match("^(%w+) (.*)")
+		end
+		n = number[n] or 1
 		return mob, n
 	end
 	local function format_mobs(mob, n)
@@ -35,9 +37,6 @@ function medina_get_mobs(wildcards, sign, room)
 				player = player:gsub(t.title.." ", "")
 			end)
 			player = player:gsub("^([a-z']+) .*$", "%1")
-			------------------------------------------------------------
-			ColourTell(RGBColourToName(p_colour), "black", sign..player)
-
 			for r, v in pairs(med.rooms) do
 				med.rooms[r].thyngs.players[player] = nil
 			end
@@ -56,10 +55,7 @@ function medina_get_mobs(wildcards, sign, room)
 		else
 			local mob, n = get_quantity(thyng)
 			mob = format_mobs(mob, n)
-			print(mob, n)
-			if mob == "thugs" or mob == "heavies" then
-				print(2)
-				tprint(room)
+			if mob == "thugs" or mob == "heavies" and tonumber(n) then
 				for i, r in ipairs(room) do
 					med.rooms[r].thyngs.mobs[mob] = med.rooms[r].thyngs.mobs[mob] + n * sign > 0 and med.rooms[r].thyngs.mobs[mob] + n * sign or 0
 					print(r, med.rooms[r].thyngs.mobs[mob], n * sign)

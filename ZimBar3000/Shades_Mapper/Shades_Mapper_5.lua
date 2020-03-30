@@ -911,18 +911,18 @@ end
 function shades_construct_seq()
     while(sha.sequence[2]) do table.remove(sha.sequence, 2) end
     for _, direction in ipairs(sha.commands) do
-        table.insert(sha.sequence, shades_to_list(shades_get_seq(sha.sequence[#sha.sequence], direction)))
+        table.insert(sha.sequence, shades_to_list(shades_get_seq(sha.sequence[#sha.sequence] or {}, direction)))
     end
 end
 
 function shades_get_seq(start_room, direction)
     local end_room = {}
     if direction == "l" then
-        for _, r in ipairs(start_room) do
+        for _, r in ipairs(start_room or {}) do
             end_room[r] = true
         end
     else
-        for _, r in ipairs(start_room) do --tag
+        for _, r in ipairs(start_room or {}) do --tag
             if sha.rooms[r].exits[direction] then
                 end_room[sha.rooms[r].exits[direction]] = true
             elseif sha.rooms[r].normalized[direction] and sha.rooms[r].exits[sha.rooms[r].normalized[direction]] then

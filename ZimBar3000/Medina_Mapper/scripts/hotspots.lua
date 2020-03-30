@@ -1,4 +1,34 @@
 --------------------------------------------------------------------------------
+--   HOTSPOTS
+--------------------------------------------------------------------------------
+function medina_get_hotspots(dim) -- dimensions
+    WindowAddHotspot(win, "title",
+         0, 0, dim.window.x, dim.font.title, 
+         "",   -- MouseOver
+         "",   -- CancelMouseOver
+         "mousedown",
+         "cancelmousedown", 
+         "mouseup", 
+        "Left-click to drag!", -- tooltip text
+         1, 0)  -- hand cursor
+    WindowDragHandler(win, "title", "dragmove", "dragrelease", 0)
+    -- add handler for resizing
+    WindowAddHotspot(win, "resize", dim.window.x - 10, dim.window.y - 10, dim.window.x, dim.window.y, "MouseOver", "CancelMouseOver", "mousedown", "", "MouseUp", "Left-click to resize!", 6, 0)
+    WindowDragHandler(win, "resize", "ResizeMoveCallback", "ResizeReleaseCallback", 0)
+    for r, v in pairs(med.rooms) do
+        local coor = med.coordinates.rooms[r].room.outter
+        WindowAddHotspot(win, r,
+             coor.x1, coor.y1, coor.x2, coor.y2,
+             "",   
+             "",  
+             "mousedown",
+             "cancelmousedown", 
+             "mouseup", 
+             '', 
+             1, 0) 
+    end
+end
+--------------------------------------------------------------------------------
 --   HOTSPOT HANDLERS
 --------------------------------------------------------------------------------
 function dragmove(flags, hotspot_id)

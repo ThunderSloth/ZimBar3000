@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 --   EXIT SOLVING
 --------------------------------------------------------------------------------
+-- apply changes to mapdata and minimap after our other functions have eliminated uncertainty through various means
 function medina_solve_exit(start_room, direction, end_room)
     if start_room and direction and end_room then
         if med.rooms[start_room].exits and med.rooms[start_room].exit_rooms[end_room] then
@@ -16,7 +17,8 @@ function medina_solve_exit(start_room, direction, end_room)
         medina_draw_room_exits(start_room, med.coordinates.rooms[start_room], med.colours, win.."base")
     end
 end
-
+-- for situations in which we have gathered all exit information from a specific set of adjacent exit-quantity rooms 
+-- (i.e. all of the adjacent rooms that contain for example, 3 exits) and we solved all of these exits but one
 function medina_solve_final_count_matches(room)
     local function get_count(t) local c = 0; for _, _2 in pairs(t) do c = c + 1 end return c end
     local function to_list(t1) t2 = {}; for k, v in pairs(t1) do if v then table.insert(t2, k) end end; return t2 end
@@ -47,7 +49,7 @@ function medina_solve_final_count_matches(room)
         end
     end
 end
-
+-- if all exits but one have been solved, use process of elimination to solve the last one
 function medina_solve_final_exit(start_room)
     local count, final_exit = 0, ""
     if med.rooms[start_room].exits then
@@ -75,9 +77,8 @@ function medina_solve_final_exit(start_room)
         end
     end
 end
-
-function medina_get_room(start_room, end_exits)
-    -- return possible room based off exit counts
+-- return possible room based off exit counts
+function medina_get_room(start_room, end_exits) 
     local function to_list(t1) t2 = {}; for k, v in pairs(t1) do if v then table.insert(t2, k) end end; return t2 end
     local exit_count, possible_rooms = #end_exits, {}
     if exit_count == 6 then -- heart
@@ -101,12 +102,11 @@ function medina_get_room(start_room, end_exits)
         return {}
     end
 end
-
+-- attempt to narrow start and end rooms
+-- if we find certainty we will log exits
+-- if we find discrepensies we will reset
+-- return start and end rooms
 function medina_verify_room(possible_start, start_exits, direction, possible_end, presumed_end, end_exits)
-    -- attempt to narrow start and end rooms
-    -- if we find certainty we will log exits
-    -- if we find discrepensies we will reset
-    -- return start and end rooms
     local function to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
     local function to_list(t1) local t2 = {}; for k, _ in pairs(t1) do table.insert(t2, k) end; return t2 end
     start_room, end_room, presumed_end, possible_start = {}, {}, to_set(presumed_end), to_set(possible_start)
@@ -148,14 +148,14 @@ function medina_verify_room(possible_start, start_exits, direction, possible_end
         if med.rooms[absolute_start].exits[direction] ~= nil and end_exits then
             med.rooms[absolute_start].exits[direction].exits = {}
             start_exits[direction] = {}
+            -- logging adjacent-room exit-lists, this will come in handy when dealing with specific cases of uncertainty
             for dir, _ in pairs(end_exits) do
                start_exits[direction][dir] = true
                med.rooms[absolute_start].exits[direction].exits[dir] = true
-               -- logging adjacent-room exit-lists, this will come in handy when dealing with specific cases of uncertainty
             end
         end
+        -- attempt to narrow uncertainty based on exit-lists
         if not(absolute_end) and med.rooms[absolute_start].exits and end_exits and direction then
-            -- attempt to narrow uncertainty based on exit-lists
             local function get_count(t) local c = 0; for _, _2 in pairs(t) do c = c + 1 end return c end
             local function get_set_info(room, exit_count)
                 local t = {directions = {}, rooms = {}, threshold = 0,}
@@ -233,8 +233,8 @@ function medina_verify_room(possible_start, start_exits, direction, possible_end
     start_room.exits, end_room.exits = start_exits, end_exits
     return start_room, end_room
 end
-
-function medina_get_exit_counts(t) -- compile data relating to exit counts, useful for cases of uncertainty from dark/brief
+-- compile data relating to exit counts, this will be neccessary for cases of uncertainty from dark/brief
+function medina_get_exit_counts(t)
     local function get_exit_count(room)
         local count = 0
         for _, _2 in pairs(t[room].exit_rooms) do count = count + 1 end

@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 --   SHORTEST PATH
 --------------------------------------------------------------------------------
+-- for auto-walking by mouseclick
 function medina_get_shortest_path(graph, start_node, end_node) -- BFS
     local function deepcopy(orig)
         local orig_type = type(orig)

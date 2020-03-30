@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 --   CONSTRUCT TRIGGERS
 --------------------------------------------------------------------------------
+-- room triggers
 function medina_get_triggers()
     local desc = {
         title = "(?<title>\\[somewhere in an alleyway\\])",
@@ -85,6 +86,10 @@ function medina_get_triggers()
 	
 	triggers[14] = {} -- remove duplicate (H or N)
 	
+	-- if we send directly to script there will be timing issues cause by other
+	-- plugins altering our style runs, so we must inject xml into the send field
+	-- we need our style runs unaltered so that we can determine players
+	-- without false positives
 	local function get_xml_injection(xml)
 		local code = ([[
 			<send>
@@ -116,7 +121,7 @@ function medina_get_triggers()
 			</send>]]):gsub('\t\t\t', '')
 		return xml:gsub('"%s*>',  '">\n' .. code)
 	end
-
+	
 	for i, v in ipairs({"medina_room_brief", "medina_mob_enter", "medina_mob_exit"}) do
 		ImportXML ( get_xml_injection( ExportXML (0, v) ) )
     end

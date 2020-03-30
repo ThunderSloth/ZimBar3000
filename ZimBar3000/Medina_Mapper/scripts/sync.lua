@@ -6,7 +6,7 @@ function on_trigger_medina_receive_sync(name, line, wildcards, styles)
 	medina_draw_sync_sword(wildcards)
 	medina_handle_incoming_sync(wildcards.sync, wildcards.version, wildcards.sender)
 end
-
+-- accept sync without argument / send sync to player with argument (player name)
 function on_alias_medina_sync(name, line, wildcards)
 	if wildcards.player ~= '' then -- sending
 		Send('tell '..wildcards.player..' '..medina_get_sync())
@@ -44,7 +44,7 @@ function on_alias_medina_sync(name, line, wildcards)
 		end
 	end
 end
-
+-- construct sync data for sending to other players
 function medina_get_sync()
 	local text, time, n = "", 0, 0 
 	local ex = {n = 1, ne = 2, e = 3, se = 4, s = 5, sw = 6, w = 7, nw = 8}
@@ -70,7 +70,7 @@ function medina_get_sync()
     local sync_sword =  hilt .. based .. signiture .. blade 
     return sync_sword
 end
-
+-- unpack incomming sync data, validate and parse
 function medina_handle_incoming_sync(sync, version, sender)
 	local function invalid_data(reason)
 		med.sync = {data = {}, is_valid = false}
@@ -128,7 +128,9 @@ function medina_handle_incoming_sync(sync, version, sender)
 	end
 	invalid_data("incorrect length")
 end
-
+-- display average time since solved rooms have been solved
+-- and percentage of solved rooms out of all rooms
+-- offer hyperlink to accept sync
 function medina_sync_unpacking_successful(percent, time, version, sender)
 	time = os.time() - time
 	local text_colour1, text_colour2, text_colour3 = "gray", "lightgray", "orange"
@@ -158,7 +160,7 @@ function medina_sync_unpacking_successful(percent, time, version, sender)
 	end
 	Note('\n')
 end
-
+-- colour incomming sync tell (technically we are omitting it and printing it again)
 function medina_draw_sync_sword(wildcards)
 	local background_colour = RGBColourToName(AdjustColour (GetInfo(271), 1))
 	local hilt_colour, sword_colour1, sword_colour2, blood_colour = "orange", "lightgray", "gray", "red"
@@ -181,7 +183,8 @@ function medina_draw_sync_sword(wildcards)
 	end
 	Note("\n")
 end
-
+-- convert from base 10 to base 94 (all printable ascii char)
+-- and vice versa for string compression and basic encryption
 function medina_convert_base(s, b1, b2)
 	local function get_bases()
 		local base = {

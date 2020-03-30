@@ -287,10 +287,9 @@ function ResizeMoveCallback()
         last_refresh = utils.timer()
    end
 end
-
 -- called after the resize widget is released
 function ResizeReleaseCallback()
-    voyage_window_setup(window_width, window_height)
+    voyage_window_setup(window_width, window_height, voy.colours)
     voyage_print_map() -- draw map before loading vertical fonts in order to mitigate lag
     voyage_get_hotspots(voy.dimensions)
     if voy.sea then
@@ -299,7 +298,6 @@ function ResizeReleaseCallback()
     rotate_vertical_font(voy.colours)
     voyage_print_map() -- display with vertical fonts
 end
-
 -- called when mouse button is pressed on hotspot
 function mousedown(flags, hotspot_id)
     if hotspot_id == "title" then
@@ -308,7 +306,7 @@ function mousedown(flags, hotspot_id)
         WindowImageFromWindow(win, "win", win)
     end
 end
-
+-- on mouse up
 function mouseup(flags, id)
     if id:match("^[0-9]+$") then
         local room = tonumber(id)

@@ -9,6 +9,7 @@
    purpose="graphically map shades and normalize directions"
    save_state="y"
    date_written="2020-03-22 12:00:00"
+   sequence="100"
    requires="3.00"
    version="5"
    >
@@ -66,7 +67,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="shades"
    keep_evaluating="y"
-match="^You follow .* (?<direction>[1-8]).$"
+   match="^You follow .* (?<direction>[1-8]).$"
    name="shades_you_follow"
    regexp="y"
    send_to="12"
@@ -81,7 +82,7 @@ match="^You follow .* (?<direction>[1-8]).$"
    match="^(?<direction>n|ne|e|se|s|sw|w|nw|north|northeast|east|southeast|south|southwest|west|northwest|look|l|[1-8])$"
    regexp="y"
    ignore_case="y"
-   sequence="101"
+   sequence="100"
    script="on_alias_shades_move_room"
  ></alias>
   <alias

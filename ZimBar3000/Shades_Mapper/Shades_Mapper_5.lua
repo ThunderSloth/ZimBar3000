@@ -23,8 +23,7 @@ function on_plugin_start()
 end
 
 function shades_get_variables()
-    defualt_window_width = 300
-    defualt_window_height = 300
+    defualt_window_width, defualt_window_height = 300, 300
     window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
    --[[1 2 3 4 5
@@ -937,12 +936,19 @@ function shades_get_seq(start_room, direction)
 end
 
 function on_alias_shades_move_room(name, line, wildcards)
+	print("shades move room alias has been called with:", wildcards.direction)
     sha.commands.count = (sha.commands.count or 0) + 1 -- used in 'stop' handling
     local direction = shades_format_direction(wildcards.direction) 
+    print("direction after formatting:", direction)
     local first_room = sha.sequence[#sha.sequence] and sha.sequence[#sha.sequence][1] or false
+    print("first room:", first_room)
     local possible_rooms, to_send = {}, direction
+    print("sha.sequence:", sha.sequence, "type:", type(sha.sequence))
+    if type(sha.sequence) == 'table' then
+		tprint(sha.sequence)
+    end
     if direction == "l" then
-        for i, v in ipairs(sha.sequence[#sha.sequence]) do
+        for i, v in ipairs(sha.sequence[#sha.sequence] or {}) do
             possible_rooms[i] = v
         end
     elseif first_room and not (first_room == 'G' and direction == 'w') then

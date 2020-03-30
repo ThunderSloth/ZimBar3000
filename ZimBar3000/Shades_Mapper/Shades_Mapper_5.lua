@@ -884,6 +884,9 @@ function shades_move_room(room)
 end
 
 function shades_verify_room(previous_room, current_room, presumed_room)
+	print('shades_verify_room called')
+	print('cuerrent_room:');tprint(current_room or {})
+	print('presumed_room:');tprint(presumed_room or {})
     local possible_current, possible_previous, presumed_room = {}, {}, shades_to_set(presumed_room)
     for _, r in ipairs(current_room or {}) do
         if presumed_room[r] then -- presumed must be in set of current
@@ -905,6 +908,8 @@ function shades_verify_room(previous_room, current_room, presumed_room)
         end
         possible_previous = shades_to_list(possible_previous)
     end
+    --print('possible_previous:');tprint(possible_previous)
+    print('possible_current:');tprint(possible_current or {})
     return possible_previous, possible_current
 end
 
@@ -913,6 +918,7 @@ function shades_construct_seq()
     for _, direction in ipairs(sha.commands) do
         table.insert(sha.sequence, shades_to_list(shades_get_seq(sha.sequence[#sha.sequence] or {}, direction)))
     end
+    print("sha.sequence:");tprint(sha.sequence)
 end
 
 function shades_get_seq(start_room, direction)
@@ -939,9 +945,7 @@ function on_alias_shades_move_room(name, line, wildcards)
 	print("shades move room alias has been called with:", wildcards.direction)
     sha.commands.count = (sha.commands.count or 0) + 1 -- used in 'stop' handling
     local direction = shades_format_direction(wildcards.direction) 
-    print("direction after formatting:", direction)
     local first_room = sha.sequence[#sha.sequence] and sha.sequence[#sha.sequence][1] or false
-    print("first room:", first_room)
     local possible_rooms, to_send = {}, direction
     print("sha.sequence:", sha.sequence, "type:", type(sha.sequence))
     if type(sha.sequence) == 'table' then
@@ -1039,9 +1043,12 @@ end
 function on_trigger_shades_verbose(name, line, wildcards, styles)
     local s = name:match('%w+$')
     local room = {}
+    print("on_trigger_shades_verbose triggered, possible rooms are:")
     for r in string.gmatch(s, '.') do
       table.insert(room, r)
+      print(r)
     end
+    print('\n')
     shades_move_room(room)
 end
 --------------------------------------------------------------------------------

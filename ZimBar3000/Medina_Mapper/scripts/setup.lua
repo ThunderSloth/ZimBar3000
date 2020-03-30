@@ -1,45 +1,22 @@
 --------------------------------------------------------------------------------
---   MINIWINDOW SETUP
+--   CREATE WINDOWS
 --------------------------------------------------------------------------------
 function medina_get_windows()
     local col = med.colours.window
-    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- for loading images
-    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- base: room structure, static objects and bmp images
-    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window.background) -- load dummy window -- display window: only dynamic objects will be printed directly here
-    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
+    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- stage for image loading
+    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent)      -- base: room structure, static objects and bmp images
+    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window.background)-- display window: dynamic objects draw here
+    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent)   -- overlay: room-letters
     WindowSetZOrder(win, 200)
 end
-
-function medina_get_hotspots(dim) -- dimensions
-    WindowAddHotspot(win, "title",
-         0, 0, dim.window.x, dim.font.title, 
-         "",   -- MouseOver
-         "",   -- CancelMouseOver
-         "mousedown",
-         "cancelmousedown", 
-         "mouseup", 
-        "Left-click to drag!", -- tooltip text
-         1, 0)  -- hand cursor
-    WindowDragHandler(win, "title", "dragmove", "dragrelease", 0)
-    -- add handler for resizing
-    WindowAddHotspot(win, "resize", dim.window.x - 10, dim.window.y - 10, dim.window.x, dim.window.y, "MouseOver", "CancelMouseOver", "mousedown", "", "MouseUp", "Left-click to resize!", 6, 0)
-    WindowDragHandler(win, "resize", "ResizeMoveCallback", "ResizeReleaseCallback", 0)
-    for r, v in pairs(med.rooms) do
-        local coor = med.coordinates.rooms[r].room.outter
-        WindowAddHotspot(win, r,
-             coor.x1, coor.y1, coor.x2, coor.y2,
-             "",   
-             "",  
-             "mousedown",
-             "cancelmousedown", 
-             "mouseup", 
-             '', 
-             1, 0) 
-    end
-end
-
-function medina_window_setup(window_width, window_height) -- define window attributes
-    
+--------------------------------------------------------------------------------
+--   WINDOW SETUP
+--------------------------------------------------------------------------------
+function medina_window_setup(window_width, window_height) 
+    --~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	--   DIMENSIONS
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	-- set dimensions based off window size
     local function get_window_dimensions(window_width, window_height)
         med.dimensions = {}
         med.dimensions.window = {
@@ -62,7 +39,10 @@ function medina_window_setup(window_width, window_height) -- define window attri
             y = (med.dimensions.block.y - med.dimensions.room.y) / 2}
         return med.dimensions
     end
-
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	--   COORDINATES
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	-- predetermine the coordinates of everything that will be drawn
     local function get_room_coordinates(dim) --dimensions
 
         local function get_exit_coordinates(dim, k, v, origin)
@@ -124,7 +104,10 @@ function medina_window_setup(window_width, window_height) -- define window attri
             med.coordinates.rooms[k].room.inner  = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
         end
     end
-
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	--   DIMENSIONS
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	-- resize windows to saved or defualt size
     local function resize_windows(dim) -- dimensions
         local col = med.colours.window
         WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, col.transparent) -- for loading images
@@ -132,7 +115,10 @@ function medina_window_setup(window_width, window_height) -- define window attri
         WindowResize(win, dim.window.x, dim.window.y, col.background) -- display window: only dynamic objects will be printed directly here
         WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
     end
-
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	--   DIMENSIONS
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	-- load font based on window size
     local function get_font(dim) -- dimensions
         med.dimensions.font = {}
         local f_tbl = utils.getfontfamilies ()
@@ -179,7 +165,10 @@ function medina_window_setup(window_width, window_height) -- define window attri
             end
         end
     end
-
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	--   IMAGES
+	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	-- load arrows for exit representation
     local function get_images(dim) -- dimensions
         file_path = (GetPluginInfo(GetPluginID(), 6)):match("^(.*\\).*$")
         local dir = {"n", "ne", "e", "se", "s", "sw", "w", "nw"}

@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 --   RESET FUNCTIONS
 --------------------------------------------------------------------------------
+-- defualt metadata
 function medina_reset_rooms()
     med.rooms = {
         A = {exit_rooms = {B = "e", E = "se",D = "s"},                             location = {x = 1, y = 1}}, -- nw exit room
@@ -23,7 +24,7 @@ function medina_reset_rooms()
         R = {exit_rooms = {Q = "w"},                                               location = {x = 6, y = 5}},} -- se exit room
 	for room, _ in pairs(med.rooms) do medina_reset_room(room) end
 end
-
+-- reset specific room
 function medina_reset_room(room)
     medina_reset_room_exits(room)
     med.rooms[room].visited = false
@@ -33,7 +34,7 @@ function medina_reset_room(room)
     end
     --DeleteTimer(room) --delete expiration timer
 end
-
+-- reset all all exit data of a specific toom
 function medina_reset_room_exits(room)
     for _, dir in pairs(med.rooms[room].exit_rooms) do
         med.rooms[room].normalized = med.rooms[room].normalized or {}
@@ -48,7 +49,7 @@ function medina_reset_room_exits(room)
         medina_draw_room_exits(room, med.coordinates.rooms[room], med.colours, win.."base") -- redraw exits
     end
 end
-
+-- reset mobs/players in a specific room
 function medina_reset_thyngs(room)
 	if type(room) == 'table' then
 		for i, r in ipairs(room) do

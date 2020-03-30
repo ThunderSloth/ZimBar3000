@@ -16,23 +16,27 @@ function on_plugin_start()
     end
     --medina_get_timers()
 end
-
-function medina_get_variables() -- load variables
+-- load variables
+function medina_get_variables() 
     defualt_window_width, defualt_window_height = 300, 300
     window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
     assert(loadstring(GetVariable("med") or ""))()
     if not med then med = {}; medina_reset_rooms() end
-    med.exit_counts = medina_get_exit_counts(med.rooms)
+    med.exit_counts = medina_get_exit_counts(med.rooms) -- for brief/night solving
     med.colours = medina_get_colours()
     med.players = {} -- set containing playernames with associated colour
     med.sync = {received = false, data = {}, is_valid = false}
     med.commands = {move = {count = 0}, look = {count = 0}}
+    -- keep track of all rooms (or all possible rooms) in our queued trajectory
+    -- where index 1 refers to our current room (or rooms)
+    -- and the last item in the table refers to our final trajectory room
+    -- we will also reserve index 0 ro store history of previous room
     med.sequence = {}
     med.is_in_medina = false
 end
-
-function OnPluginSaveState () -- save variables
+-- save variables
+function OnPluginSaveState () 
 	SetVariable("med", "med = "..serialize.save_simple(med))
 	SetVariable("window_width", window_width)
 	SetVariable("window_height", window_height)

@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 --   GRAPHICAL FUNCTIONS
 --------------------------------------------------------------------------------
+-- draw map room according to solved status
 function medina_draw_room(room, coor, col, mw) -- room, coordinates, colours, miniwindow
     local border_colour = med.rooms[room].solved and col.rooms.solved or col.rooms.unsolved
     WindowCircleOp(mw, 2, -- draw room
@@ -8,7 +9,7 @@ function medina_draw_room(room, coor, col, mw) -- room, coordinates, colours, mi
 	    border_colour, 0, 1,
 	    col.window.background, miniwin.brush_null)
 end
-
+-- draw room exits according to solved status
 function medina_draw_room_exits(room, coor, col, mw) --room, coordinates, colours, miniwindow
     for norm, dir in pairs(med.rooms[room].normalized) do
         local border_colour = dir and col.exits.solved or col.exits.unsolved
@@ -19,7 +20,7 @@ function medina_draw_room_exits(room, coor, col, mw) --room, coordinates, colour
         if dir then WindowDrawImage(mw, dir, coor.exit[norm].x1 + 2, coor.exit[norm].y1 + 2, 0, 0, 1) end --if solved draw arrow
     end
 end
-
+-- base layer (rooms, exits, titlebar)
 function medina_draw_base(dim, col) -- dimensions, colours
     local coordinates = med.coordinates
     WindowCircleOp( -- window border
@@ -52,7 +53,7 @@ function medina_draw_base(dim, col) -- dimensions, colours
         medina_draw_room_exits(room, coor, col, win.."base") -- draw exits
     end
 end
-
+-- draw room letter
 function medina_draw_room_letter(room, coor, col) -- room, coordinates, colours
     local letter_colour = med.rooms[room].visited and col.rooms.visited or col.rooms.unvisited
     WindowText (win.."overlay", "larger", room,
@@ -60,7 +61,7 @@ function medina_draw_room_letter(room, coor, col) -- room, coordinates, colours
         letter_colour, 
         false)
 end
-
+-- room-letter layer
 function medina_draw_overlay(dim, col) -- dimensions, colours
     WindowCircleOp( -- transparent background
         win.."overlay", miniwin.circle_rectangle, 
@@ -72,7 +73,8 @@ function medina_draw_overlay(dim, col) -- dimensions, colours
         medina_draw_room_letter(room, coor, col)
     end
 end
-
+-- draw dynamic elements (you, mobs, highlights ect.) on top of 
+-- base (rooms, exits, titlebar) and layer overlay (room-letters) on top, then display
 function medina_print_map(look_room)
     local start_time = os.clock()
     local function draw_exit_text(coor, dim, current_room)

@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 --   ALIAS EVENTS
 --------------------------------------------------------------------------------
---movement/look handlers
+-- on entering movement direction
 function on_alias_medina_move_room(name, line, wildcards)
     local function to_list(t1) t2 = {}; for k, v in pairs(t1) do if v then table.insert(t2, k) end end; return t2 end
     med.commands.move.count = (med.commands.move.count or 0) + 1 -- used in 'stop' handling
@@ -27,7 +27,7 @@ function on_alias_medina_move_room(name, line, wildcards)
     Send(to_send)
     medina_print_map()
 end
-
+-- on entering looking in a direction
 function on_alias_medina_look_room(name, line, wildcards)
     med.commands.look.count = (med.commands.look.count or 0) + 1
     local direction = medina_format_direction(wildcards.direction)
@@ -44,12 +44,12 @@ function on_alias_medina_look_room(name, line, wildcards)
     Send(to_send)
     medina_debug_movement()
 end
-
+-- on entering stop
 function on_alias_medina_stop(name, line, wildcards)
     med.commands.move.count, med.commands.look.count = 0, 0
     Send("stop")
 end
--- debugging
+-- display internal variables for debugging
 function on_alias_medina_table(name, line, wildcards) -- 'medt'
     local room = wildcards.room:upper()
     if room:match("^[A-R]$") then
@@ -62,7 +62,7 @@ function on_alias_medina_table(name, line, wildcards) -- 'medt'
         print("med.commands.look");tprint(med.commands.look)
     end
 end
--- commands
+-- reset map or a specific room
 function on_alias_medina_reset(name, line, wildcards) -- 'medr'
     local current_room, is_reset_room, reset_room = med.sequence[1] and #med.sequence[1] == 1 and med.sequence[1][1] or false, wildcards.is_reset_room, wildcards.room:upper()
     if reset_room:match("^[A-R]$") then -- room specified
@@ -75,9 +75,9 @@ function on_alias_medina_reset(name, line, wildcards) -- 'medr'
         if med.is_in_medina then Send("l") end
     end
 end
-
+-- show map window
 function on_alias_medina_window_open(name, line, wildcards) medina_print_map() end -- 'medwo'
-
+-- close map window (this does not disable the plugin, the window will appear again if you are in the medina)
 function on_alias_medina_window_exit(name, line, wildcards) WindowShow(win, false) end -- 'medwx'
-
+-- reposition window to center of screen
 function on_alias_medina_window_center(name, line, wildcards) WindowPosition(win, 0, 0, miniwin.pos_center_all, 0); medina_print_map() end -- 'medwc'

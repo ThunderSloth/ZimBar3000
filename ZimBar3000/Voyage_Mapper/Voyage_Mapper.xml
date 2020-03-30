@@ -632,6 +632,15 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    sequence="100"
    script="on_trigger_voyage_junk_find"
   ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You connect the large water tank up to the MK I Boiling Engine's intake valve, wait until the water fully drains into the MK I Boiling Engine, then disconnect it again.$"
+   name="voyage_boiler_fill"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_boiler_fill"
+  ></trigger>
 <!-- Dragons -->
   <trigger
    group="voyage"

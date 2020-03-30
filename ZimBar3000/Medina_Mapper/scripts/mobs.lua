@@ -50,9 +50,10 @@ function medina_get_mobs(wildcards, sign, room)
 				end
 			end
 			if direction then
-				for i, r in ipairs(room) do
-					if med.rooms[r].exits[direction] then
-						med.rooms[r].exits[direction].thyngs.players[player] = p_colour
+				for _, r in ipairs(room) do
+					local adj_room = med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
+					if adj_room then
+						med.rooms[adj_room].thyngs.players[player] = p_colour
 					end
 				end	
 			end

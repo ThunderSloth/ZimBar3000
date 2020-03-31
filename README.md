@@ -22,4 +22,6 @@ Various Discworld MUD Plugins for MUSHclient
 * https://repl.it/@Zimbus3000/ZimBar3000staging
 ### dwmud wiki:
 * https://dwwiki.mooo.com/wiki/Main_Page
-
+### git help:
+* http://ndpsoftware.com/git-cheatsheet.html#loc=workspace --> cheatsheet
+* https://stuckinvim.com/

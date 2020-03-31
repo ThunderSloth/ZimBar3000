@@ -14,6 +14,8 @@ Various Discworld MUD Plugins for MUSHclient
 #### medina:
 * https://regex101.com/r/sSiRyh/1 --> mob exit (in progress)
 * https://regex101.com/r/lvcxeD/1 --> mob enter (in progress)
+#### map door text
+https://regex101.com/r/zL2VVE/4/ --> map door text
 ### mushclient forums:
 * http://www.mushclient.com/forum/bbshowbio.php?bbuser_id=13507
 ### online compiler:

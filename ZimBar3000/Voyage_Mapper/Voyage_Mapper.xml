@@ -450,7 +450,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(The .* the weather calms.|With that last blow, the (kraken|sea serpent) .*|The grinding of scales .* It sounds like victory.)$"
+   match="^(The .* the weather calms.|With that last blow, the (sea )?(<monster>(kraken|serpent)) .*|The grinding of scales .* It sounds like victory.)$"
    name="voyage_stage_change_calm"
    regexp="y"
    sequence="100"

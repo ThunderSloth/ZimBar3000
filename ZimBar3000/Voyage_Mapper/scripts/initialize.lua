@@ -217,10 +217,11 @@ end
 
 function voyage_reset_xp()
     xp_t = {crates = 0, group = 0}
-    for i = 0, 4 do
-        xp_t[i] = {time = false, xp = false}  -- xp at end of each stage
-    end
+    for i = 0, 6 do
+        xp_t[i] = {time = false, xp = false, name = false}  -- xp at at different stages/parts
+    end										 
     xp_t[0].time = os.time()                  -- starting xp
+    xp_t[1].name = 'Search'
     xp_t.current = false
     xp_t.need_final = false
 end

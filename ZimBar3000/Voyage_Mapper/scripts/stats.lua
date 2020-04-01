@@ -13,9 +13,16 @@ end
 --   XP
 --------------------------------------------------------------------------------
 function voyage_update_xp(xp)
+	-- xp ranges tracked are as follows:
+    -- start - searching - part 1 - part 2 - fight - part 3 - part 4 - finish
+	-- technically part three starts at the end of two,  but we will treat the
+	-- end of the fight as the beginning of three, because it will provide
+	-- more meaningful data
     xp_t.current = xp
-    if xp_t[voy.part - 1] and not xp_t[voy.part - 1].xp then
-        xp_t[voy.part - 1].xp = xp
+    for i = #xp_t, 1, -1 do
+		if xp_t[i].xp then
+			xp_t[i].xp = xp
+		end
     end
     voyage_draw_xp()
 end
@@ -31,11 +38,6 @@ function on_alias_voyage_print_xp(name, line, wildcards)
         return string.format("%.2d:%.2d", t/60%60, t%60)
     end
     local function format_line(part, xp, time, rate)
-        if part == 'total' then
-            part = "Total : "
-        else
-            part = "Part "..tostring(part)..": "
-        end
         xp = tostring(xp).." xp"
         time = " in "..format_time(time)
         rate = " ("..tostring(rate).." kxp/h)"
@@ -46,7 +48,7 @@ function on_alias_voyage_print_xp(name, line, wildcards)
     local printed = false
     for i, v in ipairs(xp_t) do
         if xp_t[i - 1].xp and v.xp and xp_t[i - 1].time and v.time then
-            local part = tostring(i)
+            local part = xp_t[i].name..": "
             local xp = v.xp - xp_t[i - 1].xp
             local time = v.time - xp_t[i - 1].time
             local rate = time == 0 and 0 or round(((xp * 60^2) / (time * 1000)), 2)
@@ -58,11 +60,11 @@ function on_alias_voyage_print_xp(name, line, wildcards)
     if printed then
         table.insert(summary, "")
     end
-    if xp_t[0].xp and xp_t[0].time and (xp_t[4].xp or xp_t.current) then
-        local xp = (xp_t[4].xp or xp_t.current) - xp_t[0].xp
-        local time = (xp_t[4].time or os.time()) - xp_t[0].time
+    if xp_t[0].xp and xp_t[0].time and (xp_t[6].xp or xp_t.current) then
+        local xp = (xp_t[6].xp or xp_t.current) - xp_t[0].xp
+        local time = (xp_t[6].time or os.time()) - xp_t[0].time
         local rate = time == 0 and 0 or round(((xp * 60^2) / (time * 1000)), 2)
-        local line = format_line('total', xp, time, rate)
+        local line = format_line('Total :', xp, time, rate)
         table.insert(summary, line)
         if xp_t.crates ~= 0 then
             table.insert(summary, "Crates: "..tostring(xp_t.crates).."/8")

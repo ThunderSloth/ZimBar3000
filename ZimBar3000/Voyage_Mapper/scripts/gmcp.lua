@@ -31,7 +31,7 @@ function voyage_recieve_GMCP(text)
         local xp = tonumber(text:match('"xp":(%d+)'))
         voyage_update_xp(xp)
         if xp_t.need_final then
-            xp_t[4].xp = xp
+            xp_t[6].xp = xp
             xp_t.need_final = false
             on_alias_voyage_print_xp()
         end

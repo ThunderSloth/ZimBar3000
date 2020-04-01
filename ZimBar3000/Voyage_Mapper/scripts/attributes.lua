@@ -3,8 +3,14 @@
 --------------------------------------------------------------------------------
 function on_trigger_voyage_complete_part(name, line, wildcards, styles)
     local legs = {first = 1, second = 2, third = 3, fourth = 4}
+    local part_end = voy.part
     voy.part = (legs[wildcards.leg] or 0) + 1
-    xp_t[voy.part - 1].time = os.time()
+    local part_to_xp_span = {2, 3, 5, 6}
+    local xp_span = part_to_xp_span[part_end]
+    xp_t[xp_span].time = os.time()
+    if not xp_t[xp_span].name then
+		xp_t[xp_span].name = "Part "..tostring(part_end)
+    end
     voyage_draw_part(voy.coordinates, voy.colours, win.."underlay")
     voyage_print_map()
 end
@@ -20,6 +26,19 @@ end
 function on_trigger_voyage_stage_change(name, line, wildcards, styles)
     local stage = name:match("voyage_stage_change_(.+)")
     voy.stage = stage:gsub("^%l", string.upper)
+    xp_t[4].xp = xp_t.current
+    if voy.stage == "Kraken" then
+		if not xp_t[4].name then
+			xp_t.name = "Kraken"
+		end
+    elseif voy.stage == "Serpent" then
+		if not xp_t[4].name then
+			xp_t.name = "Serpent"
+		end    
+    end
+    if wildcards.monster ~= '' and not xp_t[4].time then
+		xp_t[4].time = os.time()
+    end
     voyage_draw_stage(voy.coordinates, voy.colours, win.."underlay")
     voy.kraken, voy.serpent = false, false
     voyage_print_map()

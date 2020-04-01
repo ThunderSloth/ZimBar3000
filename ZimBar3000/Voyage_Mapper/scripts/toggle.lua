@@ -29,6 +29,6 @@ function voyage_exit()
         EnableGroup("voyage", false)
         EnableTimer("ticker", false)
         xp_t.need_final = true
-        xp_t[4].time = os.time()
+        xp_t[6].time = os.time()
     end
 end

@@ -41,9 +41,10 @@ function voyage_get_regex()
 (?'genua'(?# m, monsieur, mlle, mademoiselle, mme, madame)m(?=(\Z|$| |me|lle|onsieur|adame|ademoiselle))(me|lle|onsieur|adame|ademoiselle)?)
 (?'ghosts'(lonely|mournful|scary|spooky|wandering))
 (?'musketeers'(cheating|cowardly))
-(?'debaters'(diplomatic|uncreative)))(?#
+(?'debaters'(diplomatic|uncreative))
+(?'netdead'the netdead statue of)(?'zombie'zombie))(?#
  TITLE REGEX: 
-)^(?<title>(?P>assassins)|(?P>priests)|(?P>thieves)|(?P>witches)|(?P>wizards)|(?P>council_am)|(?P>court_positive)|(?P>court_punishment)|(?P>council_djb)|(?P>achievements_thieves)|(?P>achievements_warriors)|(?P>achievements_witches)|(?P>achievements_fools)|(?P>achievements_wizards)|(?P>achievements_priests)|(?P>achievements_assassins)|(?P>achievements_all)|(?P>quest_points)|(?P>general)|(?P>genua)|(?P>ghosts)|(?P>musketeers)|(?P>debaters)) ]]),
+)^(?<title>(?P>assassins)|(?P>priests)|(?P>thieves)|(?P>witches)|(?P>wizards)|(?P>council_am)|(?P>court_positive)|(?P>court_punishment)|(?P>council_djb)|(?P>achievements_thieves)|(?P>achievements_warriors)|(?P>achievements_witches)|(?P>achievements_fools)|(?P>achievements_wizards)|(?P>achievements_priests)|(?P>achievements_assassins)|(?P>achievements_all)|(?P>quest_points)|(?P>general)|(?P>genua)|(?P>ghosts)|(?P>musketeers)|(?P>debaters)|(?P>netdead)|(?P>zombie)) ]])
 }
 end
 --[[

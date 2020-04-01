@@ -86,7 +86,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(?<players>.*) ((?<board>climbs? aboard from the sea)|(?<overboard>jumps? in from above with a splash)|(arrives?|swaggers? in nautically|floats? in|tumbles? in) from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(above|below)))).$"
+   match="^(?<players>.*) ((?<board>climbs? aboard from the sea)|(?<overboard>jumps? in from above with a splash)|shuffles? in|(arrives?|swaggers? in nautically|floats? in|tumbles? in) from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(above|below)))).$"
    name="voyage_player_enter"
    regexp="y"
    sequence="100"
@@ -95,7 +95,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(?<players>.*) ((?<board>climbs? aboard the ship)|(?<overboard>climbs? over the railing and jumps? into the sea with a splash)|(leaves?|swaggers? out nautically|floats?|is thrown off (his|her|its) feet (out to|towards)) ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(up|down)))).$"
+   match="^(?<players>.*) ((?<board>climbs? aboard the ship)|(?<overboard>climbs? over the railing and jumps? into the sea with a splash)|(leaves?|swaggers? out nautically|shuffles? away|floats?|is thrown off (his|her|its) feet (out to|towards)) ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(up|down)))).$"
    name="voyage_player_leave"
    regexp="y"
    sequence="100"

@@ -1,0 +1,248 @@
+<muclient>
+<plugin
+   name="Shades_Triggers"
+   author="Zimbus"
+   id="a4231bda89af8a0bb1a62b13"
+   language="Lua"
+   purpose="for testing preconstructed shades triggers"
+   date_written="2020-03-24 01:45:00"
+   requires="1.00"
+   version="1"
+   sequence="-1000">
+</plugin>
+<script>
+<![CDATA[
+EnableGroup("shades")
+
+function on_trigger_shades_verbose(name, line, wildcards, styles)
+    print(name)
+end
+
+function on_trigger_shades_brief(name, line, wildcards, styles)
+    print(name)
+end
+
+]]>
+</script>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="9"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?The alleyways here all look the same.  Dim fires flicker in the distance, providing more a kind of glow than real light.\n(?&lt;extra1&gt;.*\n)?(?&lt;extra2&gt;.*\n)?(?&lt;weather1&gt;It is an? .*)\n(?&lt;weather2&gt;(?!.* obvious exits:).*\n)?(?&lt;exits&gt;There are (?(?=.* enter door.)five|four) obvious exits: .*)\Z"
+   multi_line="y"
+   name="shades_verbose_BFOQ"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_BFOQ"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   keep_evaluating="y"
+   match="^Somewhere in the Shades \[.*(?&lt;exits&gt;\d)\D*\]\.$"
+   name="shades_brief"
+   regexp="y"
+   script="on_trigger_shades_brief"
+   send_to="12"
+   sequence="100"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="9"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?There is no hope of ever escaping this nightmare.  Grime covers the walls, and the dank slime underfoot makes walking slippery.  The ever present fog and gloom makes trying to see a way out impossible.\n(?&lt;extra1&gt;.*\n)?(?&lt;extra2&gt;.*\n)?(?&lt;weather1&gt;It is an? .*)\n(?&lt;weather2&gt;(?!.* obvious exits:).*\n)?(?&lt;exits&gt;There are (?(?=.* enter door.)eight|seven) obvious exits: .*)\Z"
+   multi_line="y"
+   name="shades_verbose_DN"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_DN"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="4"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?Deep, deep into the Shades. This alley is like every other alley in this rabbit warren of death.  It is dank, dark and foggy, everything looks the same...\Z"
+   multi_line="y"
+   name="shades_verbose_A"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_A"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="9"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?There is no hope of ever escaping this nightmare.  Grime covers the walls, and the dank slime underfoot makes walking slippery.  The ever present fog and gloom makes trying to see a way out impossible.\n(?&lt;extra1&gt;.*\n)?(?&lt;extra2&gt;.*\n)?(?&lt;weather1&gt;It is an? .*)\n(?&lt;weather2&gt;(?!.* obvious exits:).*\n)?(?&lt;exits&gt;There are (?(?=.* enter door.)six|five) obvious exits: .*)\Z"
+   multi_line="y"
+   name="shades_verbose_C"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_C"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="4"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?This room is like any of the other alleyways, dank, dark and foggy.  It has lots of exits that lead to other dank, dark and foggy alleyways.  Howls of fear and pain echo around from the walls.\Z"
+   multi_line="y"
+   name="shades_verbose_E"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_E"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="4"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?This is deep in the Shades.  What passes for civilization in these parts is to the west, but otherwise there are three alleyways in weaving twisting directions which don't appear on any compass.  Further in is a deadly maze of dangerous alleyways.\Z"
+   multi_line="y"
+   name="shades_verbose_G"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_G"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="9"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?There is no hope of ever escaping this nightmare.  Grime covers the walls, and the dank slime underfoot makes walking slippery.  The ever present fog and gloom makes trying to see a way out impossible.\n(?&lt;extra1&gt;.*\n)?(?&lt;extra2&gt;.*\n)?(?&lt;weather1&gt;It is an? .*)\n(?&lt;weather2&gt;(?!.* obvious exits:).*\n)?(?&lt;exits&gt;There are (?(?=.* enter door.)seven|six) obvious exits: .*)\Z"
+   multi_line="y"
+   name="shades_verbose_H"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_H"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="4"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?The Lady is evidently not on your side; at every turn lies another twisting alleyway.  Dim torches flicker red through the fog, providing more a sinister red glow than any real light.\Z"
+   multi_line="y"
+   name="shades_verbose_I"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_I"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="9"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?There is no hope of ever escaping this nightmare.  Grime covers the walls, and the dank slime underfoot makes walking slippery.  The ever present fog and gloom makes trying to see a way out impossible.\n(?&lt;extra1&gt;.*\n)?(?&lt;extra2&gt;.*\n)?(?&lt;weather1&gt;It is an? .*)\n(?&lt;weather2&gt;(?!.* obvious exits:).*\n)?(?&lt;exits&gt;There are (?(?=.* enter door.)nine|eight) obvious exits: .*)\Z"
+   multi_line="y"
+   name="shades_verbose_J"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_J"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="4"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?This rabbit warren of smoky, hazy alleys is never ending.  The gloom and fog mask the direction of the screams that echo in the distance...\Z"
+   multi_line="y"
+   name="shades_verbose_K"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_K"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="4"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?This dark, dank, foggy alleyway leads to other dark dank foggy alleyways.  The gloom hides the worst of the horrors that these alleys contain.\Z"
+   multi_line="y"
+   name="shades_verbose_L"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_L"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="9"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?The alleyways here all look the same.  Dim fires flicker in the distance, providing more a kind of glow than real light.\n(?&lt;extra1&gt;.*\n)?(?&lt;extra2&gt;.*\n)?(?&lt;weather1&gt;It is an? .*)\n(?&lt;weather2&gt;(?!.* obvious exits:).*\n)?(?&lt;exits&gt;There are (?(?=.* enter door.)eight|seven) obvious exits: .*)\Z"
+   multi_line="y"
+   name="shades_verbose_M"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_M"
+  >
+  </trigger>
+</triggers>
+<triggers>
+  <trigger
+   group="shades"
+   ignore_case="y"
+   lines_to_match="4"
+   keep_evaluating="y"
+   match="^((?&lt;title&gt;\[somewhere in the Shades\])|(?&lt;scry&gt;(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)|(?!(It is night and|The (water|land) is lit up by) the.*moon( is hidden by the clouds)?.)(?&lt;look&gt;.*))\n([@ ]+\n)?((It is night and|The (water|land) is lit up by) the.*(?&lt;moon&gt;(crescent|(three )?quarter|half|gibbous|no|full) moon)( is hidden by the clouds)?.\n)?Deep, deep into the Shades. This alleyway is like every other alleyway in this rabbit warren of death.  It is dank, dark and foggy, everything looks the same...\Z"
+   multi_line="y"
+   name="shades_verbose_P"
+   regexp="y"
+   script="on_trigger_shades_verbose"
+   sequence="100"
+   variable="shades_verbose_P"
+  >
+  </trigger>
+</triggers>
+</muclient>

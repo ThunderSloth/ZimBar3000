@@ -19,7 +19,7 @@ function voyage_update_xp(xp)
 	-- end of the fight as the beginning of three, because it will provide
 	-- more meaningful data
     xp_t.current = xp
-    for i = #xp_t, 1, -1 do
+    for i = #xp_t, 0, -1 do
 		if xp_t[i].xp then
 			xp_t[i].xp = xp
 		end

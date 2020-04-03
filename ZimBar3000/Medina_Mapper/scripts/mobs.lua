@@ -21,7 +21,7 @@ function medina_get_mobs(wildcards, sign, room)
 		mob = mob:gsub("triad ", "")
 		return mob
 	end
-	room = room or med.sequence[1] or {}
+	local room = room or med.sequence[1] or {}
 	local text = string.lower(wildcards.thyngs)
 	local direction = wildcards.direction or false
 	if direction == "" then

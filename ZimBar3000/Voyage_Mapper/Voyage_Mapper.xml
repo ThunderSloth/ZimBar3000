@@ -9,7 +9,7 @@
    purpose="interactive graphical map of the ss unsinkable"
    save_state="y"
    date_written="2020-03-22 12:00:00"
-   requires="3.00"
+   requires="5.06"
    version="1.0"
    >
 </plugin>

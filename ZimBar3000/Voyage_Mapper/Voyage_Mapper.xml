@@ -1073,6 +1073,16 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   ></alias>
   <alias
    group="voyage_always_enabled"
+   name="voyage_help"
+   match="^voyage help$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_help"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
    name="voyage_add_tool"
    match="^voyage add tool ?= ?(?<tool>.*)$"
    regexp="y"

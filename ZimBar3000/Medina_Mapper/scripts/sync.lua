@@ -65,7 +65,8 @@ function medina_get_sync()
 	text = time .. text
     local version = string.format ("%1.1f", GetPluginInfo (GetPluginID (), 19) )
     local signiture = "/zMMv" .. version .. "/"
-    local based = medina_convert_base(text, 10, 94):format("%0c", 56)
+    local based = medina_convert_base(text, 10, 94) --:format("%0c", 56)
+    --based = string.rep('!', 56 - #based)..based 
     local hilt, blade = "cxxxxx][={>>>",--[[SUPER BADASS SWORD LOL]]"_>>>"
     local sync_sword =  hilt .. based .. signiture .. blade 
     return sync_sword

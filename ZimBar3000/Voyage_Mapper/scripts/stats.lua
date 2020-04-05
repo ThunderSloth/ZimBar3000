@@ -13,7 +13,7 @@ end
 --   XP
 --------------------------------------------------------------------------------
 function voyage_reset_xp()
-    xp_t = {current_xp = false, current_range = 0, is_need_initial_xp = true, is_need_final_xp = false, crates = 0, group = 0 }
+    xp_t = {current_xp = false, current_range = 1, is_need_initial_xp = true, is_need_final_xp = false, crates = 0, group = 0 }
     -- xp at at different stages/parts
     local xp_ranges = {"", "Search", "Part 1", "Part 2", "Fight", "Part 3", "Part 4"}
     for i = 0, 6 do
@@ -38,8 +38,8 @@ function voyage_update_xp(xp)
 end
 
 function voyage_complete_xp_range(range)
-	local xp_ranges = {Search = 1, [1] = 1, [2] = 3, Fight = 4, [3] = 5, [4]= 6}
-	xp_t[xp_ranges[range]] = os.time()
+	local xp_ranges = {Search = 1, [1] = 2, [2] = 3, Fight = 4, [3] = 5, [4]= 6}
+	xp_t[xp_ranges[range]].time = os.time()
 	xp_t.current_range = xp_t.current_range + 1
 end
 

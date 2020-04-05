@@ -54,7 +54,6 @@ During the fight stage, an image of either a kraken or a serpant will appear abo
 As an additional note, if you experiance any bugs, please send me a log containing the first error with some previous lines (copy + pasting the contents of the screen is normally sufficient.) If there was no error, please let me know exactly what you were doing so that I can attempt to replicate the bug. Also, feel free to offer any feedback or ideas for features you would like to see in upcomming versions. Here is my current to do list:
 
 - fix cargo tying feature (known issue)
-- add search and fight to xp report
 - add a way to easily send compass/charts readings to group
 - update direction with look compass/sun/stars
 - add destination tracker point to compass frame based on chart info

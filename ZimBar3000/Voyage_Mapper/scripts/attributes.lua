@@ -3,22 +3,15 @@
 --------------------------------------------------------------------------------
 function on_trigger_voyage_complete_part(name, line, wildcards, styles)
     local legs = {first = 1, second = 2, third = 3, fourth = 4}
-    local part_end = voy.part
+    local finished_part = voy.part
     voy.part = (legs[wildcards.leg] or 0) + 1
-    local part_to_xp_span = {2, 3, 5, 6}
-    local xp_span = part_to_xp_span[part_end]
-    xp_t[xp_span].time = os.time()
-    if not xp_t[xp_span].name then
-		xp_t[xp_span].name = "Part "..tostring(part_end)
-    end
+    voyage_complete_xp_range(finished_part)
     voyage_draw_part(voy.coordinates, voy.colours, win.."underlay")
     voyage_print_map()
 end
 
 function on_trigger_voyage_complete_voyage(name, line, wildcards, styles)
-    local num = {one = 1, two = 2, three = 3, four = 4, five = 5, six = 6, seven = 7, eight = 8}
-    xp_t.crates = num[wildcards.crates] or 0
-    xp_t.group  = num[wildcards.group ] or 0
+    voyage_update_completion_stats(wildcards)
 end
 --------------------------------------------------------------------------------
 --   STAGE
@@ -26,22 +19,24 @@ end
 function on_trigger_voyage_stage_change(name, line, wildcards, styles)
     local stage = name:match("voyage_stage_change_(.+)")
     voy.stage = stage:gsub("^%l", string.upper)
-    xp_t[4].xp = xp_t.current
-    if voy.stage == "Kraken" then
-		if not xp_t[4].name then
-			xp_t[4].name = "Kraken"
-		end
-    elseif voy.stage == "Serpent" then
-		if not xp_t[4].name then
-			xp_t[4].name = "Serpent"
-		end    
-    end
-    if wildcards.monster ~= '' and not xp_t[4].time then
-		xp_t[4].time = os.time()
-    end
     voyage_draw_stage(voy.coordinates, voy.colours, win.."underlay")
     voy.kraken, voy.serpent = false, false
     voyage_print_map()
+end
+
+function on_trigger_voyage_serpent_crest(name, line, wildcards, styles)
+	xp_t[4].name = "Serpent"
+	on_trigger_voyage_stage_change("voyage_stage_change_serpent", line, wildcards, styles)
+end
+
+function on_trigger_voyage_kraken_crest(name, line, wildcards, styles)
+	xp_t[4].name = "Kerpent"
+	on_trigger_voyage_stage_change("voyage_stage_change_kraken", line, wildcards, styles)
+end
+
+function on_trigger_voyage_kill_monster(name, line, wildcards, styles)
+	voyage_complete_xp_range("Fight")
+	on_trigger_voyage_stage_change("voyage_stage_change_calm", line, wildcards, styles)
 end
 --------------------------------------------------------------------------------
 --   ICE (ROOM)

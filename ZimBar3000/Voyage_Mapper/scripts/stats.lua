@@ -12,23 +12,50 @@ end
 --------------------------------------------------------------------------------
 --   XP
 --------------------------------------------------------------------------------
+function voyage_reset_xp()
+    xp_t = {current_xp = false, current_range = 0, is_need_initial_xp = true, is_need_final_xp = false, crates = 0, group = 0 }
+    -- xp at at different stages/parts
+    local xp_ranges = {"", "Search", "Part 1", "Part 2", "Fight", "Part 3", "Part 4"}
+    for i = 0, 6 do
+        xp_t[i] = {time = false, xp = false, name = xp_ranges[i + 1]}  
+    end									 
+    xp_t[0].time = os.time()                  -- starting xp
+end
+
 function voyage_update_xp(xp)
 	-- xp ranges tracked are as follows:
     -- start - searching - part 1 - part 2 - fight - part 3 - part 4 - finish
 	-- technically part three starts at the end of two,  but we will treat the
 	-- end of the fight as the beginning of three, because it will provide
 	-- more meaningful data
-    xp_t.current = xp
-    if not xp_t[0].xp then
+    xp_t.current_xp = xp
+	if xp_t.is_need_initial_xp then
 		xp_t[0].xp = xp
+		xp_t.is_need_initial_xp = false
 	end
-    for i, v in ipairs(xp_t) do
-		if not v.time then
-			xp_t[i].xp = xp
-			break
-		end
-    end
+	xp_t[xp_t.current_range].xp = xp
     voyage_draw_xp()
+end
+
+function voyage_complete_xp_range(range)
+	local xp_ranges = {Search = 1, [1] = 1, [2] = 3, Fight = 4, [3] = 5, [4]= 6}
+	xp_t[xp_ranges[range]] = os.time()
+	xp_t.current_range = xp_t.current_range + 1
+end
+
+
+function voyage_update_completion_stats(wildcards)
+    local num = {one = 1, two = 2, three = 3, four = 4, five = 5, six = 6, seven = 7, eight = 8}
+    xp_t.crates = num[wildcards.crates] or 0
+    xp_t.group  = num[wildcards.group ] or 0
+end
+
+function voyage_update_final_xp(xp)
+	if xp_t.need_final then
+		xp_t[#xp_t].xp = xp
+		xp_t.need_final = false
+		on_alias_voyage_print_xp()
+	end
 end
 --------------------------------------------------------------------------------
 --   GENERATE REPORT

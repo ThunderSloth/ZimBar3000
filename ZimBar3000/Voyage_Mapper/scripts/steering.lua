@@ -104,9 +104,7 @@ function on_trigger_voyage_boat_start(name, line, wildcards, styles)
         voyage_print_map()
     end
     -- detect first movement to signify search stage completion
-    if not xp_t[1].time then
-		xp_t[1].time = os.time()
-    end
+	voyage_complete_xp_range("Search")
 end
 
 function on_trigger_voyage_boat_stop(name, line, wildcards, styles) 

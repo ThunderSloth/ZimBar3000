@@ -342,7 +342,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    name="voyage_stage_change_kraken"
    regexp="y"
    sequence="100"
-   script="on_trigger_voyage_stage_change"
+   script="on_trigger_voyage_kraken_crest"
   ></trigger>
   <trigger
    group="voyage"
@@ -388,7 +388,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    name="voyage_stage_change_serpent"
    regexp="y"
    sequence="100"
-   script="on_trigger_voyage_stage_change"
+   script="on_trigger_voyage_serpent_crest"
   ></trigger>
   <trigger
    group="voyage"
@@ -450,11 +450,20 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(The .* the weather calms.|With that last blow, the (sea )?(<monster>(kraken|serpent)) .*|The grinding of scales .* It sounds like victory.)$"
+   match="^The .* the weather calms.$"
    name="voyage_stage_change_calm"
    regexp="y"
    sequence="100"
    script="on_trigger_voyage_stage_change"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(With that last blow, the (kraken|sea serpent) .*|The grinding of scales .* It sounds like victory.)$"
+   name="voyage_stage_change_calm"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_kill_monster"
   ></trigger>
 <!-- Wind -->
   <trigger

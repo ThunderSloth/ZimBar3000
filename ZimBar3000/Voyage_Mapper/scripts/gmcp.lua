@@ -30,11 +30,7 @@ function voyage_recieve_GMCP(text)
     if text:match("^char.vitals .*") and (voy.is_in_voyage or xp_t.need_final) then
         local xp = tonumber(text:match('"xp":(%d+)'))
         voyage_update_xp(xp)
-        if xp_t.need_final then
-            xp_t[6].xp = xp
-            xp_t.need_final = false
-            on_alias_voyage_print_xp()
-        end
+        voyage_update_final_xp(xp)
     elseif text:match("^room.info .*") then
         local id = text:match('^.*"identifier":"(.-)".*$')
         --print(id)

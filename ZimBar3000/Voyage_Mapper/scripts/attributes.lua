@@ -29,11 +29,11 @@ function on_trigger_voyage_stage_change(name, line, wildcards, styles)
     xp_t[4].xp = xp_t.current
     if voy.stage == "Kraken" then
 		if not xp_t[4].name then
-			xp_t.name = "Kraken"
+			xp_t[4].name = "Kraken"
 		end
     elseif voy.stage == "Serpent" then
 		if not xp_t[4].name then
-			xp_t.name = "Serpent"
+			xp_t[4].name = "Serpent"
 		end    
     end
     if wildcards.monster ~= '' and not xp_t[4].time then

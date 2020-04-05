@@ -20,7 +20,7 @@ function voyage_update_xp(xp)
 	-- more meaningful data
     xp_t.current = xp
     if not xp_t[0].xp then
-		xp_t[0] = xp
+		xp_t[0].xp = xp
 	end
     for i, v in ipairs(xp_t) do
 		if not v.time then
@@ -68,7 +68,7 @@ function on_alias_voyage_print_xp(name, line, wildcards)
         local xp = (xp_t[6].xp or xp_t.current) - xp_t[0].xp
         local time = (xp_t[6].time or os.time()) - xp_t[0].time
         local rate = time == 0 and 0 or round(((xp * 60^2) / (time * 1000)), 2)
-        local line = format_line('Total :', xp, time, rate)
+        local line = format_line('Total : ', xp, time, rate)
         table.insert(summary, line)
         if xp_t.crates ~= 0 then
             table.insert(summary, "Crates: "..tostring(xp_t.crates).."/8")

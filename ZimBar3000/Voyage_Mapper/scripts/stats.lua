@@ -123,3 +123,7 @@ function on_alias_voyage_print_xp(name, line, wildcards)
         end
     end
 end
+
+function on_alias_voyage_depug_xp(name, line, wildcards)
+	tprint(xp_t)
+end

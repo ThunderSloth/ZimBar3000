@@ -459,7 +459,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(With that last blow, the (kraken|sea serpent) .*|The grinding of scales .* It sounds like victory.)$"
+   match="^(With that last blow, the (kraken|sea serpent) .*|(The grinding of scales|The faint popping sounds of suction cups) .* It sounds like victory.)$"
    name="voyage_stage_change_kill_monster"
    regexp="y"
    sequence="100"
@@ -1118,6 +1118,16 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    ignore_case="y"
    sequence="100"
    script="on_alias_voyage_print_xp"
+   enabled="y"
+  ></alias>
+   <alias
+   group="voyage_always_enabled"
+   name="voyage_group_debug_xp"
+   match="^voyage debug xp"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_depug_xp"
    enabled="y"
   ></alias>
 </aliases>

@@ -13,7 +13,7 @@ end
 --   XP
 --------------------------------------------------------------------------------
 function voyage_reset_xp()
-    xp_t = {current_xp = false, current_range = 1, is_need_initial_xp = true, is_need_final_xp = false, crates = 0, group = 0 }
+    xp_t = {current_xp = false, current_range = 1, is_need_final_xp = 0, crates = 0, group = 0 }
     -- xp at at different stages/parts
     local xp_ranges = {"", "Search", "Part 1", "Part 2", "Fight", "Part 3", "Part 4"}
     for i = 0, 6 do
@@ -29,9 +29,9 @@ function voyage_update_xp(xp)
 	-- end of the fight as the beginning of three, because it will provide
 	-- more meaningful data
     xp_t.current_xp = xp
-	if xp_t.is_need_initial_xp then
-		xp_t[0].xp = xp
-		xp_t.is_need_initial_xp = false
+	if xp_t.is_need_final_xp then
+		xp_t[xp_t.is_need_final_xp].xp = xp
+		xp_t.is_need_final_xp = false
 	end
 	xp_t[xp_t.current_range].xp = xp
     voyage_draw_xp()
@@ -40,6 +40,7 @@ end
 function voyage_complete_xp_range(range)
 	local xp_ranges = {Search = 1, [1] = 2, [2] = 3, Fight = 4, [3] = 5, [4]= 6}
 	xp_t[xp_ranges[range]].time = os.time()
+	xp_t.is_need_final_xp = xp_ranges[range]
 	xp_t.current_range = xp_ranges[range] + 1
 end
 
@@ -50,8 +51,8 @@ function voyage_update_completion_stats(wildcards)
     xp_t.group  = num[wildcards.group ] or 0
 end
 
-function voyage_update_final_xp(xp)
-	if xp_t.is_need_final_xp then
+function voyage_update_completion_xp(xp)
+	if xp_t.is_need_final_xp == #xp_t then
 		xp_t[#xp_t].xp = xp
 		xp_t.is_need_final_xp = false
 		on_alias_voyage_print_xp()

@@ -27,10 +27,13 @@ function OnPluginTelnetSubnegotiation(msg_type, data_line)
 end
 -- on GMPC receipt
 function voyage_recieve_GMCP(text)
-    if text:match("^char.vitals .*") and (voy.is_in_voyage or xp_t.is_need_final_xp) then
+    if text:match("^char.vitals .*") then
         local xp = tonumber(text:match('"xp":(%d+)'))
-        voyage_update_xp(xp)
-        voyage_update_final_xp(xp)
+        if voy.is_in_voyage then
+			voyage_update_xp(xp)
+        elseif xp_t.is_need_final_xp == #xp_t then
+			voyage_update_completion_xp(xp)
+        end
     elseif text:match("^room.info .*") then
         local id = text:match('^.*"identifier":"(.-)".*$')
         --print(id)

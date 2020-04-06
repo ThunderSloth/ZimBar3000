@@ -28,7 +28,7 @@ function voyage_exit()
         voyage_reset_metatable()
         EnableGroup("voyage", false)
         EnableTimer("ticker", false)
-        xp_t.need_final = true
-        xp_t[4].time = os.time()
+        xp_t.is_need_final_xp = true
+        xp_t[6].time = os.time()
     end
 end

@@ -1,0 +1,66 @@
+
+--------------------------------------------------
+--  HELP-FILE FOR: VOYAGE MAPPER v1.0 BY ZIMBUS --
+--------------------------------------------------
+This help-file may be accessed in the folder that contains this plugin.
+
+Arrrrg! If you have not run configuration, this plugin may not function correctly.
+
+TL;DR: Click on stuff!
+
+* LAYOUT:
+1. Titlebar: The titlebar displays the current stage and part of the voyage. Drag to move. Right-click for more options. 
+2. Ship: upper-deck is shown on the left, and lower is on the right. Each room contains a menu with many options, relevent to that room.
+3. Guages: these bars indicate the hunger and boredom levels of the dragons. Right-click for more options. (top corners)
+4. Dragon-Circles: represented as red rectangles. Shhh. Right-click for more options. (boiler rooms)
+5. L/R: denotes your held-items with vertically displayed text. Right-click for more options. (left and right edges)
+6. Players: tracks the locations of players and dragons. (bottom-left)
+7. Objects: tracks the contents of the room your are currently in or viewing. Right-click for more options. (bottom-right)
+8. Time/Xp: displays time and rate. Left click for report. (far bottom right)
+9. Resize: (bottom right corner)
+10. Steering-Mode: when holding the wheel, the window will switch to display a map of the sea. (alternate mode)
+
+* MOVEMENT:
+Directional commands are automatically normailized ('ne' --> 'starboard fore.') This is also the case for looking and dragging ('l west' --> 'look port.') If you are in a perimeter room of the upper-deck, you will 'overboard' with any direction that points away from the ship. Once overboard, every direction will normalize to 'board.' In hatch rooms, either upperdeck or lower, any unreal direction (aside from the ones that are set to overboard) will normalize to 'up/down.' You may also move by simply clicking on a room. If you open a drop-down menu in
+another room, and select an option, you will move to that room before executing your selection. You can double-click on the overboard-room to board, if you are not already in the overboard-room, you will move to it and then re-board (useful for filling buckets or checking hull condition at night.) The yellow room-border indicates your trajectory. The 'stop' command will reset this trajectory.
+
+* DRAGGING:
+Type: 'drag <object>' with no directional argument to enter "drag-mode." While drag-mode is enabled, the object entered will be dragged automatically as you move, until disabled. Type: 'drag off' or just 'drag' to disable drag mode. Drag-mode will disable itself if you fail a drag (i.e the object has already been dragged by somebody else) or you fill a boiler. Drag-mode can also be toggled using the drop-down room menus, or by clicking 'tank' on the object list (the lower right section of the window.)
+
+* JUNK:
+The drop-down menus in the store rooms (indicated with letters A, B or C) contain a 'look junk' option. Once you have looked at the junk, bring up the menu again and it will be populated with items in three categories: weapons, deck items and boiler items. Click on an item to search for it. Junk is removed from the list upon successful finds from any player. Items can be easily transported using the the drop-down room menus, which allow you to get or drop items by category. In the bottom right section thesr is a list of objects. This list shows the contents of the room you're currently in or looking at. Click on any of the items in the object list to pick up a single one of that item. Right-click to choose from specific quantities of specific items.
+
+* ITEMS:
+On the right and left edges of the screen there is a yellow 'L' and 'R', respectively. Click on either of thes fields to view your inventory. The items you are holding will be displayed in vertical text underneath these letters. With the drop-down menus associated with each side, you can switch between items. In order to do this, you must first select: 'edit tools,' click: 'add' to save the item you are currently holding to the list, or: 'add item' to enter one manually. You can then select a container for your item, the defualts are: sheathe, direct inventory and floor, but you may also save a custom container to the list. This will allow you to automatically put an item into the correct container when putting it away or switching to a new item. You also have the option to set your icebreaking and seaweed-cutting tool, the defualt is 'knife.
+
+* HULL:
+The hull will change colour to reflect its condition, a hull in perfect condition will be shown as gray. The upper-deck hull (on the left) will fade to blue to indicate ice, or green for seaweed. The brighter the colour, the larger the quantity. The lower-deck (on the right) will fade to red to denote damage. The conditions will update automatically, although you must manually 'look hull' (or enter overboard the room) to get the most accurate condition. The hull may also reset according to group chats. The menu in the overboard room contains various options to fix the hull. 
+
+* FIRE/ICE:
+When lightning strikes, your titlebar will flash to red and and the direction in which it struck will be highlighted until you move or look at a room. Fires are denoted with a red room-border, the thicker the border, the larger the fire. Similarly, ice is indicated with a blue room-border, where thicker border represents more ice.
+
+* DECK:
+To tie yourself to the railing you can select 'tie rope' in the room menu of any perimeter room on the upper-deck. A rope will then be displayed between you and the location it was tied at. You can untie the rope by selecting the option again. When you 'look rope' the condition of the rope will be displayed. A thick solid rope indicates 'perfect condition', while thin and dotted indicates 'very frayed.' Using the drop-down room menu you can select a double-click option. The defualt is 'stamp fire.' This allowes you to double-click on a room to move to it and then execute an action. The other options are: pour buckets, break ice and hit dragon. You may change this option at any time, to suit the current situation.
+
+* DRAGONS:
+Dragons may be picked up and dropped using the room menus. To circle and uncircle dragons: you may use either the menus located in the dragon "circles" or the dragon guages. Likewise, you can toggle them between awake and asleep. The guages in the top cornes correspond to the dragon of matching colour. They are also ordered according to the starting positions of the dragons. Click on one of the guages to 'look dragon', this will update the levels displayed in the guages. The top portion of each guage indicates hunger, while the bottom shows boredom. Right-click on these guages for a menu containing feeding and playing options.
+
+* STEERING:
+Upon holding the steering wheel, the miniwindow will transform to a dynamically updating view of the sea. The direction at the top of the frame is your current direction. The plugin does a fairly good job of tracking your direction, but it is not flawless; and hitting whirlpools will result in an inaccurate reading. You can manually reset your current direction by right-clicking on one of the directions contained within a circle. These circles represent notches, while the highlighted one indicates the current position of the wheel. You can click on these to change that position. The speed of the boat is indicated by the size of the wake (or lack of.) The speed will automatically update on stop or start. However, to get the most accuarate information, you must look at your room. You can do this by clicking on the lower section of the miniture boat in the center of th map. You can also check the hull by clicking on the top portion of the miniboat. Like in the main mode, the hull will be highlighted blue or green to represent ice or seaweed. On the miniboat, the entire frame colour indicates damage levels. To exit steering-mode, unhold the wheel. You can do this by clicking the 'X' in the top right corner.
+
+* BATTLE:
+During the fight stage, an image of either a kraken or a serpant will appear above the overboard room. This is the 'combat-zone.' Using the menu here, you can set which weapons or amo you will 'reload' with. To attack, you can click on the square head of the monster. To reload, click anywhere else in the combat zone and you will reload with whichever items you chose, you can also set containers for these. For example, if you wanted to reload an aberlast held in your left hand with bolts stored in a seabag, and get axes from the floor for your left hand, you could with a single click. When the monster attacks anybody, your titlebar will flash to purple. When the monster attacks you, your room border will become highlighted with a purple border, if the attack has a direction it will also be shown in purple.
+
+As an additional note, if you experiance any bugs, please send me a log containing the first error with some previous lines (copy + pasting the contents of the screen is normally sufficient.) If there was no error, please let me know exactly what you were doing so that I can attempt to replicate the bug. Also, feel free to offer any feedback or ideas for features you would like to see in upcomming versions. Here is my current to do list:
+
+- fix cargo tying feature (known issue)
+- add a way to easily send compass/charts readings to group
+- update direction with look compass/sun/stars
+- add destination tracker point to compass frame based on chart info
+- add button for steering-mode that will make you overboard (to collect fog-free map-data), re-board and display map without fog
+
+Happy sailing!
+
+-- end help-file --
+
+

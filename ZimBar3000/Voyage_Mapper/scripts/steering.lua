@@ -103,6 +103,10 @@ function on_trigger_voyage_boat_start(name, line, wildcards, styles)
     if voy.sea then
         voyage_print_map()
     end
+    -- detect first movement to signify search stage completion
+    if xp_t.current_range == 1 then
+		voyage_complete_xp_range("Search")
+	end
 end
 
 function on_trigger_voyage_boat_stop(name, line, wildcards, styles) 

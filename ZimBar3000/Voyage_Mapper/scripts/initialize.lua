@@ -214,16 +214,6 @@ function voyage_reset_metatable()
     voy.is_in_voyage = false                  -- are you on the ship?
     held.L, held.R   = "", ""                 -- held items
 end
-
-function voyage_reset_xp()
-    xp_t = {crates = 0, group = 0}
-    for i = 0, 4 do
-        xp_t[i] = {time = false, xp = false}  -- xp at end of each stage
-    end
-    xp_t[0].time = os.time()                  -- starting xp
-    xp_t.current = false
-    xp_t.need_final = false
-end
 --------------------------------------------------------------------------------
 --   PLUGIN CALLBACKS
 --------------------------------------------------------------------------------

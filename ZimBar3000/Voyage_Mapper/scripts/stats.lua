@@ -91,8 +91,8 @@ function on_alias_voyage_print_xp(name, line, wildcards)
     if printed then
         table.insert(summary, "")
     end
-    if xp_t[0].xp and xp_t[0].time and (xp_t[6].xp or xp_t.current) then
-        local xp = (xp_t[6].xp or xp_t.current) - xp_t[0].xp
+    if xp_t[0].xp and xp_t[0].time and (xp_t[6].xp or xp_t.current_xp) then
+        local xp = (xp_t[6].xp or xp_t.current_xp) - xp_t[0].xp
         local time = (xp_t[6].time or os.time()) - xp_t[0].time
         local rate = time == 0 and 0 or round(((xp * 60^2) / (time * 1000)), 2)
         local line = format_line('Total : ', xp, time, rate)

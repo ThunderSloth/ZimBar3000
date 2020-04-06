@@ -866,7 +866,7 @@ function voyage_draw_xp()
             return math.floor(num * mult + 0.5) / mult
         end
         local function get_rate()
-            local delta_xp = (xp_t.current and xp_t[0].xp and xp_t.current - xp_t[0].xp) or 0 
+            local delta_xp = (xp_t.current_xp and xp_t[0].xp and xp_t.current_xp - xp_t[0].xp) or 0 
             local delta_t = (os.time() - xp_t[0].time)
             local rate = delta_t == 0 and 0 or (delta_xp * 60^2) / (delta_t * 1000)
             return tostring(string.format("%.2f", round(rate, 1))).."k"

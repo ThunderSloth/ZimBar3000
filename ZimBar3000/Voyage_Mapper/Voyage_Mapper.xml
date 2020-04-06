@@ -460,7 +460,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    group="voyage"
    keep_evaluating="y"
    match="^(With that last blow, the (kraken|sea serpent) .*|The grinding of scales .* It sounds like victory.)$"
-   name="voyage_stage_change_calm"
+   name="voyage_stage_change_kill_monster"
    regexp="y"
    sequence="100"
    script="on_trigger_voyage_kill_monster"

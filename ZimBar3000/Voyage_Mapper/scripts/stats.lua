@@ -40,7 +40,7 @@ end
 function voyage_complete_xp_range(range)
 	local xp_ranges = {Search = 1, [1] = 2, [2] = 3, Fight = 4, [3] = 5, [4]= 6}
 	xp_t[xp_ranges[range]].time = os.time()
-	xp_t.current_range = xp_t.current_range + 1
+	xp_t.current_range = xp_ranges[range] + 1
 end
 
 
@@ -51,9 +51,9 @@ function voyage_update_completion_stats(wildcards)
 end
 
 function voyage_update_final_xp(xp)
-	if xp_t.need_final then
+	if xp_t.is_need_final_xp then
 		xp_t[#xp_t].xp = xp
-		xp_t.need_final = false
+		xp_t.is_need_final_xp = false
 		on_alias_voyage_print_xp()
 	end
 end

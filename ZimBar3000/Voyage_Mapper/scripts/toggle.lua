@@ -9,6 +9,7 @@ function voyage_enter()
             voyage_draw_part(coor, col, mw)
             voyage_draw_stage(coor, col, mw)
             voyage_draw_guages(dim, col)
+            voyage_reset_held(dim, col)
         end
         voyage_request_config()
         voyage_reset_metatable()

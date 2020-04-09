@@ -208,7 +208,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(\w+ manages? to hack off all the remaining dire seaweed from the hull|There\'s no dire seaweed (left )?on the hull(, so you decide not to do any cutting after all| right now)|You see some dire seaweed drifting off into the sea, complaining seaweedily.  Looks like it didn\'t like the cold).$"
+   match="^(\w+ manages? to hack off all the remaining dire seaweed from the hull|Looking like it recognises the shipwright's hammer somehow, all of the remaining dire seaweed detaches from the hull and flees into the ocean.|There\'s no dire seaweed (left )?on the hull(, so you decide not to do any cutting after all| right now)|You see some dire seaweed drifting off into the sea, complaining seaweedily.  Looks like it didn\'t like the cold).$"
    name="voyage_seaweed_fix"
    regexp="y"
    sequence="100"
@@ -217,7 +217,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^\w+ manages? to hack off some of the dire seaweed from the hull.$"
+   match="^(\w+ manages? to hack off some of the dire seaweed from the hull|Looking like it recognises the shipwright's hammer somehow, some of the dire seaweed detaches from the hull and flees into the ocean).$"
    name="voyage_seaweed_fix_partial"
    regexp="y"
    sequence="100"

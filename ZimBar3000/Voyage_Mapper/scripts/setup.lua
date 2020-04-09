@@ -606,11 +606,7 @@ function voyage_window_setup(window_width, window_height, colours)
         WindowResize(win.."sea_frame", dim.window.x, dim.window.y, col.window.transparent)
         WindowResize(win.."sea_map",   dim.window.x, dim.window.y, col.window.transparent)
         WindowResize(win.."sea_room",  dim.sea.block.x, dim.sea.block.y, col.window.background)
-        WindowCircleOp( -- clear vertical text on resize
-                win.."held", miniwin.circle_rectangle, 
-                0, 0, dim.window.x, dim.window.y,
-                col.window.transparent, miniwin.pen_solid, 1,
-                col.window.transparent, 0)
+        voyage_reset_held(dim, col)
     end
 	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	--   LOAD FONTS

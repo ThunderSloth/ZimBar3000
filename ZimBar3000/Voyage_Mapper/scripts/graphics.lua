@@ -616,6 +616,14 @@ function voyage_draw_underlay(dim, col)
     end
     voyage_draw_hull_upper(voy.coordinates, colour, win.."underlay")
 end
+
+function voyage_reset_held(dim, col)
+	WindowCircleOp( -- clear vertical text on resize
+		win.."held", miniwin.circle_rectangle, 
+		0, 0, dim.window.x, dim.window.y,
+		col.window.transparent, miniwin.pen_solid, 1,
+		col.window.transparent, 0)
+end
 --------------------------------------------------------------------------------
 --   ROOMS / EXITS / DOORS
 --------------------------------------------------------------------------------

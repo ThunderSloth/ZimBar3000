@@ -1,6 +1,7 @@
 # ZimBar3000
 Various Discworld MUD Plugins for MUSHclient
 ## plugins:
+* map door text --> parses gmcp data to insert xp values on map
 * voyage mapper --> interactive graphical map of the ss unsinkable
 * medina mapper --> graphically map medina and normalize directions
 * shades mapper --> graphically map shades and normalize directions

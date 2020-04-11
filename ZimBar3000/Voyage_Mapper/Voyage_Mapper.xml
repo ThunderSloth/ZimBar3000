@@ -1031,6 +1031,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    script="on_trigger_voyage_set_direction"
   ></trigger>
   <trigger
+   enabled="y"
    group="voyage"
    keep_evaluating="y"
    match="^The charts mostly depict the Circle Sea, which is the sea you're currently traversing.  They seem to indicate that the route from .*? to .*? is pretty much directly (?<direction>.*) in a straight line and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?$"
@@ -1040,7 +1041,6 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    script="on_trigger_voyage_charts"
   ></trigger>
    <trigger
-   enabled="y"
    group="voyage"
    keep_evaluating="y"
     match="^The ship abruptly starts spinning in circles.  After a few rounds, it manages to escape the whirlpool\, heading in a different direction from before.$"

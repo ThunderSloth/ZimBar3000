@@ -4,6 +4,7 @@
 function on_plugin_start()
     require "tprint"
     require "serialize"
+    require "words_to_numbers"
     win = "voyage_map"..GetPluginID() -- define window name
     voyage_get_variables()
     voyage_get_windows(voy.colours)

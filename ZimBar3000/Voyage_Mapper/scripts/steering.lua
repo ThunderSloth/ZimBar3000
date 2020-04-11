@@ -112,7 +112,18 @@ function on_trigger_voyage_set_direction(name, line, wildcards, styles)
 end
 
 function on_trigger_voyage_charts(name, line, wildcards, styles)
-
+	local miles_x = tonumber(tostring(convert_words_to_numbers(wildcards.miles_x) or 0))
+	local miles_y = tonumber(tostring(convert_words_to_numbers(wildcards.miles_y) or 0))
+	local rim_or_hub  = wildcards.rim_or_hub :match("^r") and "r" or wildcards.rim_or_hub :match("^h") and "h" or false
+	local turn_or_wid = wildcards.turn_or_wid:match("^t") and "t" or wildcards.turn_or_wid:match("^w") and "w" or false
+	local charts = ""
+	if miles_y and rim_or_hub then
+		charts = charts..miles_y..rim_or_hub.." "
+	end
+	if miles_x and turn_or_wid then
+		charts = charts..miles_x..turn_or_wid
+	end
+	ColourNote("orange", "", charts)
 end
 
 function on_trigger_voyage_whirlpool(name, line, wildcards, styles)

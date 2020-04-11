@@ -23,6 +23,8 @@ function on_plugin_start()
 end
 -- load variables
 function mdt_get_variables()
+	quowmap_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_quowmap_database.db"
+	print(quowmap_database)
 	FIXED_TITLE_HEIGHT = 16
     assert(loadstring(GetVariable("window_width" ) or ""))()
     assert(loadstring(GetVariable("window_height") or ""))()
@@ -531,7 +533,7 @@ function mdt_recieve_GMCP(text)
 	local function get_map_name(room_id)
 		local map_id = false
 		if room_id then
-			qdb = sqlite3.open(GetPluginInfo (GetPluginID (), 20) .. "_quowmap_database.db")
+			qdb = sqlite3.open(quowmap_database)
 			for t in qdb:nrows("SELECT map_id FROM rooms WHERE room_id = '"..room_id.."'") do 
 				map_id = t.map_id 
 			end
@@ -1228,7 +1230,7 @@ end
 function mdt_get_exit_room(start_id, exit)
 	local end_id = false
 	if start_id then
-		qdb = sqlite3.open(GetPluginInfo (GetPluginID (), 20) .. "_quowmap_database.db")
+		qdb = sqlite3.open(quowmap_database)
 		for t in qdb:nrows("SELECT connect_id FROM room_exits WHERE room_id = '"..start_id.."' AND exit = '"..exit.."'") do 
 			end_id = t.connect_id or false 
 		end
@@ -1299,7 +1301,12 @@ end
 --  REGULAR EXPRESSIONS
 -------------------------------------------------------------------------------
 function mdt_get_regex()
+
+	local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."titles.txt", 'r')
+	local title_regex = assert(f:read("*a"), "Can't locate titles.txt")
+	f:close()
 	mdt.regex = {
+		titles   = rex.new(title_regex),
 		map_door_text = rex.new([[
 (?(DEFINE)
 (?'direction'(?<ns>north|south)?(?(ns)(east|west)?|(east|west)))
@@ -1335,38 +1342,6 @@ MAP DOOR TEXT:
 		players = rex.new([[(?#
 PLAYER:		
 )(\\u001b\[4zMXP<(C )?(?<colour>.*?)MXP>)+(?<player>.*)\\u001b\[3z]]),
-		titles   = rex.new(
-[[(?(DEFINE)
-(?# GUILDS: )
-(?'assassins'(d(octo)?r|professor))
-(?'priests'((?(?=blessed|venerable|holy)(blessed|venerable|holy)( (brother|sister|father|mother))?|(brother|sister|father|mother))|(mostly )?reverend|blessed|beatus|saint|high priest(ess)?|(his|her|it'?s) eminence|minister|outcast))
-(?'thieves'(crafty|crooked|dastardly|dishonest|dodgy|elusive|evasive|furtive|greased|honest|latent|((light|quick)[-]|butter)?finger(ed|s)|quiet|shady|shifty|silent|slick|sly|tricky))
-(?'witches'(?# duplicates: mother, old, mistress, sister)((?# goodie, goody)good(y|ie)|gammer|gra(mma|nny)|(?# mss, mee)m[se]{2}|(?# nanny, nanna)nann[ay]|aunty|biddy|black|mama|wee|wicked|young))
-(?'wizards'(fat|stuffed|overfed|gimlet[-]eyed|robust|bearded|burly|plump|rotund|thin|tiny|mystic|obscure|complex|learned|potent|wise|grumpy|cryptic|dark|scholarly|grey[-]?(haired|beard)|adroit|dire|maven|quantum|savant|unseen|(arch)?(master|mistress|mage)))
-(?# COUNCIL: )
-(?'council_am'(dame|lady|lord|sir)) 
-(?'court_positive'the (amazing|civic[-]minded|elegant|eloquent|(helpful|upstanding(?= citizen))( citizen)?|stylish|utterly fluffy|wonderful))
-(?'court_punishment'(appallingly filthy|corpse looter|dull|feebleminded|i (promise i won't do it again|got punished( and all i got was this lousy title)?)|insignificant|lying|malingering|naughty spawn|necrokleptomaniac|offensive|pillock|pointless|repentant|reprobate|shopkeeper murderer|silly spammy git|sitting in the corner|smelly|tantrum thrower|too stupid to live|vagrant|(very ){1,2}sorry|waste of space|whinging))
-(?'council_djb'(?# duplicates: feebleminded, corpse looter, cowardly)(sultana?|(shai|sitt) (al[-](khasa|ri'asa)|ishqu?araya|a'daha)|nawab|qasar|mazrat|effendi|ya'uq|mutasharid|ishqu?araya|naughty spawn|kill stealer|idiotic|offensive|corpse looter|cat hating|heathen|foreign dog|infidel|shopkeeper murderer|destitute|parasitic|hated|cowardly|criminal|felon))
-(?# ACHIEVEMENTS: )
-(?'achievements_thieves'(ruinous|fingers))
-(?'achievements_warriors'(centurion|chef|head(master|mistress)|impaler|pulveriser))
-(?'achievements_witches'(destined|nasty|terrible))
-(?'achievements_fools'pious)
-(?'achievements_wizards'(erratic mechanic|mysterious|arcana))
-(?'achievements_priests'(templar|healer|saintly))
-(?'achievements_assassins'(lethal|venomous))
-(?'achievements_all'(?# axe-master, shieldmaster/mistress, staffmaster/mistress)((sword|shield|staff|axe[-])(master|mistress)|antiquated|archaic|old( (wo)?man)?|bloodthirsty|bruiser|champion|competent|contender|crimewave|crusher|cultured|cutthroat|deckhand|decrepit|diplomatic|duelist|elementalist|energetic|exterminator|festive|filthy|flatulent|fossilized|gifted|golden|knifey|legendary|literate|masterful|medical|miner|multilingual|[nm]urse|mythical|nimble|obsolete|opulent|paranoid|perverse|prehistoric|rock[-]hard|rouge|senile|captain|stormrider|unburiable|unexpected|unlucky|unstoppable|venerable|versatile|virtuoso|wealthy))
-(?'quest_points'(well travelled|persistent))
-(?# MISC: )
-(?'general'm([sx]|rs?|iss))
-(?'genua'(?# m, monsieur, mlle, mademoiselle, mme, madame)m(?=(\Z|$| |me|lle|onsieur|adame|ademoiselle))(me|lle|onsieur|adame|ademoiselle)?)
-(?'ghosts'(lonely|mournful|scary|spooky|wandering))
-(?'musketeers'(cheating|cowardly))
-(?'debaters'(diplomatic|uncreative))
-(?'netdead'the netdead statue of)(?'zombie'zombie))(?#
- TITLE REGEX: 
-)^(?<title>(?P>assassins)|(?P>priests)|(?P>thieves)|(?P>witches)|(?P>wizards)|(?P>council_am)|(?P>court_positive)|(?P>court_punishment)|(?P>council_djb)|(?P>achievements_thieves)|(?P>achievements_warriors)|(?P>achievements_witches)|(?P>achievements_fools)|(?P>achievements_wizards)|(?P>achievements_priests)|(?P>achievements_assassins)|(?P>achievements_all)|(?P>quest_points)|(?P>general)|(?P>genua)|(?P>ghosts)|(?P>musketeers)|(?P>debaters)|(?P>netdead)|(?P>zombie)) ]]),
 		xp = rex.new(
 [[^(?:(?:(an?|one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)|(eleven)|(twelve)|(thirteen)|(fourteen)|(fifteen)|(sixteen)|(seventeen)|(eighteen)|(nineteen)|(twenty)|(many)) )?.*?((?#
 Capture groups are named in this format: xp<tier>_<singular suffix>_<plural suffix>_<flags: I = immobile, M = money, P = priest> 

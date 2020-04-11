@@ -524,6 +524,71 @@ function voyage_get_compass_menu(id)
     end
 end
 --------------------------------------------------------------------------------
+--   SEA (STEERING-MODE)
+--------------------------------------------------------------------------------
+function voyage_get_sea_menu()
+    local options = {}
+    local menu = "!look overboard|"..(voy.is_night and "^" or "").."look sun|"..(voy.is_night and "" or "^").."look stars|"
+ 	table.insert(options, function()
+		Send("look overboard")
+	end)
+ 	table.insert(options, function()
+		Send("look "..(voy.is_night and "stars" or "sun"))
+	end)      
+    menu = menu.."look here||"
+ 	table.insert(options, function()
+		Send("look")
+	end) 
+    menu = menu.."OB and resume||"
+ 	table.insert(options, function()
+		Send("overboard");Send("board");Send("hold wheel")
+	end)      
+    menu = menu.."repair hull||"
+	table.insert(options, function()
+		Send("overboard");Send("repair hull with boards and nails");Send("board");Send("hold wheel")
+	end)   
+    menu = menu.."cut seaweed|"  
+	table.insert(options, function()
+		local seaweed_tool = held.seaweed == "" and "knife" or held.seaweed
+		Send("overboard");Send("cut seaweed with held "..seaweed_tool);Send("board");Send("hold wheel")
+	end)       
+    menu = menu.."break ice||"
+	table.insert(options, function()
+		local ice_tool = held.ice == "" and "knife" or held.ice
+		Send("overboard");Send("break ice with held "..ice_tool);Send("board");Send("hold wheel")
+	end)
+	menu = menu.."look compass|"
+	table.insert(options, function()
+		Send("sw");Send("e");
+		Send("look compass")
+		Send("e");Send("nw");Send("hold wheel")
+	end)
+	menu = menu.."look charts|"
+	table.insert(options, function()
+		Send("sw");Send("e");
+		Send("look charts")
+		Send("e");Send("nw");Send("hold wheel")
+	end)
+	menu = menu.."look both||"
+	table.insert(options, function()
+		Send("sw");Send("e");
+		Send("look compass");Send("look charts")
+		Send("e");Send("nw");Send("hold wheel")
+	end)
+	menu = menu.."report stage|"
+	table.insert(options, function()
+		Send("group say "..voy.stage.."!")
+	end)
+    menu = string.gsub(menu, "%W%l", string.upper):sub(2);menu = "!"..menu
+    result = string.lower(WindowMenu(win, 
+        WindowInfo(win, 14), --x
+        WindowInfo(win, 15), --y
+        menu))
+    if result ~= "" then
+        options[tonumber(result)]()
+    end
+end
+--------------------------------------------------------------------------------
 --   DRAGON CIRCLES/GUAGES
 --------------------------------------------------------------------------------
 function voyage_get_circle_menu(room)

@@ -212,6 +212,7 @@ function voyage_reset_metatable()
     voy.sequence     = {}                     -- room trajectory
     voy.sequence[1]  = 7                      -- current room
     voy.is_in_voyage = false                  -- are you on the ship?
+    voy.is_night     = false                  -- is it night?
     held.L, held.R   = "", ""                 -- held items
 end
 --------------------------------------------------------------------------------

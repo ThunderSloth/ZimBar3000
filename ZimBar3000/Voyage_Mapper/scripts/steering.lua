@@ -95,6 +95,30 @@ function on_trigger_voyage_boat_turn(name, line, wildcards, styles)
     voy.heading = new_direction(rotation)
     voyage_print_map()
 end
+
+function on_trigger_voyage_set_direction(name, line, wildcards, styles)
+	local directions = {
+		["hubwards"] = "H", 
+		["widdershins-hubwards"] = "WH", 
+		["widdershins"] = "W", 
+		["widdershins-rimwards"] = "WR", 
+		["rimwards"] = "R", 
+		["turnwise-rimwards"] = "TR", 
+		["turnwise"] = "T", 
+		["turnwise-hubwards"] = "TH",}
+	local dir = string.lower(wildcards.direction)
+	voy.heading = directions[dir] or voy.heading
+    voyage_print_map()
+end
+
+function on_trigger_voyage_charts(name, line, wildcards, styles)
+
+end
+
+function on_trigger_voyage_whirlpool(name, line, wildcards, styles)
+	voy.heading = "?"
+	voyage_print_map()
+end
 --------------------------------------------------------------------------------
 --   MOVEMENT DETECTION
 --------------------------------------------------------------------------------

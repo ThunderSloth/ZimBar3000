@@ -203,11 +203,19 @@ function on_trigger_voyage_hull_fix_partial(name, line, wildcards, styles)
 end
 
 function on_trigger_voyage_hull_hit(name, line, wildcards, styles)
-    local hits = {"creaking a little more than before", "taking quite a beating", "breaks with an distant snap", "last legs", "breached"}
+    local hits = {
+		["creaking a little more than before"] = 1, 
+		["giant turtle bellowing"] = 1,
+		["shaking violently from the collision"] = 1,
+		["taking quite a beating"] = 2, 
+		["breaks with an distant snap"] = 3, 
+		["last legs"] = 4, 
+		["breached"] = 5,
+	}
     local col = voy.colours.hull
     local percentage = voy.hull.condition
-    for i, v in ipairs(hits) do
-        if line:match(v) then
+    for k, i in pairs(hits) do
+        if line:match(k) then
                 percentage = ((i + 1) * 20) < 100 and (i + 1) * 20 or 100
             break
         end

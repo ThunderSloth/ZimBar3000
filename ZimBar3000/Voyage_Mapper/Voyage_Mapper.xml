@@ -1024,14 +1024,14 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^((Gazeing up at the stars|Squinting up at the sun), you determine|A small brass case with a glass top, containing a freely\-rotating octiron needle that always points to the Hub.  From the compass, you can see) that the ship is heading (?<direction>.*?)( and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?)?$"
+   enabled="y"
+   match="^((Gazeing up at the stars|Squinting up at the sun), you determine|A small brass case with a glass top, containing a freely\-rotating octiron needle that always points to the Hub.  From the compass, you can see) that the ship is heading (?<direction>.*?)( and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?)?\.$"
    name="voyage_set_direction"
    regexp="y"
    sequence="100"
    script="on_trigger_voyage_set_direction"
   ></trigger>
   <trigger
-   enabled="y"
    group="voyage"
    keep_evaluating="y"
    match="^The charts mostly depict the Circle Sea, which is the sea you're currently traversing.  They seem to indicate that the route from .*? to .*? is pretty much directly (?<direction>.*) in a straight line and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?$"

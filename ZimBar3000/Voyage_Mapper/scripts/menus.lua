@@ -541,39 +541,54 @@ function voyage_get_sea_menu()
 	end) 
     menu = menu.."OB and resume||"
  	table.insert(options, function()
-		Send("overboard");Send("board");Send("hold wheel")
+		local commands = {"overboard", "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
 	end)      
     menu = menu.."repair hull||"
 	table.insert(options, function()
-		Send("overboard");Send("repair hull with boards and nails");Send("board");Send("hold wheel")
+		local commands = {"overboard", "repair hull with boards and nails", "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
 	end)   
     menu = menu.."cut seaweed|"  
 	table.insert(options, function()
 		local seaweed_tool = held.seaweed == "" and "knife" or held.seaweed
-		Send("overboard");Send("cut seaweed with held "..seaweed_tool);Send("board");Send("hold wheel")
+		local commands = {"overboard", "cut seaweed with held "..seaweed_tool, "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
 	end)       
     menu = menu.."break ice||"
 	table.insert(options, function()
 		local ice_tool = held.ice == "" and "knife" or held.ice
-		Send("overboard");Send("break ice with held "..ice_tool);Send("board");Send("hold wheel")
+		local commands = {"overboard", "break ice with held "..ice_tool, "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
 	end)
 	menu = menu.."look compass|"
 	table.insert(options, function()
-		Send("sw");Send("e");
-		Send("look compass")
-		Send("e");Send("nw");Send("hold wheel")
+		local commands = {"sw", "e", "look compass", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
 	end)
 	menu = menu.."look charts|"
 	table.insert(options, function()
-		Send("sw");Send("e");
-		Send("look charts")
-		Send("e");Send("nw");Send("hold wheel")
+		local commands = {"sw", "e", "look charts", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
 	end)
 	menu = menu.."look both||"
 	table.insert(options, function()
-		Send("sw");Send("e");
-		Send("look compass");Send("look charts")
-		Send("e");Send("nw");Send("hold wheel")
+		local commands = {"sw", "e", "look compass", "look charts", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
 	end)
 	menu = menu.."report stage|"
 	table.insert(options, function()

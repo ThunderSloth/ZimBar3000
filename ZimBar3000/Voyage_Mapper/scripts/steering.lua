@@ -72,7 +72,7 @@ function on_trigger_voyage_boat_turn(name, line, wildcards, styles)
     local function new_direction(rotation)
         local dir = {"H", "WH", "W", "WR", "R", "TR", "T", "TH"}
         local rid = {H = 1, WH = 2, W = 3, WR = 4, R = 5, TR = 6, T = 7, TH = 8}
-        local n = rid[voy.heading]
+        local n = rid[voy.heading] or false
         n = n + rotation
         while n < 1 or n > 8 do
             if n < 1 then
@@ -92,7 +92,7 @@ function on_trigger_voyage_boat_turn(name, line, wildcards, styles)
     if wildcards.sharply ~= "" then
         rotation = rotation * 2
     end
-    voy.heading = new_direction(rotation)
+    voy.heading = voy.heading ~= "?" and new_direction(rotation) or voy.heading 
     voyage_print_map()
 end
 

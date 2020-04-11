@@ -166,7 +166,8 @@ function medina_print_map(look_room)
 			for room, v in pairs(med.rooms) do
 				local room_colour = false
 				for p, c in pairs(v.thyngs.players) do
-					room_colour = v
+					room_colour = c
+					break
 				end
 				if not room_colour then
 					room_colour = v.thyngs.mobs.boss == 1 and col.thyngs.boss or false

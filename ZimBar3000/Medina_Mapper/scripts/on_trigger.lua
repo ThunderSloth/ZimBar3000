@@ -18,7 +18,7 @@ function on_trigger_medina_room_brief(name, line, wildcards, styles)
     local room = medina_get_room(med.sequence[1], exits)
     medina_reset_thyngs(room)
     if wildcards.thyngs ~= '' then
-		on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, room)
+		on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, med.sequence[1])
     else
 		medina_move_room(room, list_to_set(exits))
     end

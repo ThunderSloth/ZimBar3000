@@ -67,7 +67,11 @@ function on_alias_voyage_print_xp(name, line, wildcards)
         return math.floor(num * mult + 0.5) / mult
     end
     local function format_time(t)
-        return string.format("%.2d:%.2d", t/60%60, t%60)
+        if t >= 60^3 then
+        return  string.format("%.2d:%.2d:%.2d", t/(60*60), t/60%60, t%60)
+        else
+          return string.format("%.2d:%.2d", t/60%60, t%60)
+        end
     end
     local function format_line(part, xp, time, rate)
         xp = tostring(xp).." xp"

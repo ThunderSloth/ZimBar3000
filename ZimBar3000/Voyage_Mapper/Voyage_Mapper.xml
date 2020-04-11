@@ -1158,5 +1158,15 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    script="on_alias_voyage_depug_xp"
    enabled="y"
   ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_group_debug_held"
+   match="^voyage debug held"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_debug_held"
+   enabled="y"
+  ></alias>
 </aliases>
 </muclient>

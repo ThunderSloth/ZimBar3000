@@ -664,7 +664,7 @@ Note[[
 
 Commands:
 
-rs -- reset all spots to defualt
+rs -- reset all spots to default
 rs [spot] -- reset spot
 rs [spot] [minutes] -- reset spot to a specific time
 

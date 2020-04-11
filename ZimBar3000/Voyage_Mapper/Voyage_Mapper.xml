@@ -198,7 +198,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(The hull groans alarmingly.  .*|The groaning and snapping of timber strained beyond limit resonates through the ship.  The hull has been breached!)$"
+   match="^(You hear the distinctive sound of an angry giant turtle bellowing, followed by the rather less distinctive sound of a giant bite being taken out of the ship.|A heavy thump comes from the front hull, the ship shaking violently from the collision.|The hull groans alarmingly.  .*|The groaning and snapping of timber strained beyond limit resonates through the ship.  The hull has been breached!)$"
    name="voyage_hull_damaged"
    regexp="y"
    sequence="100"
@@ -1015,11 +1015,39 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(The powerful headwind causes the ship to drift off course |The ship shudders around you as it turns (?<sharply>(sharply )?))to (?<direction>port|starboard).$"
+   match="^(The impact knocks the ship slightly off course |The powerful headwind causes the ship to drift off course |The ship shudders around you as it turns (?<sharply>(sharply )?))to (?<direction>port|starboard).$"
    name="voyage_boat_turn"
    regexp="y"
    sequence="100"
    script="on_trigger_voyage_boat_turn"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   enabled="y"
+   match="^((Gazeing up at the stars|Squinting up at the sun), you determine|A small brass case with a glass top, containing a freely\-rotating octiron needle that always points to the Hub.  From the compass, you can see) that the ship is heading (?<direction>.*?)( and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?)?\.$"
+   name="voyage_set_direction"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_set_direction"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The charts mostly depict the Circle Sea, which is the sea you're currently traversing.  They seem to indicate that the route from .*? to .*? is pretty much directly (?<direction>.*) in a straight line and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?$"
+   name="voyage_charts"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_charts"
+  ></trigger>
+   <trigger
+   group="voyage"
+   keep_evaluating="y"
+    match="^The ship abruptly starts spinning in circles.  After a few rounds, it manages to escape the whirlpool\, heading in a different direction from before.$"
+   name="voyage_whirlpool"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_whirlpool"
   ></trigger>
 </triggers>
 <!-- Movement Commands -->
@@ -1128,6 +1156,16 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    ignore_case="y"
    sequence="100"
    script="on_alias_voyage_depug_xp"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_group_debug_held"
+   match="^voyage debug held"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_debug_held"
    enabled="y"
   ></alias>
 </aliases>

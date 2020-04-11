@@ -160,6 +160,7 @@ function voyage_update_stage(room, monster, weather)
     end
     if tonumber(room) then
         if (room <= 10 or room == 21 or room == 23) and room ~= 3 then
+			voy.is_night = weather:match("night") and true or false
             if monster:match("coiled around the ship") then --serpent
                 if voy.stage ~= "Serpent" then
                     voy.stage = "Serpent"; voyage_draw_stage(voy.coordinates, voy.colours, win.."underlay"); reset_highlights()

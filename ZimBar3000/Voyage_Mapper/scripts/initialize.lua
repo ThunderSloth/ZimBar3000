@@ -4,6 +4,7 @@
 function on_plugin_start()
     require "tprint"
     require "serialize"
+    require "words_to_numbers"
     win = "voyage_map"..GetPluginID() -- define window name
     voyage_get_variables()
     voyage_get_windows(voy.colours)
@@ -212,6 +213,7 @@ function voyage_reset_metatable()
     voy.sequence     = {}                     -- room trajectory
     voy.sequence[1]  = 7                      -- current room
     voy.is_in_voyage = false                  -- are you on the ship?
+    voy.is_night     = false                  -- is it night?
     held.L, held.R   = "", ""                 -- held items
 end
 --------------------------------------------------------------------------------

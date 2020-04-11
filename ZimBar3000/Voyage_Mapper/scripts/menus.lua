@@ -524,6 +524,86 @@ function voyage_get_compass_menu(id)
     end
 end
 --------------------------------------------------------------------------------
+--   SEA (STEERING-MODE)
+--------------------------------------------------------------------------------
+function voyage_get_sea_menu()
+    local options = {}
+    local menu = "!look overboard|"..(voy.is_night and "^" or "").."look sun|"..(voy.is_night and "" or "^").."look stars|"
+ 	table.insert(options, function()
+		Send("look overboard")
+	end)
+ 	table.insert(options, function()
+		Send("look "..(voy.is_night and "stars" or "sun"))
+	end)      
+    menu = menu.."look here||"
+ 	table.insert(options, function()
+		Send("look")
+	end) 
+    menu = menu.."OB and resume||"
+ 	table.insert(options, function()
+		local commands = {"overboard", "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)      
+    menu = menu.."repair hull||"
+	table.insert(options, function()
+		local commands = {"overboard", "repair hull with boards and nails", "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)   
+    menu = menu.."cut seaweed|"  
+	table.insert(options, function()
+		local seaweed_tool = held.seaweed == "" and "knife" or held.seaweed
+		local commands = {"overboard", "cut seaweed with held "..seaweed_tool, "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)       
+    menu = menu.."break ice||"
+	table.insert(options, function()
+		local ice_tool = held.ice == "" and "knife" or held.ice
+		local commands = {"overboard", "break ice with held "..ice_tool, "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."look compass|"
+	table.insert(options, function()
+		local commands = {"sw", "e", "look compass", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."look charts|"
+	table.insert(options, function()
+		local commands = {"sw", "e", "look charts", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."look both||"
+	table.insert(options, function()
+		local commands = {"sw", "e", "look compass", "look charts", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."report stage|"
+	table.insert(options, function()
+		Send("group say "..voy.stage.."!")
+	end)
+    menu = string.gsub(menu, "%W%l", string.upper):sub(2);menu = "!"..menu
+    result = string.lower(WindowMenu(win, 
+        WindowInfo(win, 14), --x
+        WindowInfo(win, 15), --y
+        menu))
+    if result ~= "" then
+        options[tonumber(result)]()
+    end
+end
+--------------------------------------------------------------------------------
 --   DRAGON CIRCLES/GUAGES
 --------------------------------------------------------------------------------
 function voyage_get_circle_menu(room)

@@ -267,3 +267,9 @@ function on_trigger_voyage_tools_sheathe(name, line, wildcards, styles)
 end
 
 
+function on_alias_voyage_debug_held()
+	tprint(held)
+end
+
+
+

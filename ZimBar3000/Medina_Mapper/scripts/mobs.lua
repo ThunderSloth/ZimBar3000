@@ -4,7 +4,7 @@
 -- parse mobs/players and respective quantities from trigger matches
 -- update room data accordingly and refresh map
 function medina_get_mobs(wildcards, sign, room)
-	local function get_quantity(mob)
+	--[[local function get_quantity(mob)
 		local number = {the = 1, two = 2, three = 3, four = 4, five = 5, six = 6, seven = 7, eight = 8, nine = 9, ten = 10, eleven = 11, twelve = 12, thirteen = 13, fourteen = 14, fifteen = 15, sixteen = 16, seventeen = 17, eighteen = 18, nineteen = 19, twenty = 20, many = 21,}
 		mob = mob:gsub("^an? ", "the ")
 		local n = ""
@@ -83,12 +83,12 @@ function medina_get_mobs(wildcards, sign, room)
 					for _, r in ipairs(room) do
 						local adj_room = med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
 						if adj_room then
-							med.rooms[dj_room].exits[direction].thyngs.mobs.boss = 1
+							med.rooms[adj_room].exits[direction].thyngs.mobs.boss = 1
 						end
 					end
 				end 
 			end
 		end
 	end
-	medina_print_map()
+	medina_print_map()]]
 end

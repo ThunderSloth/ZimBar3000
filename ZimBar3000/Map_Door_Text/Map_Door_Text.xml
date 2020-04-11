@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+  <plugin
+   name="Map_Door_Text"
+   author="Zimbus"
+   id="a4f2436e923441ce4ba7ab6b"
+   language="Lua"
+   purpose="graphically display gmpc map door text"
+   save_state="y"
+   date_written="2016-01-20 19:39:10"
+   date_modified="2020-03-30"
+   requires="4.71"
+   version="4.0"
+   sequence="-10000"
+   >
+  </plugin>
+<!--  Script  -->
+<script>
+<![CDATA[
+dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)) .. ".lua")
+]]>
+</script>
+<!--  Triggers  -->
+<triggers>
+<!--  look map  -->
+  <trigger
+   group="mdt"
+   enabled="y"
+   keep_evaluating="y"
+   match="^.* the limit of your vision is (.*?)( from)? here\.$"
+   omit_from_output="n"
+   sequence="5"
+   regexp="y"
+   name="mdt_map_door_look"
+   send_to="12"
+  ></trigger>
+  <!--  remove queue  -->
+  <trigger
+   group="mdt"
+   enabled="y"
+   keep_evaluating="y"
+   match="^Removed queue.$"
+   name="mdt_remove_queue"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_mdt_remove_queue"
+  ></trigger>
+<!--  command fail  -->   
+  <trigger
+   group="mdt"
+   enabled="y"
+   keep_evaluating="y"
+   match="^(That doesn't work.|What\?|Try something else.)$"
+   name="mdt_command_fail"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_mdt_command_fail"
+  ></trigger> 
+ <trigger
+   group="medina"
+   keep_evaluating="y"
+   match="^You (follow|pursue) .* (?<direction>(?<ns>north|south)?(?(ns)(east|west)?|(east|west)))\.$"
+   name="mdt_you_follow"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_mdt_you_follow"
+  ></trigger>
+</triggers>
+<!--  Aliases  -->
+<aliases>
+  <alias
+   enabled="y"
+   group="mdt_debug"
+   name="mdt_gmcp"
+   match="^mdt gm[cp]{2}$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_mdt_debug_gmpc"
+  ></alias>
+</aliases>
+</muclient>	

@@ -269,14 +269,14 @@ function voyage_get_room_menu(room)
                 ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: "tank"')
             end
         end)
-        menu = menu..(voy.drag.on and voy.drag.object:match("cargo") and "+" or "").."drag cargo|"
+        menu = menu..(voy.drag.on and voy.drag.object:match("crate") and "+" or "").."drag crate|"
         table.insert(options, function()
-            if voy.drag.on and voy.drag.object:match("cargo") then
+            if voy.drag.on and voy.drag.object:match("crate") then
                 voy.drag.on = false
                 ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: off')
             else
-                voy.drag = {object = "cargo", on = true}
-                ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: "cargo"')
+                voy.drag = {object = "crate", on = true}
+                ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: "crate"')
             end
         end)
     end

@@ -53,8 +53,8 @@ function mdt_pos_window()
 		end
     else
         for i in ipairs(win) do
-            window_pos_x = {, } 
-            window_pos_x = { ,}
+			window_pos_x = {WindowInfo(win[1], 10), WindowInfo(win[2], 10)}
+			window_pos_y = {WindowInfo(win[1], 11), WindowInfo(win[2], 11)}
         end
     end
 end

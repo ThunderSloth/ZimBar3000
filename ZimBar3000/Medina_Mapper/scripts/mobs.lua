@@ -51,7 +51,7 @@ function medina_get_mobs(wildcards, sign, room)
 			end
 			if direction then
 				for _, r in ipairs(room) do
-					local adj_room = med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
+					local adj_room = med.rooms[r].exits and med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
 					if adj_room then
 						med.rooms[adj_room].thyngs.players[player] = p_colour
 					end
@@ -66,7 +66,7 @@ function medina_get_mobs(wildcards, sign, room)
 				end
 				if direction then
 					for _, r in ipairs(room) do
-						local adj_room = med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
+						local adj_room = med.rooms[r].exits and med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
 						if adj_room then
 							med.rooms[adj_room].thyngs.mobs[mob] = med.rooms[adj_room].thyngs.mobs[mob] + n
 						end
@@ -81,9 +81,9 @@ function medina_get_mobs(wildcards, sign, room)
 				end
 				if direction then
 					for _, r in ipairs(room) do
-						local adj_room = med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
+						local adj_room = med.rooms[r].exits and med.rooms[r].exits[direction] and med.rooms[r].exits[direction].room
 						if adj_room then
-							med.rooms[adj_room].exits[direction].thyngs.mobs.boss = 1
+							med.rooms[adj_room].thyngs.mobs.boss = 1
 						end
 					end
 				end 

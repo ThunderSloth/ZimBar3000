@@ -102,6 +102,10 @@ function medina_get_room(start_room, end_exits)
         return {}
     end
 end
+-- attempt to narrow based of exits
+function medina_get_scry_room(room, exits)
+
+end
 -- attempt to narrow start and end rooms
 -- if we find certainty we will log exits
 -- if we find discrepensies we will reset

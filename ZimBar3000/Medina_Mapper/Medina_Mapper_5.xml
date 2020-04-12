@@ -55,7 +55,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   ></trigger>
 <!--  brief-mode  -->
   <trigger
-   group="medina"
+   group="medina_rooms"
    keep_evaluating="y"
    lines_to_match="2"
    match="^Somewhere in an alleyway \[(?<exits>.*)\]\.(\n(?<thyngs>.* here.))?\Z"

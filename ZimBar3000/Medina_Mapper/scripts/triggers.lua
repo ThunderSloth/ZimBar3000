@@ -74,7 +74,7 @@ function medina_get_triggers()
         end
         triggers[i] = {
             match = regex,
-            group ='medina',
+            group ='medina_rooms',
             name = 'medina_room_'..name,
             script = script,
             multi_line = 'y',
@@ -125,7 +125,6 @@ function medina_get_triggers()
 	for i, v in ipairs({"medina_room_brief", "medina_mob_enter", "medina_mob_exit"}) do
 		ImportXML ( get_xml_injection( ExportXML (0, v) ) )
     end
-    
     for _, v in pairs(triggers) do
         if v.match then
             AddTrigger(v.name, v.match, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", v.script)
@@ -136,7 +135,7 @@ function medina_get_triggers()
             SetTriggerOption (v.name, "sequence", sequence)
 			SetTriggerOption (v.name, "send_to", 12)
             local trig = get_xml_injection( ExportXML (0, v.name) )
-            ImportXML (trig); -- print(trig)
+            ImportXML (trig); --print(trig)
         end
     end
 end

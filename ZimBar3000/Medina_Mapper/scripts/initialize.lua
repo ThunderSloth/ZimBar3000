@@ -27,12 +27,17 @@ function medina_get_variables()
     med.colours = medina_get_colours()
     med.players = {} -- set containing playernames with associated colour
     med.sync = {received = false, data = {}, is_valid = false}
-    med.commands = {move = {count = 0}, look = {count = 0}}
+    med.look_room = {}     -- store the room we are looking at
+    med.scry_room = {}
+    
     -- keep track of all rooms (or all possible rooms) in our queued trajectory
     -- where index 1 refers to our current room (or rooms)
     -- and the last item in the table refers to our final trajectory room
     -- we will also reserve index 0 ro store history of previous room
     med.sequence = {}
+    -- our queued commands
+    med.commands = {move = {count = 0}, look = {count = 0}}
+    
     med.is_in_medina = false
 end
 -- save variables

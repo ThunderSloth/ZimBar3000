@@ -43,6 +43,12 @@ function medina_look_room(room, exits)
     medina_print_map(look_room)
 end
 
+function medina_scry_room(room, exits)
+	tprint(room)
+	tprint(exits)
+	local scry_room = medina_get_scry_room(room, exits)
+end
+
 function medina_get_presumed_look(room, dir)
     local presumed_look = {}
     for _, r in ipairs(room) do

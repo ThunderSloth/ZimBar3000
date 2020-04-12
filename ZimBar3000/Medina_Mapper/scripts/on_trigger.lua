@@ -25,6 +25,7 @@ function on_trigger_medina_room_brief(name, line, wildcards, styles)
 end
 -- on entering a room in verbose mode or on looking at/scrying a room
 function on_trigger_medina_room(name, line, wildcards, styles)
+	print("sddsds")
     local exits = medina_exit_string_to_set(wildcards.exits)
     local certainty = name:match("medina_room_([A-R])$")
     local room = certainty and {certainty} or {"H", "N"}
@@ -36,16 +37,17 @@ function on_trigger_medina_room(name, line, wildcards, styles)
             medina_move_room(room, exits)
         end
     elseif wildcards.look ~= '' then
-        local simulate_night = false -- for testing night mode
-        if simulate_night then
-            on_trigger_medina_dark_room(name, line, wildcards, styles)
-        else
-            if wildcards.thyngs ~= '' then
-                on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.look_room)
-            else
-                medina_look_room(room, exits)
-            end
-        end
+		if wildcards.thyngs ~= '' then
+			on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.look_room)
+		else
+			medina_look_room(room, exits)
+		end
+    elseif wildcards.scry ~= '' then
+ 		if wildcards.thyngs ~= '' then
+			on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.scry_room)
+		else
+			medina_scry_room(room, exits)
+		end   
     end
 end
 -- on entering/looking at a room where room description is obscured by darkness
@@ -68,6 +70,12 @@ function on_trigger_medina_dark_room(name, line, wildcards, styles)
             local room = medina_get_room(current_room, exits)
             medina_look_room(room, list_to_set(exits))
         end
+    elseif wildcards.scry ~= '' then
+ 		if wildcards.thyngs ~= '' then
+			on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.scry_room)
+		else
+			medina_scry_room(room, exits)
+		end   
     end
 end
 -- on entering/looking at a room where rooom description and exit list are obscured

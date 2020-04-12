@@ -23,7 +23,7 @@
 (?# MISC: )
 (?'general'm([sx]|rs?|iss))
 (?'genua'(?# m, monsieur, mlle, mademoiselle, mme, madame)m(?=(\Z|$| |me|lle|onsieur|adame|ademoiselle))(me|lle|onsieur|adame|ademoiselle)?)
-(?'ghosts'(lonely|mournful|scary|spooky|wandering))
+(?'ghosts'the ghost of (lonely|mournful|scary|spooky|wandering))
 (?'musketeers'(cheating|cowardly))
 (?'debaters'(diplomatic|uncreative))
 (?'netdead'the netdead statue of)(?'zombie'zombie))(?#

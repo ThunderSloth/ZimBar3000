@@ -27,13 +27,13 @@ function on_trigger_medina_room(name, line, wildcards, styles)
     local exits = medina_exit_string_to_set(wildcards.exits)
     local certainty = name:match("medina_room_([A-R])$")
     local room = certainty and {certainty} or {"H", "N"}
-    if wildcards.title ~= '' then
+    if wildcards.title ~= '' and med.is_in_medina then
         if wildcards.thyngs ~= '' then
             on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, med.sequence[1])
         else
             medina_move_room(room, exits)
         end
-    elseif wildcards.look ~= '' then
+    elseif wildcards.look ~= '' and med.is_in_medina then
 		if wildcards.thyngs ~= '' then
 			on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.look_room)
 		else
@@ -52,14 +52,14 @@ function on_trigger_medina_dark_room(name, line, wildcards, styles)
     local function list_to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
     local exits  = medina_exit_string_to_list(wildcards.exits)
     local current_room = med.sequence[1]
-    if wildcards.title ~= '' then
+    if wildcards.title ~= '' and med.is_in_medina then
         if wildcards.thyngs ~= '' then
             on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, med.sequence[1])
         else   
             local room = medina_get_room(current_room, exits)
             medina_move_room(room, list_to_set(exits))
         end
-    elseif wildcards.look ~= '' then
+    elseif wildcards.look ~= '' and med.is_in_medina then
         if wildcards.thyngs ~= '' then
             on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.look_room)
         else

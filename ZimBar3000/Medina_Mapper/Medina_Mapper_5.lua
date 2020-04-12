@@ -28,6 +28,8 @@ local funcs = {
 	              
 	'hotspots',   -- interactive zones, drag/resize/other handlers
 	
+	'menu',       -- titlebar and room menus
+	
 	'menus',      -- drop-down menus
 	
 	'on_trigger', -- trigger events

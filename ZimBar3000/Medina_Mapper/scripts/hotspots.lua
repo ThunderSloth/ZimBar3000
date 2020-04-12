@@ -133,11 +133,15 @@ function cancelmouseover(flags, id)
     end
 end
 -- called when mouse button is pressed on hotspot
-function mousedown(flags, hotspot_id)
-    if hotspot_id == "title" then
+function mousedown(flags, id)
+    if id == "title" then
 		from_x, from_y = WindowInfo(win, 14), WindowInfo(win, 15)
-    elseif (hotspot_id == "resize") then
+    elseif (id == "resize") then
         WindowImageFromWindow(win, "win", win)
+	elseif id:match("^[A-R]$") then
+		if flags == 32 then
+			medina_room_menu(id)		
+        end
     end
 end
 
@@ -145,6 +149,10 @@ function mouseup(flags, id)
     if id:match("^[nesw]+$") then
         on_alias_medina_look_room('name', 'line', {direction = id})
 	elseif id:match("^[A-R]$") then
-        medina_get_shortest_path(med.rooms, med.sequence[#med.sequence][1], id)
+		if flags == 16 then
+			medina_get_shortest_path(med.rooms, med.sequence[#med.sequence] and med.sequence[#med.sequence][1] or false, id)
+        elseif flags == 32 then
+        
+        end
     end
 end

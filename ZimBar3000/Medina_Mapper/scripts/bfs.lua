@@ -2,7 +2,7 @@
 --   SHORTEST PATH
 --------------------------------------------------------------------------------
 -- for auto-walking by mouseclick
-function medina_get_shortest_path(graph, start_node, end_node) -- BFS
+function medina_get_shortest_path(graph, start_node, end_node, is_look) -- BFS
     local function deepcopy(orig)
         local orig_type = type(orig)
         local copy
@@ -49,9 +49,13 @@ function medina_get_shortest_path(graph, start_node, end_node) -- BFS
         local path_text = {}
         if solved then
             current = start_node
-            for _, v in ipairs(path) do
+            for i, v in ipairs(path) do
                 local direction = g[current].exit_rooms[v]
-                on_alias_medina_move_room(name, line, {direction = direction})
+                if i == #path and is_look then
+					on_alias_medina_look_room(name, line, {direction = direction})
+                else
+					on_alias_medina_move_room(name, line, {direction = direction})
+                end
                 current = v
             end
         else

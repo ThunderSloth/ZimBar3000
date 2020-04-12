@@ -32,7 +32,6 @@ function medina_reset_room(room)
     if (tonumber(WindowInfo(win.."overlay", 3) or 0) > 0) and med.coordinates then -- if overlay has been constructed,
         medina_draw_room_letter(room, med.coordinates.rooms[room], med.colours) -- reprint letter
     end
-    --DeleteTimer(room) --delete expiration timer
 end
 -- reset all all exit data of a specific toom
 function medina_reset_room_exits(room)
@@ -57,5 +56,18 @@ function medina_reset_thyngs(room)
 		end
 	else
 		med.rooms[room].thyngs  = {mobs = {thugs = 0, heavies = 0, boss =  0}, players = {}}
+	end
+end
+-- reset all mobs
+function medina_depopulate()
+	for r, _ in pairs(med.rooms) do
+		medina_reset_thyngs(r)
+	end
+end
+-- reset all visited
+function medina_unvisit()
+	for r, _ in pairs(med.rooms) do
+		med.rooms[r].visited = false
+        medina_draw_room_letter(r, med.coordinates.rooms[r], med.colours) -- reprint letter
 	end
 end

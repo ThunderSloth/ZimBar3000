@@ -19,6 +19,8 @@ function medina_move_room(room, exits)
         med.rooms[absolute_current].visited = true
         medina_draw_room_letter(absolute_current, med.coordinates.rooms[absolute_current], med.colours) 
     end
+    med.look_room, med.scry_room = false, false
+    medina_reset_thyngs(current_room)
     medina_construct_seq()
     medina_print_map()
 end
@@ -39,14 +41,17 @@ function medina_look_room(room, exits)
         med.rooms[absolute_look].visited = true
         medina_draw_room_letter(absolute_look, med.coordinates.rooms[absolute_look], med.colours) 
     end
+    med.look_room, med.scry_room = look_room, false
+    medina_reset_thyngs(look_room)
     medina_construct_seq()
-    medina_print_map(look_room)
+    medina_print_map()
 end
 
 function medina_scry_room(room, exits)
-	tprint(room)
-	tprint(exits)
 	local scry_room = medina_get_scry_room(room, exits)
+	med.look_room, med.scry_room = false, scry_room
+	medina_reset_thyngs(scry_room)
+	medina_print_map()
 end
 
 function medina_get_presumed_look(room, dir)

@@ -75,7 +75,7 @@ function medina_draw_overlay(dim, col) -- dimensions, colours
 end
 -- draw dynamic elements (you, mobs, highlights ect.) on top of 
 -- base (rooms, exits, titlebar) and layer overlay (room-letters) on top, then display
-function medina_print_map(look_room)
+function medina_print_map()
     local start_time = os.clock()
     local function draw_exit_text(coor, dim, current_room)
         local function get_exit_text_info(unsolved_exits, exit_col, absolute_current)
@@ -141,8 +141,19 @@ function medina_print_map(look_room)
             end
         end
     end
-    local function draw_dynamic(coordinates, col, current_room, look_room)
-		-- draw room fill
+    local function draw_dynamic(coordinates, col, current_room, look_room, scry_room)
+		-- draw outter room fill
+		local function draw_look(room, coor, colour1, colour2) -- room, coordinates, colours
+            local fill_style = #room == 1 and 0 or 8
+            for _ , r in ipairs(room) do
+                WindowCircleOp(win, 2,
+                    coor[r].room.outter.x1, coor[r].room.outter.y1, coor[r].room.outter.x2, coor[r].room.outter.y2,            
+                    col.window.background, 0, 0,
+                    colour1, fill_style)
+                WindowRectOp (win, 1, coor[r].room.outter.x1, coor[r].room.outter.y1, coor[r].room.outter.x2, coor[r].room.outter.y2, colour2)
+            end
+        end
+        -- draw inner room fill
         local function draw_thyng(room, coor, colour) -- room, coordinates, colours
             local fill_style = #room == 1 and 0 or 8
             for _ , r in ipairs(room) do
@@ -160,6 +171,29 @@ function medina_print_map(look_room)
                     coor[r].room.outter.x1, coor[r].room.outter.y1, coor[r].room.outter.x2, coor[r].room.outter.y2,
                     colour)
             end
+        end
+        --highlight herd path
+        function draw_herd_path(coor, col)
+			local herd_path = med.herd_path
+			for herd_start, dir in pairs(herd_path) do
+				local herd_rooms, herd_set = {}, {}
+				local herd_room = herd_start
+				local break_at = 100
+				while med.rooms[herd_room].exits and med.rooms[herd_room].exits[dir] and med.rooms[herd_room].exits[dir].room do
+					herd_room = med.rooms[herd_room].exits[dir].room
+					if not herd_set[herd_room] then
+						herd_set[herd_room] = dir
+						table.insert(herd_rooms, herd_room)
+					else
+						break
+					end
+					break_at = break_at - 1
+					if break_at <= 0 then
+						break
+					end
+				end
+				draw_border(herd_rooms, coor, col)
+			end
         end
         -- insert players/mobs
         local function draw_population(coordinates, col)
@@ -183,16 +217,18 @@ function medina_print_map(look_room)
 				end
 			end
         end
-        local trajectory_room = #med.sequence ~= 0 and med.sequence[#med.sequence] or {}
+        local trajectory_room = #med.sequence ~= 0 and med.sequence[#med.sequence] or {} 
+        draw_look(look_room or {}, coordinates.rooms, col.rooms.look1, col.rooms.look2) -- look
+        draw_look(scry_room or {}, coordinates.rooms, col.rooms.look1, col.rooms.look2) -- scry
 		draw_population(coordinates, col)
-		draw_border(trajectory_room, coordinates.rooms, col.rooms.ghost) -- ghost
-		draw_thyng(look_room, coordinates.rooms, col.rooms.look) -- look
 		draw_thyng(current_room, coordinates.rooms, col.thyngs.you) -- you
+		draw_herd_path(coordinates.rooms, col.rooms.herd_path)
+		draw_border(trajectory_room, coordinates.rooms, col.rooms.ghost) -- ghost
     end
-    local current_room, look_room = med.sequence[1] or {}, look_room or {}
+    local current_room, look_room, scry_room = med.sequence[1] or {}, med.look_room or {}, med.scry_room
     WindowImageFromWindow(win, "base", win.."base")
     WindowDrawImage(win, "base", 0, 0, 0, 0, 1) -- draw base
-    draw_dynamic(med.coordinates, med.colours, current_room, look_room) -- add dynamic
+    draw_dynamic(med.coordinates, med.colours, current_room, look_room, scry_room) -- add dynamic
     draw_exit_text(med.coordinates.exit_text, med.dimensions, current_room)
     WindowImageFromWindow(win, "overlay", win.."overlay")
     WindowDrawImage(win, "overlay", 0, 0, 0, 0, 3) -- draw overlay

@@ -7,7 +7,7 @@ function on_plugin_start()
     win = "medina_map"..GetPluginID() -- define window name
     medina_get_variables()
     medina_get_regex()
-    medina_get_triggers()
+    medina_get_trigs()
     medina_get_windows()
     medina_window_setup(window_width, window_height) -- define window attributes
     medina_get_hotspots(med.dimensions)
@@ -27,8 +27,9 @@ function medina_get_variables()
     med.colours = medina_get_colours()
     med.players = {} -- set containing playernames with associated colour
     med.sync = {received = false, data = {}, is_valid = false}
-    med.look_room = {}     -- store the room we are looking at
-    med.scry_room = {}
+    med.look_room = false     -- store the room we are looking at
+    med.scry_room = false
+    med.herd_path = {}
     
     -- keep track of all rooms (or all possible rooms) in our queued trajectory
     -- where index 1 refers to our current room (or rooms)

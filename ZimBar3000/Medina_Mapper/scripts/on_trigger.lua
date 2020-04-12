@@ -16,7 +16,6 @@ function on_trigger_medina_room_brief(name, line, wildcards, styles)
     local function list_to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
     local exits = get_brief_exits(wildcards.exits)
     local room = medina_get_room(med.sequence[1], exits)
-    medina_reset_thyngs(room)
     if wildcards.thyngs ~= '' then
 		on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, med.sequence[1])
     else
@@ -25,12 +24,10 @@ function on_trigger_medina_room_brief(name, line, wildcards, styles)
 end
 -- on entering a room in verbose mode or on looking at/scrying a room
 function on_trigger_medina_room(name, line, wildcards, styles)
-	print("sddsds")
     local exits = medina_exit_string_to_set(wildcards.exits)
     local certainty = name:match("medina_room_([A-R])$")
     local room = certainty and {certainty} or {"H", "N"}
     if wildcards.title ~= '' then
-		medina_reset_thyngs(room)
         if wildcards.thyngs ~= '' then
             on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, med.sequence[1])
         else
@@ -44,7 +41,7 @@ function on_trigger_medina_room(name, line, wildcards, styles)
 		end
     elseif wildcards.scry ~= '' then
  		if wildcards.thyngs ~= '' then
-			on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.scry_room)
+			on_trigger_medina_mob_track("yonder", line, {thyngs = wildcards.thyngs}, styles, med.scry_room)
 		else
 			medina_scry_room(room, exits)
 		end   
@@ -53,12 +50,12 @@ end
 -- on entering/looking at a room where room description is obscured by darkness
 function on_trigger_medina_dark_room(name, line, wildcards, styles)
     local function list_to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
+    local exits  = medina_exit_string_to_list(wildcards.exits)
     local current_room = med.sequence[1]
     if wildcards.title ~= '' then
         if wildcards.thyngs ~= '' then
             on_trigger_medina_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, med.sequence[1])
-        else
-            local exits  = medina_exit_string_to_list(wildcards.exits)
+        else   
             local room = medina_get_room(current_room, exits)
             medina_move_room(room, list_to_set(exits))
         end
@@ -66,21 +63,21 @@ function on_trigger_medina_dark_room(name, line, wildcards, styles)
         if wildcards.thyngs ~= '' then
             on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.look_room)
         else
-            local exits = medina_exit_string_to_list(wildcards.exits)
             local room = medina_get_room(current_room, exits)
             medina_look_room(room, list_to_set(exits))
         end
     elseif wildcards.scry ~= '' then
  		if wildcards.thyngs ~= '' then
-			on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.scry_room)
+			on_trigger_medina_mob_track("yonder", line, {thyngs = wildcards.thyngs}, styles, med.scry_room)
 		else
+			local room = medina_get_dark_scry_room(exits)
 			medina_scry_room(room, exits)
 		end   
     end
 end
 -- on entering/looking at a room where rooom description and exit list are obscured
 function on_trigger_medina_too_dark(name, line, wildcards, styles)
-    medina_print_map(medina_get_presumed_look(med.sequence[1], med.commands.look[1]))
+    med.look_room = medina_get_presumed_look(med.sequence[1], med.commands.look[1])
     table.remove(med.commands.look, 1)
 end
 -- on looking to a direction that doesn't exist, or looking out of one of the two street exits

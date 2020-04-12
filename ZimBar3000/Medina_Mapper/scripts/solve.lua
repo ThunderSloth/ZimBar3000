@@ -104,7 +104,47 @@ function medina_get_room(start_room, end_exits)
 end
 -- attempt to narrow based of exits
 function medina_get_scry_room(room, exits)
-
+	local scry_room = {}
+	-- if exits are sent as list, convert to set
+	for i, v in ipairs(exits) do
+		exits[v] = true
+	end
+	for i, r in ipairs(room) do
+		local is_match = r
+		if med.rooms[r].exits then
+			for k, v in pairs(med.rooms[r].exits) do
+				if not exits[k] then
+					is_match = false
+					break	
+				end
+			end
+		end
+		if is_match then
+			table.insert(scry_room, is_match)
+		end
+	end
+	-- if there are no matches then the exits have changed
+	-- and we cannot rule based off exit matches
+	if #scry_room == 0 then
+		for i, r in ipairs(room) do
+			table.insert(scry_room, r)
+		end
+	end
+	return scry_room
+end
+-- narrow strictly based on number of exits
+function medina_get_dark_scry_room(exits)
+	local exit_count = 0
+	local scry_room = {}
+	for _ in pairs(exits) do
+		exit_count = exit_count + 1
+	end
+	for k, v in pairs(med.exit_counts) do
+		if v.adj_room_count == exit_count then
+			table.insert(scry_room, k)
+		end
+	end
+	return scry_room
 end
 -- attempt to narrow start and end rooms
 -- if we find certainty we will log exits

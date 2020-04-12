@@ -19,8 +19,8 @@ function medina_get_hotspots(dim) -- dimensions
         local coor = med.coordinates.rooms[r].room.outter
         WindowAddHotspot(win, r,
              coor.x1, coor.y1, coor.x2, coor.y2,
-             "",   
-             "",  
+             "mouseover",   
+             "cancelmouseover",  
              "mousedown",
              "cancelmousedown", 
              "mouseup", 
@@ -106,6 +106,33 @@ function ResizeReleaseCallback()
     medina_print_map()
 end
 
+function mouseover(flags, id)
+	if id:match("^[nesw]+$") then
+		-- written exits
+	elseif id:match("^[A-R]$") then
+		med.herd_path = {}
+		local current_room = med.sequence[1] or {}
+		for _, r in ipairs(current_room) do
+			if med.rooms[r].exits and med.rooms[r].exits then
+				for dir, v in pairs(med.rooms[r].exits) do
+					if v.room == id then
+						med.herd_path[r] = dir
+					end
+				end
+			end
+		end
+		medina_print_map()
+    end
+end 
+
+function cancelmouseover(flags, id)
+	if id:match("^[nesw]+$") then
+		-- written exits
+	elseif id:match("^[A-R]$") then
+		med.herd_path = {}
+		medina_print_map()
+    end
+end
 -- called when mouse button is pressed on hotspot
 function mousedown(flags, hotspot_id)
     if hotspot_id == "title" then

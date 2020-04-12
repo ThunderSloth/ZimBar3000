@@ -2,7 +2,7 @@
 --   CONSTRUCT TRIGGERS
 --------------------------------------------------------------------------------
 -- room triggers
-function medina_get_triggers()
+function medina_get_trigs()
     local desc = {
         title = "(?<title>\\[somewhere in an alleyway\\])",
         scry  = "(?<scry>(The crystal ball changes to show a vision of the area where .* is|The image in the crystal ball fades, but quickly returns showing a new area|You see a vision in the .*|You look through the .* (door|fur)|You see a vision in the silver mirror|You see):|You focus past the .* baton, and visualise the place you remembered...|You briefly see a vision.)",
@@ -131,11 +131,11 @@ function medina_get_triggers()
             SetTriggerOption (v.name, "group", v.group)
             SetTriggerOption (v.name, "multi_line", "y")
             SetTriggerOption (v.name, "lines_to_match", v.count)
-            SetTriggerOption (v.name, "enabled", "n")
+            SetTriggerOption (v.name, "enabled", "y")
             SetTriggerOption (v.name, "sequence", sequence)
 			SetTriggerOption (v.name, "send_to", 12)
             local trig = get_xml_injection( ExportXML (0, v.name) )
-            ImportXML (trig); --print(trig)
+            ImportXML (trig);--print(trig)
         end
     end
 end

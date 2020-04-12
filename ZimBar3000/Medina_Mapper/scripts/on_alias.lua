@@ -22,6 +22,12 @@ function on_alias_medina_move_room(name, line, wildcards)
     else
         possible_rooms = medina_get_seq(med.sequence[#med.sequence], direction)
     end
+    med.herd_path = {}
+    if not to_send:match("l") then
+		for _, r in ipairs(med.sequence[#med.sequence] or {}) do
+			med.herd_path[r] = to_send
+		end
+    end
     table.insert(med.sequence, to_list(possible_rooms))
     table.insert(med.commands.move, to_send)
     Send(to_send)
@@ -31,17 +37,21 @@ end
 function on_alias_medina_look_room(name, line, wildcards)
     med.commands.look.count = (med.commands.look.count or 0) + 1
     local direction = medina_format_direction(wildcards.direction)
-	local trajectory_room, to_send = #med.sequence[#med.sequence] == 1 and med.sequence[#med.sequence][1] or false, "l "
+	local trajectory_room, to_send = #med.sequence[#med.sequence] == 1 and med.sequence[#med.sequence][1] or false, ""
 	if trajectory_room and med.rooms[trajectory_room].solved and med.rooms[trajectory_room].normalized[direction]then 
         -- unlike movement, look-directions only normalize after all exits in a room are solved
         -- otherwise you could get stuck
-        to_send = to_send..med.rooms[trajectory_room].normalized[direction] -- normalized
+        to_send = med.rooms[trajectory_room].normalized[direction] -- normalized
         table.insert(med.commands.look, med.rooms[trajectory_room].normalized[direction])
 	else
-		to_send = to_send..direction --unaltered
+		to_send = direction --unaltered
 		table.insert(med.commands.look, direction)
 	end
-    Send(to_send)
+    med.herd_path = {}
+	for _, r in ipairs(med.sequence[#med.sequence] or {}) do
+		med.herd_path[r] = to_send
+	end
+    Send("l "..to_send)
     medina_debug_movement()
 end
 -- on entering stop

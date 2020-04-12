@@ -111,8 +111,7 @@ function mouseover(flags, id)
 		-- written exits
 	elseif id:match("^[A-R]$") then
 		med.herd_path = {}
-		local current_room = med.sequence[1] or {}
-		for _, r in ipairs(current_room) do
+		for _, r in ipairs(med.sequence[#med.sequence] or {}) do
 			if med.rooms[r].exits and med.rooms[r].exits then
 				for dir, v in pairs(med.rooms[r].exits) do
 					if v.room == id then

@@ -28,6 +28,10 @@ function medina_get_mobs(wildcards, sign, room)
 		direction = false
 	elseif direction then
 		direction = medina_format_direction(direction)
+		med.herd_path = {}
+		for _, r in ipairs(med.sequence[1] or {}) do
+			med.herd_path[r] = direction
+		end
 	end
 	regex.verbiage:gmatch(text, function (_, t)
 		text = text:gsub(t.verbiage, "")

@@ -167,32 +167,33 @@ function medina_print_map()
         -- colour room border
         local function draw_border(room, coor, colour)
             for _ , r in ipairs(room) do
-                WindowRectOp(win, miniwin.rect_frame, 
-                    coor[r].room.outter.x1, coor[r].room.outter.y1, coor[r].room.outter.x2, coor[r].room.outter.y2,
-                    colour)
+                WindowRectOp(win, 1, coor[r].room.outter.x1, coor[r].room.outter.y1, coor[r].room.outter.x2, coor[r].room.outter.y2, colour)
             end
         end
-        --highlight herd path
+        local function draw_exit_border(coor, colour)
+			WindowRectOp(win, 1, coor.x1, coor.y1, coor.x2, coor.y2, colour)			
+        end
+        --highligh55 herd path
         function draw_herd_path(coor, col)
 			local herd_path = med.herd_path
 			for herd_start, dir in pairs(herd_path) do
-				local herd_rooms, herd_set = {}, {}
+				local herd_set = {}
 				local herd_room = herd_start
 				local break_at = 100
 				while med.rooms[herd_room].exits and med.rooms[herd_room].exits[dir] and med.rooms[herd_room].exits[dir].room do
+					local previous_room = herd_room
 					herd_room = med.rooms[herd_room].exits[dir].room
 					if not herd_set[herd_room] then
 						herd_set[herd_room] = dir
-						table.insert(herd_rooms, herd_room)
+						draw_border({herd_room}, coor, col)
+						local static_exit = med.rooms[previous_room].exit_rooms[herd_room]
+						draw_exit_border(coor[previous_room].exit[static_exit], col)
 					else
 						break
 					end
-					break_at = break_at - 1
-					if break_at <= 0 then
-						break
-					end
+					break_at = break_at - 1; if break_at <= 0 then break end
 				end
-				draw_border(herd_rooms, coor, col)
+				
 			end
         end
         -- insert players/mobs

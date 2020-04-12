@@ -880,10 +880,12 @@ function mdt_draw_text(map_data)
 			for i = 5, 0, -1 do
 				for k, v in pairs(map_data[y][x].population.mobs[i]) do
 					local text, colour, bg_colour, border_colour, underline = "", 0, false, false, v.is_immobile
-					if v.quantity > 1 then
-						text = v.quantity.." "..k..v.plural
-					else
-						text = k..v.singular
+					if k ~= "" or v.plural == "men" then
+						if v.quantity > 1 then
+							text = v.quantity.." "..k..v.plural
+						else
+							text = k..v.singular
+						end
 					end
 					if text ~= "" then
 						local xp_val = {1/12, 1/6, 1/3, 2/3, 1}

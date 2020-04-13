@@ -19,6 +19,7 @@ function medina_move_room(room, exits)
         med.rooms[absolute_current].visited = true
         medina_draw_room_letter(absolute_current, med.coordinates.rooms[absolute_current], med.colours) 
     end
+    medina_set_follow_delay(previous_room, med.commands.move[0])
     med.look_room, med.scry_room = false, false
     medina_reset_thyngs(current_room)
     medina_construct_seq()

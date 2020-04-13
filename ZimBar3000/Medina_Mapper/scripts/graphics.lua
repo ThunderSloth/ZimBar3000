@@ -173,7 +173,7 @@ function medina_print_map()
         local function draw_exit_border(coor, colour)
 			WindowRectOp(win, 1, coor.x1, coor.y1, coor.x2, coor.y2, colour)			
         end
-        --highligh55 herd path
+        --highlight herd path
         function draw_herd_path(coor, col)
 			local herd_path = med.herd_path
 			for herd_start, dir in pairs(herd_path) do
@@ -193,7 +193,6 @@ function medina_print_map()
 					end
 					break_at = break_at - 1; if break_at <= 0 then break end
 				end
-				
 			end
         end
         -- insert players/mobs

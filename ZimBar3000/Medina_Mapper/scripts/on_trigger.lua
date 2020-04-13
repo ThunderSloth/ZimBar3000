@@ -109,6 +109,11 @@ function on_trigger_medina_you_follow(name, line, wildcards, styles)
     local direction = medina_format_direction(wildcards.direction)
     table.insert(med.commands.move, 1, direction)
     medina_construct_seq()
+    med.herd_path = {}
+	for _, r in ipairs(med.sequence[#med.sequence] or {}) do
+		med.herd_path[r] = direction
+	end
+	medina_print_map()
 end
 -- on any event of mobs/players entering/exiting a room
 -- or looking at/moving to a room that is occupied by mobs/players

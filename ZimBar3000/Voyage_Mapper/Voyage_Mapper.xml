@@ -1049,6 +1049,14 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    sequence="100"
    script="on_trigger_voyage_whirlpool"
   ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+    match="^Caught in a strong backwards current, the ship shudders intensely as it zooms back a few miles.$"
+   name="voyage_backwards_current"
+   regexp="y"
+   sequence="100"
+  ></trigger>
 </triggers>
 <!-- Movement Commands -->
 <aliases>

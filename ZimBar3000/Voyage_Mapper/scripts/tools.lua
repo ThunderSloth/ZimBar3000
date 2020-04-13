@@ -3,9 +3,13 @@
 --------------------------------------------------------------------------------
 function on_alias_voyage_add_tool(name, line, wildcards, styles)
     local tool = string.lower(wildcards.tool)
-    if not held.tools[tool] then
-        held.tools[tool] = "inventory"
-        ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Tool: '"..tool.."' has been added.")
+    if tool ~= "" then
+		if not held.tools[tool] then
+			held.tools[tool] = "inventory"
+			ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Tool: '"..tool.."' has been added.")
+		end
+    else
+		ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Can not add blank tool!")
     end
 end
 
@@ -18,9 +22,13 @@ function on_alias_voyage_add_container(name, line, wildcards, styles)
             break
         end
     end
-    if not is_already_added then
-        table.insert(held.containers, container)
-        ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Container: '"..container.."' has been added.")
+    if container ~= "" then
+		if not is_already_added then
+			table.insert(held.containers, container)
+			ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Container: '"..container.."' has been added.")
+		end
+	else
+		ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Can not add blank container!")
     end
 end
 --------------------------------------------------------------------------------
@@ -271,5 +279,8 @@ function on_alias_voyage_debug_held()
 	tprint(held)
 end
 
+function on_alias_voyage_reset_held()
+	voyage_get_held()
+end
 
 

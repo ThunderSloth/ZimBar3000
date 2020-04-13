@@ -1139,7 +1139,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <alias
    group="voyage_always_enabled"
    name="voyage_add_container"
-   match="^voyage add container ?= ?(?<container>.*)$"
+   match="^voyage add container ?= ?(?<container>[A-Za-z']*)$"
    regexp="y"
    ignore_case="y"
    sequence="100"
@@ -1174,6 +1174,16 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    ignore_case="y"
    sequence="100"
    script="on_alias_voyage_debug_held"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_group_reset_held"
+   match="^voyage reset held"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_reset_held"
    enabled="y"
   ></alias>
 </aliases>

@@ -24,7 +24,6 @@ end
 -- load variables
 function mdt_get_variables()
 	quowmap_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_quowmap_database.db"
-	print(quowmap_database)
 	FIXED_TITLE_HEIGHT = 16
     assert(loadstring(GetVariable("window_width" ) or ""))()
     assert(loadstring(GetVariable("window_height") or ""))()
@@ -850,8 +849,8 @@ function mdt_draw_map(map_data)
 	mdt_print_map()
 end
 
-function mdt_draw_text(map_data)
-	local function draw_text(mw, dim, coor, col, map_data)
+function mdt_prepare_text(map_data)
+	local function get_text_styles(mw, dim, coor, col, map_data)
 		local function order_population(players_or_mobs)
 			table.sort(mdt.text[players_or_mobs], function(a,b) 
 				if players_or_mobs == "players" then
@@ -869,7 +868,7 @@ function mdt_draw_text(map_data)
 				table.insert(mdt.text.population, v)
 			end
 		end
-		
+		-- get styles for room
 		local function get_room_styles(map_data, x, y)
 			local rs = {}
 			-- add players
@@ -932,71 +931,85 @@ function mdt_draw_text(map_data)
 			end
 			return styles
 		end
-		local function draw_styles(styles, longest_path, mw, dim, coor, col, map_data)
-			local function next_line(y2, h)
-				local line_buffer = 3
-				local y1 = y2 + line_buffer
-				return y1, y1 + h 
-			end
-			local font_size = 13
-			local font_id = "text"..tostring(font_size )
-			local h =  dim.font.text[font_size]
-			local y1 = dim.buffer[2].y + FIXED_TITLE_HEIGHT
-			local y2 = y1 + h
-			for _, t in ipairs(styles) do
-				local space = WindowTextWidth(win[2], font_id, " ")
-				local x1, x2 = dim.buffer[2].x, 0
-				for i, v in ipairs(t) do
-					if i == 1 then -- icon
-						x2 = x1 + h -- create square
-						if v.bg_colour then
-							WindowRectOp (win[mw], 2, x1, y1, x2, y2, v.bg_colour)
-						end
-						WindowRectOp (win[mw], 1, x1, y1, x2, y2, v.border_colour) 
-						local id = t[0] 
-						if mdt.locations[id] then
-							-- save locations so we can used them to highlight ghost
-							mdt.locations[id].text = {
-								x1 = x1,
-								y1 = y1,
-								x2 = x2,
-								y2 = y2,
-							}
-						end
-						local w = WindowTextWidth(win[2], font_id, v.text)
-						x1 = x1 + (h - w) / 2
-						WindowText(win[mw], v.underline and font_id.."underlined" or font_id, v.text, x1, y1, 0, 0, v.colour)
-					elseif i == 2 then -- path
-						WindowText(win[mw], font_id, v.text, x1, y1, 0, 0, v.colour)
-						x2 = x1 + WindowTextWidth(win[2], font_id, longest_path) + space
-						x2 = x2 + WindowText(win[mw], font_id, ":", x2, y1, 0, 0, v.colour)
-					else -- mobs
-						local text = i == #t and v.text or v.text..","
-						x2 = x1 + WindowTextWidth(win[2], font_id, text)
-						if v.bg_colour then
-							WindowRectOp (win[mw], 2, x1 - 1, y1, x2 + 1, y2, v.bg_colour)
-						end
-						if v.border_colour then
-							WindowRectOp (win[mw], 1, x1 - 1, y1, x2 + 1, y2, v.border_colour) 	
-						end		
-						WindowText(win[mw], v.underline and font_id.."underlined" or font_id, text, x1, y1, 0, 0, v.colour)
-					end
-					x1 = x2 + space
-				end
-				y1, y2 = next_line(y2, h)
-			end
-		end
-		
 		local styles = get_styles(mw, dim, coor, col, map_data)
-		draw_styles(styles, mdt.text.longest_path, mw, dim, coor, col, map_data)
+		return styles, mdt.text.longest_path
 	end
 	local mw, dim, coor, col = "text", mdt.dimensions, mdt.coordinates, mdt.colours
+	styles, longest_path = get_text_styles(mw, dim, coor, col, map_data)
+	mdt_draw_text(styles, longest_path)
+end
+
+function mdt_draw_text(styles, longest_path)
+	local function draw_text(mw, dim, coor, col)
+		local function next_line(y2, h)
+			local line_buffer = 3
+			local y1 = y2 + line_buffer
+			return y1, y1 + h 
+		end
+		local font_size = 13
+		local font_id = "text"..tostring(font_size)
+		local h =  dim.font.text[font_size]
+		local y1 = dim.buffer[2].y + FIXED_TITLE_HEIGHT
+		local y2 = y1 + h
+		for _, t in ipairs(styles) do
+			local space = WindowTextWidth(win[2], font_id, " ")
+			local x1, x2 = dim.buffer[2].x, 0
+			for i, v in ipairs(t) do
+				if i == 1 then -- icon
+					x2 = x1 + h -- create square
+					if v.bg_colour then
+						WindowRectOp (win[mw], 2, x1, y1, x2, y2, v.bg_colour)
+					end
+					if v.border_colour then
+						WindowRectOp (win[mw], 1, x1, y1, x2, y2, v.border_colour) 
+					end
+					local id = t[0] or false
+					if mdt.locations[id] then
+						-- save locations so we can used them to highlight ghost
+						mdt.locations[id].text = {
+							x1 = x1,
+							y1 = y1,
+							x2 = x2,
+							y2 = y2,
+						}
+					end
+					local w = WindowTextWidth(win[2], font_id, v.text)
+					x1 = x1 + (h - w) / 2
+					WindowText(win[mw], v.underline and font_id.."underlined" or font_id, v.text, x1, y1, 0, 0, v.colour)
+				elseif i == 2 then -- path
+					WindowText(win[mw], font_id, v.text, x1, y1, 0, 0, v.colour)
+					x2 = x1 + WindowTextWidth(win[2], font_id, longest_path) + space
+					x2 = x2 + WindowText(win[mw], font_id, ":", x2, y1, 0, 0, v.colour)
+				else -- mobs
+					local text = i == #t and v.text or v.text..","
+					x2 = x1 + WindowTextWidth(win[2], font_id, text)
+					if v.bg_colour then
+						WindowRectOp (win[mw], 2, x1 - 1, y1, x2 + 1, y2, v.bg_colour)
+					end
+					if v.border_colour then
+						WindowRectOp (win[mw], 1, x1 - 1, y1, x2 + 1, y2, v.border_colour) 	
+					end		
+					WindowText(win[mw], v.underline and font_id.."underlined" or font_id, text, x1, y1, 0, 0, v.colour)
+				end
+				x1 = x2 + space
+			end
+			y1, y2 = next_line(y2, h)
+		end
+	end
+	longest_path = longest_path or ""
+	local mw, dim, coor, col = "text", mdt.dimensions, mdt.coordinates, mdt.colours
 	mdt_window_background(mw, dim, col, map_data)
-	draw_text(mw, dim, coor, col, map_data)
+	draw_text(mw, dim, coor, col)
 	mdt_titlebar(mw, dim, coor.titlebar, col)
 	WindowImageFromWindow(win[2], "text_image", win[mw])
 	mdt_print_text()
-	--print(os.time() - speed_test)
+end
+-------------------------------------------------------------------------------
+--  CROSS-PLUGIN COMMUNICATION
+-------------------------------------------------------------------------------
+function mdt_special_area_text(s)
+	assert(loadstring(s))()
+	mdt_draw_text(text_styles)
 end
 -------------------------------------------------------------------------------
 --  PARSE MAP
@@ -1222,7 +1235,7 @@ function mdt_parse_map_door_text(text)
     end)
     --tprint(mdt.rooms)
     mdt_draw_map (mdt.rooms)
-    mdt_draw_text(mdt.rooms)
+    mdt_prepare_text(mdt.rooms)
 end
 -------------------------------------------------------------------------------
 --  MOVEMENT TRACKING
@@ -1303,7 +1316,7 @@ end
 function mdt_get_regex()
 
 	local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."titles.txt", 'r')
-	local title_regex = assert(f:read("*a"), "Can't locate titles.txt")
+	local title_regex = Trim(assert(f:read("*a"), "Can't locate titles.txt"))
 	f:close()
 	mdt.regex = {
 		titles   = rex.new(title_regex),

@@ -2,8 +2,10 @@
 --   INSTALL AND SAVE
 --------------------------------------------------------------------------------
 function on_plugin_start()
-    require "tprint"
-    require "serialize"
+	require "tprint" 
+	require "serialize" 
+	require "var"
+	require "pairsbykeys"
     win = "medina_map"..GetPluginID() -- define window name
     medina_get_variables()
     medina_get_regex()
@@ -14,7 +16,6 @@ function on_plugin_start()
     if (type(window_pos_x) == "number") and (type(window_pos_y) == "number") then
 	   WindowPosition(win, window_pos_x, window_pos_y, 0, 2)
     end
-    --medina_get_timers()
 end
 -- load variables
 function medina_get_variables() 
@@ -28,9 +29,8 @@ function medina_get_variables()
     med.players = {} -- set containing playernames with associated colour
     med.sync = {received = false, data = {}, is_valid = false}
     med.look_room = false     -- store the room we are looking at
-    med.scry_room = false
-    med.herd_path = {}
-    
+    med.scry_room = false     -- store the room we a scrying
+    med.herd_path = {}        -- highling of consecutive matching exits
     -- keep track of all rooms (or all possible rooms) in our queued trajectory
     -- where index 1 refers to our current room (or rooms)
     -- and the last item in the table refers to our final trajectory room
@@ -38,12 +38,13 @@ function medina_get_variables()
     med.sequence = {}
     -- our queued commands
     med.commands = {move = {count = 0}, look = {count = 0}}
-    
     med.is_in_medina = false
+    -- check if mdt plugin is installed and grab
+    MDT = "a4f2436e923441ce4ba7ab6b" -- mdt plugin
 end
 -- save variables
 function OnPluginSaveState () 
-	SetVariable("med", "med = "..serialize.save_simple(med))
+	var.med = "med = "..serialize.save_simple(med)
 	SetVariable("window_width", window_width)
 	SetVariable("window_height", window_height)
 	SetVariable("window_pos_x", WindowInfo(win, 10))

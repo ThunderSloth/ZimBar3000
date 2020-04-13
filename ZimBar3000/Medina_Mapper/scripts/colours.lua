@@ -31,11 +31,12 @@ function medina_get_colours()
         thyngs = {
             you =        "yellow",
             boss =       "fuchsia",
-            heavy =      "yellow",
-            thug =       "white",
+			mob_text =   "white",
+			player_text ="black",
             xp = {"#003300", "#004c00", "#006600", "#007f00", "#009900", "#00b200", "#00cc00", "#00e500", "#00ff00",},
-            players =    "blue",
-            others =     "gray",},
+			},
+		text = {
+			path =       "cornflowerblue",},
         note = {
             bracket =    "white",
             error =      "red",

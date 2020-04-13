@@ -1,6 +1,6 @@
 function voyage_get_regex()
 	local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."titles.txt", 'r')
-	local title_regex = assert(f:read("*a"), "Can't locate titles.txt")
+	local title_regex = Trim(assert(f:read("*a"), "Can't locate titles.txt"))
 	f:close()
 	return {
         vision = rex.new("([Tt]he limit of your vision is .+? from here(?: and)?[,.]?)"),

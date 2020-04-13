@@ -24,7 +24,6 @@ end
 -- load variables
 function mdt_get_variables()
 	quowmap_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_quowmap_database.db"
-	print(quowmap_database)
 	FIXED_TITLE_HEIGHT = 16
     assert(loadstring(GetVariable("window_width" ) or ""))()
     assert(loadstring(GetVariable("window_height") or ""))()
@@ -1303,7 +1302,7 @@ end
 function mdt_get_regex()
 
 	local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."titles.txt", 'r')
-	local title_regex = assert(f:read("*a"), "Can't locate titles.txt")
+	local title_regex = Trim(assert(f:read("*a"), "Can't locate titles.txt"))
 	f:close()
 	mdt.regex = {
 		titles   = rex.new(title_regex),

@@ -235,11 +235,6 @@ function medina_print_map()
 						fill_style = 0
 					}
 				end
-				for _, r in ipairs(trajectory_room) do
-					if icon_styles[r] then
-						icon_styles[r].border_colour = col.thyngs.ghost
-					end
-				end
 				for _, r in ipairs(current_room) do
 					if icon_styles[r] then
 						local fill_style = #current_room == 1 and 0 or 8
@@ -249,7 +244,11 @@ function medina_print_map()
 						icon_styles[r].border_colour = col.rooms.solved
 					end
 				end
-
+				for _, r in ipairs(trajectory_room) do
+					if icon_styles[r] then
+						icon_styles[r].border_colour = col.rooms.ghost
+					end
+				end
 				local text_styles = {}
 				for k, v in pairsByKeys(icon_styles) do
 					table.insert(text_styles,{{

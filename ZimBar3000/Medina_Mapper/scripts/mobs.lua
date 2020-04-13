@@ -196,10 +196,10 @@ function medina_follow_delay(name)
 			for _, cr in ipairs(current_room) do
 				if path_set[cr] then is_impeding = true end
 			end
+			med.rooms[r].thyngs.mobs = {thugs = 0, heavies = 0, boss = 0}
 			if not is_impeding then
 				med.rooms[path_room].thyngs.mobs = {thugs = mobs.thugs, heavies = mobs.heavies, boss = mobs.boss}
 			end
-			med.rooms[r].thyngs.mobs = {thugs = 0, heavies = 0, boss = 0}
 			if med.is_in_medina then
 				medina_print_map()
 			end

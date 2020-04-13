@@ -39,8 +39,10 @@ function mdt_get_variables()
 	mdt.title = {"Map Door Text: Map", "Map Door Text: Text"}
     mdt.colours = mdt_get_colours()
     mdt.map_ids = mdt_get_map_ids()  
+    mdt.special_areas = mdt_get_special_areas()
     mdt.sequence = {}
     mdt.commands = {move = {count = 0}, look = {count = 0}}
+    mdt.styles = {}
 end
 -- position windows
 function mdt_pos_window()
@@ -63,6 +65,15 @@ end
 function mdt_get_map_ids()
 	local ids = {"Ankh-Morpork", "AM Assassins", "AM Buildings", "AM Cruets", "AM Docks", "AM Guilds", "AM Isle of Gods", "Shades Maze", "Temple of Small Gods", "AM Temples", "AM Thieves", "Unseen University", "AM Warriors", "Pseudopolis Watch House", "Magpyr's Castle", "Bois", "Bes Pelargic", "BP Buildings", "BP Estates", "BP Wizards", "Brown Islands", "Death's Domain", "Djelibeybi", "IIL - DJB Wizards", "Ephebe", "Ephebe Underdocks", "Genua", "Genua Sewers", "GRFLX Caves", "Hashishim Caves", "Klatch Region", "Lancre Region", "Mano Rossa", "Monks of Cool", "Netherworld", false, "Pumpkin Town", "Ramtops Regions", "Sto-Lat", "Academy of Artificers", "Cabbage Warehouse", "AoA Library", "Sto-Lat Sewers", "Sprite Caves", "Sto Plains Region", "Uberwald Region", "UU Library", "Klatchian Farmsteads", "CTF Arena", "PK Arena", "AM Post Office", "Ninja Guild", "The Travelling Shop", "Slippery Hollow", "House of Magic - Creel", "Special Areas", "Skund Wolf Trail", "Medina", "Copperhead", "The Citadel", "AM Fools' Guild", "Thursday's Island", "SS Unsinkable", }
 	return ids
+end
+
+function mdt_get_special_areas()
+	local ids = {"AMShades", "BPMedina"}
+	local t = {}
+	for _, v in ipairs(ids) do
+		t[v] = true
+	end
+	return t
 end
 -- save variables
 function OnPluginSaveState () 
@@ -432,7 +443,7 @@ function resizerelease(flags, hotspot_id)
     if mw == 1 then
 		mdt_draw_map(mdt.rooms)
     else
-		mdt_draw_text(mdt.rooms)
+		mdt_draw_text(mdt.styles)
     end
 end
 -- called when mouse button is pressed on hotspot
@@ -545,10 +556,12 @@ function mdt_recieve_GMCP(text)
 		table.remove(mdt.commands.move, 1)
 		mdt.sequence[1] = text:match('^.*"identifier":"(.-)".*$')
 	    mdt.title[1] = get_map_name(mdt.sequence[1])
-		mdt.title[2] = (text:match('"name":"(.-)"') or mdt.sequence[1] or "unknown"):gsub("^(%w)", string.upper):gsub("(%s%w)", string.upper)
+		mdt.title[2] = (text:match('"name":"(.-)"') or mdt.sequence[1] == "BPMedina" and "somewhere in an alleyway" or "unknown"):gsub("^(%w)", string.upper):gsub("(%s%w)", string.upper)
 	elseif (string.sub(text, 1, 9) == "room.map ") then
 		mdt_parse_map(text)
-    elseif (string.sub(text, 1, 16) == "room.writtenmap ") then
+    elseif (string.sub(text, 1, 16) == "room.writtenmap ") and 
+		mdt.sequence[1] and not mdt.special_areas[mdt.sequence[1]]
+	then
 		speed_test = os.time()
 		text = text:match('"(.*)\\n"') or ""
 		map_door_text = text
@@ -935,8 +948,8 @@ function mdt_prepare_text(map_data)
 		return styles, mdt.text.longest_path
 	end
 	local mw, dim, coor, col = "text", mdt.dimensions, mdt.coordinates, mdt.colours
-	styles, longest_path = get_text_styles(mw, dim, coor, col, map_data)
-	mdt_draw_text(styles, longest_path)
+	mdt.styles, longest_path = get_text_styles(mw, dim, coor, col, map_data)
+	mdt_draw_text(mdt.styles, longest_path)
 end
 
 function mdt_draw_text(styles, longest_path)
@@ -978,7 +991,11 @@ function mdt_draw_text(styles, longest_path)
 					WindowText(win[mw], v.underline and font_id.."underlined" or font_id, v.text, x1, y1, 0, 0, v.colour)
 				elseif i == 2 then -- path
 					WindowText(win[mw], font_id, v.text, x1, y1, 0, 0, v.colour)
-					x2 = x1 + WindowTextWidth(win[2], font_id, longest_path) + space
+					if longest_path ~= "" then
+						x2 = x1 + WindowTextWidth(win[2], font_id, longest_path) + space
+					else
+						x2 = x2 + space
+					end
 					x2 = x2 + WindowText(win[mw], font_id, ":", x2, y1, 0, 0, v.colour)
 				else -- mobs
 					local text = i == #t and v.text or v.text..","
@@ -1009,7 +1026,8 @@ end
 -------------------------------------------------------------------------------
 function mdt_special_area_text(s)
 	assert(loadstring(s))()
-	mdt_draw_text(text_styles)
+	mdt.styles = text_styles
+	mdt_draw_text(mdt.styles)
 end
 -------------------------------------------------------------------------------
 --  PARSE MAP

@@ -30,7 +30,6 @@ local funcs = {
 	
 	'menu',       -- titlebar and room menus
 	
-	'menus',      -- drop-down menus
 	
 	'on_trigger', -- trigger events
 	

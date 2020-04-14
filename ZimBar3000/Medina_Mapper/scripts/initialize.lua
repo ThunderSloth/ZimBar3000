@@ -29,7 +29,7 @@ function medina_get_variables()
     med.players = {} -- set containing playernames with associated colour
     med.sync = {received = false, data = {}, is_valid = false}
     med.look_room = false     -- store the room we are looking at
-    med.scry_room = false     -- store the room we a scrying
+    med.scry_room = false     -- store the room we are scrying
     med.herd_path = {}        -- highling of consecutive matching exits
     -- keep track of all rooms (or all possible rooms) in our queued trajectory
     -- where index 1 refers to our current room (or rooms)

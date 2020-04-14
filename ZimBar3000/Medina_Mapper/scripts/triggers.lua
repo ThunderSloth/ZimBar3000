@@ -121,10 +121,7 @@ function medina_get_trigs()
 			</send>]]):gsub('\t\t\t', '')
 		return xml:gsub('"%s*>',  '">\n' .. code)
 	end
-	
-	for i, v in ipairs({"medina_room_brief", "medina_mob_enter", "medina_mob_exit"}) do
-		ImportXML ( get_xml_injection( ExportXML (0, v) ) )
-    end
+
     for _, v in pairs(triggers) do
         if v.match then
             AddTrigger(v.name, v.match, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", v.script)
@@ -137,5 +134,19 @@ function medina_get_trigs()
             local trig = get_xml_injection( ExportXML (0, v.name) )
             ImportXML (trig);--print(trig)
         end
+    end
+    
+    local tracking = {"enter", "exit"} 
+    for _, v in ipairs(tracking) do
+        local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\")..v..".txt", 'r')
+		local match_on = Trim(assert(f:read("*a"), "Can't locate "..v..".txt"))
+		AddTrigger("medina__mob_"..v, match_on, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", "on_trigger_medina_mob_track")
+		f:close()
+		SetTriggerOption ("medina__mob_"..v, "group", "medina")
+		SetTriggerOption ("medina__mob_"..v, "send_to", 12)
+    end
+
+	for i, v in ipairs({"medina_room_brief", "medina_mob_enter", "medina_mob_exit"}) do
+		ImportXML ( get_xml_injection( ExportXML (0, v) ) )
     end
 end

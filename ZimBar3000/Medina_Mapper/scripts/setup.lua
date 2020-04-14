@@ -171,9 +171,10 @@ function medina_window_setup(window_width, window_height)
 	-- load arrows for exit representation
     local function get_images(dim) -- dimensions
         file_path = (GetPluginInfo(GetPluginID(), 6)):match("^(.*\\).*$")
+        local arrows = "default"
         local dir = {"n", "ne", "e", "se", "s", "sw", "w", "nw"}
         for _, v in ipairs(dir) do
-            WindowLoadImage (win.."copy_from", v, file_path.."arrows\\"..v..".bmp")
+            WindowLoadImage (win.."copy_from", v, file_path.."arrows\\"..arrows.."\\"..v..".bmp")
             WindowDrawImage(win.."copy_from", v, 0, 0, dim.exit.x - 4, dim.exit.y - 4, 2)
             WindowImageFromWindow(win.."base", v, win.."copy_from")
         end

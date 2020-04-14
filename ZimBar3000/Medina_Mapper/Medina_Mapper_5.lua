@@ -30,7 +30,6 @@ local funcs = {
 	
 	'menu',       -- titlebar and room menus
 	
-	
 	'on_trigger', -- trigger events
 	
 	'on_alias',   -- alias events
@@ -55,7 +54,7 @@ local funcs = {
 	
 }
 for _, f in ipairs(funcs) do
-	dofile (GetPluginInfo (GetPluginID (), 20) .. "scripts\\" .. (f) .. ".lua")
+	dofile (GetPluginInfo (GetPluginID (), 20) .. "scripts\\med_" .. (f) .. ".lua")
 end
 --------------------------------------------------------------------------------
 --   START EXECUTION HERE

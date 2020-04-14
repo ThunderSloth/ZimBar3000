@@ -18,6 +18,7 @@
 dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)) .. ".lua")
 ]]>
 </script>
+<!--  movement handling  -->
 <triggers>
   <trigger
    group="smugs"
@@ -38,6 +39,19 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    send_to="12"
    sequence="100"
    script="on_trigger_smugs_you_follow"
+  ></trigger>
+<!--  mob tracking  -->
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   lines_to_match="2"
+   multi_line="y"
+   match="^(There are no obvious exits|There is one obvious exit: down|A (dingy tunnel|small chamber) \[(none|d)\])\.\n(?<thyngs>.*) here\.\Z"
+   name="smugs_mobs_here"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_mob_track"
   ></trigger>
 </triggers>
 <aliases>

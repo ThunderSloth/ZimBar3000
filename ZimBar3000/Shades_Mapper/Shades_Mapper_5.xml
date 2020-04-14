@@ -23,7 +23,9 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="shades"
    keep_evaluating="y"
-   match="^Somewhere in the Shades \[.*(?<exits>\d)\D*\]\.$"
+   lines_to_match="2"
+   multi_line="y"
+   match="^Somewhere in the Shades \[.*(?<exits>\d)\D*\]\.(\n(?<thyngs>.*) here\.)?\Z"
    name="shades_brief"
    regexp="y"
    send_to="12"
@@ -33,7 +35,9 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="shades"
    keep_evaluating="y"
-   match="^The maze entrance \[.*\].$"
+   lines_to_match="2"
+   multi_line="y"
+   match="^The maze entrance \[.*\]\.(\n(?<thyngs>.*) here\.)?\Z"
    name="shades_brief_entrance"
    regexp="y"
    send_to="12"
@@ -66,7 +70,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="shades"
    keep_evaluating="y"
-match="^You follow .* (?<direction>[1-8]).$"
+   match="^You follow .* (?<direction>[1-8]).$"
    name="shades_you_follow"
    regexp="y"
    send_to="12"

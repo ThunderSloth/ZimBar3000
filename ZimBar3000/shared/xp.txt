@@ -1,0 +1,50 @@
+^(?:(?:(an?|one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)|(eleven)|(twelve)|(thirteen)|(fourteen)|(fifteen)|(sixteen)|(seventeen)|(eighteen)|(nineteen)|(twenty)|(many)) )?.*?((?#
+Capture groups are named in this format: xp<tier>_<singular suffix>_<plural suffix>_<flags: I = immobile, M = money, P = priest> 
+HIGH XP: 5
+* us --> i
+)(?<xp5us_i_>hippopotam)(us|i)|(?#
+* y --> ies
+)(?<xp5y_ies_>ceremonial sentr)(y|ies)|(?#
+* '' --> s
+)((?<xp5_s_>(palace|imperial|ceremonial|city) guard|(hulking|towering|lumbering|mean|terrifying|looming|huge) troll|althea|casanunda|casso|ciaco|cicone|clemence|debois|giant( leader)?|grflx soldier|gumboni|hamish|harvard|heric|hoplite|kang wu|knight|marchella|mr. hyena|ms. crane|ninja|outlaw|persuica|phos-phor|rahn-fara-wai|ronin|rujona|samurai|smuggler captain|student|the grflx|boss|truckle|vincent|vyrt|willie)|(?<xp5_s_P>hattian guard)|(?<xp5_s_I>citadel guard)|(?<xp5_s_M>d'reg))s?|(?#
+* man --> men
+)((?<xp5man_men_>(helms))|(?<xp5man_men_M>d'reg (wo)?))m[ea]n|(?#
+ MEDIUM HIGH XP: 4
+* '' --> s
+)((?<xp4_s_IM>cutthroat)|(?<xp4_s_M>(foul|surplus) warrior)|(?<xp4_s_>(swarthy|burly|muscular) slave|assassin|barbarian|bodyguard|bois|brindisian (boy|girl|nonna)|captain|character|courtesan|crocodile|dancer|drunk patron|evil cabbage|fighter|grflx \w+[^s]|khepresh|lascarim|monk|mugger|nitsuni|officer|pirate|powerful athlete|prodo|red-bearded dwarf|sebboh|security guard|sergeant|skipper|smuggler|soldier|splatter|stevedore|teh-takk-eht|the weasel|thug|tsimo handler|tsimo wrestler|warrior|weapon master)|(?<xp4_s_P>priest))s?|(?#
+* x --> xen
+)(?<xp4x_xen_>grfl)x(en)?|(?#
+* y --> ies
+)(?<xp4y_ies_>genteel lad|mercenar|triad heav)(y|ies)|(?#
+* ss --> sses
+)(?<xp4ss_sses_P>prieste)(ss(es)?)|(?#
+* man --> men
+)((?<xp4man_men_M>(gentle|noble) ?(wo)?)|(?<xp4man_men_>(athletic|rowdy|sophisticated) wo|(stern.looking|tough|wiry|burly|muscular|muscled|sinewy|hefty) |brindisian |watch))m[ea]n|(?#
+ MEDIUM XP: 3
+* y --> ies
+)((?<xp3y_ies_M>(beautiful|enticing|elegant) lad)|(?<xp3y_ies_>ebon|(?!old )lad))(y|ies)|(?#
+* '' --> s
+)((?<xp3_s_>actor|adnew|athlete|banker|brawler|calligrapher|civil servant|corporal nobbs|courtesan|crier|daft bugger|dealer|deborah macghi|dogbottler|druid|dwarf warrior|fibre|gnirble|gritjaw thighsplitter|hag|hawker|(?<!s)hopper|hrun|jeweller|lawyer|lip-phon lap-top|lotheraniel|mandarin|masqued magician|merchant|notserp|onuwen|poet|protester|recruit|royal judge|scribe|silversmith|souvlakios|stren|tfat chick|thibeau|tourist|trader|travelling troll|trickster|tuchoille|vendor|wenche|wizard)|(?<xp3_s_I>donkey)|(?<xp3_s_M>(official|bureaucrat|philosopher)))s?|(?#
+* man --> men
+)((?<xp3man_men_M>(debonair|proud|rich|scarred) (wo)?)|(?<xp3man_men_>crew|conm(wo)?|fisher|sales(wo)?|tally))m[ea]n|(?#
+ MEDIUM LOW XP: 2
+* f --> ves
+)(?<xp2f_ves_>thie)(f|ves)|(?#
+* y --> ies
+)(?<xp2y_ies_>old lad)(y|ies)|(?#
+* fe --> ves
+)(?<xp2fe_ves_I>housewi)|(?#
+* '' --> s
+)((?<xp2_s_M>(swarthy|muscular) slave|duke|courtier)|(<xp2_s_M>(well.off|rich) citizen)|(?<xp2_s_>accountant|ambassador|architect|artisan|beggar|believer|brat|cadger|cat|citizen|dinoe|docker|dog|drunk guest|dwarf|engineer|farmer|father|juggler|labourer|mother|nacirrut|paperboy|pickpocket|sailor|sandy ptate|seller|sensei|servant|slave|sle-pingh-beuh-tei|snaxabraxas|sow|starlet|stone mason|sweeper|troll|ylit)|(?<xp2_s_I>(adelphe|calleis|cynere|driver|goat|lea|limos|odeas|urchin))s?)|(?#
+* man --> men
+)(?<xp2man_men_>(old )?(wo)?)m[ea]n|(?#
+ LOW XP:  1
+* '' --> ren
+)(?<xp1_ren_>child)(ren)?|(?#
+* '' --> s
+)(?<xp1_s_>boy|bullfrog|cabbage|cadger|crow|dog|dragon|drunkard|duck(ling)?|girl|hen|hound|mendicant|pigeon|potter|rat|schoolboy|scorpion|snake|tortoise|youth|zombie)s?|(?#
+* ouse --> ice
+)(?<xp1ouse_ice_>m)(ouse|ice)|(?#
+ ZERO XP: 0
+* '' --> s
+)(?<xp0_s_>(?<=(cloud))|(?<=(fruitbat))|horseman .*?|(?<=(truffle pig))s?))(?<hiding> [(]hiding[)])?$

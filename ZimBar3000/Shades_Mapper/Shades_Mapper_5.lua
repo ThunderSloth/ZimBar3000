@@ -44,7 +44,7 @@ local funcs = {
 	
 }
 for _, f in ipairs(funcs) do
-	dofile (GetPluginInfo (GetPluginID (), 20) .. "scripts\\" .. (f) .. ".lua")
+	dofile (GetPluginInfo (GetPluginID (), 20) .. "scripts\\sha_" .. (f) .. ".lua")
 end
 ----------------------------------------------------------------------
 --   START EXECUTION HERE

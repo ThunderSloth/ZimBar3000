@@ -1,7 +1,7 @@
 (?(DEFINE)
 (?# GUILDS: )
 (?'assassins'(d(octo)?r|professor))
-(?'priests'((?(?=blessed|venerable|holy)(blessed|venerable|holy)( (brother|sister|father|mother))?|(brother|sister|father|mother))|(mostly )?reverend|blessed|beatus|saint|high priest(ess)?|(his|her|it'?s) eminence|minister|outcast))
+(?'priests'((?(?=blessed|venerable|holy)(blessed|venerable|holy)( (brother|sister|father|mother))?|(brother|sister|father|mother))|(mostly )?reverend|blessed|beatus|saint|high priest(ess)?|(his|her|it'?s) eminence|magistrate|minister|outcast))
 (?'thieves'(crafty|crooked|dastardly|dishonest|dodgy|elusive|evasive|furtive|greased|honest|latent|((light|quick)[-]|butter)?finger(ed|s)|quiet|shady|shifty|silent|slick|sly|tricky))
 (?'witches'(?# duplicates: mother, old, mistress, sister)((?# goodie, goody)good(y|ie)|gammer|gra(mma|nny)|(?# mss, mee)m[se]{2}|(?# nanny, nanna)nann[ay]|aunty|biddy|black|mama|wee|wicked|young))
 (?'wizards'(fat|stuffed|overfed|gimlet[-]eyed|robust|bearded|burly|plump|rotund|thin|tiny|mystic|obscure|complex|learned|potent|wise|grumpy|cryptic|dark|scholarly|grey[-]?(haired|beard)|adroit|dire|maven|quantum|savant|unseen|(arch)?(master|mistress|mage)))

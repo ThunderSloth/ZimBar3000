@@ -14,7 +14,6 @@ function medina_get_colours()
         rooms = {
             solved =     "white",
             unsolved =   "red",
-            ghost =      "yellow",
             herd_path =  "cyan",
             look1 =      "white", 
             look2 =      "gray",
@@ -30,12 +29,12 @@ function medina_get_colours()
             comma =      "white",},
         thyngs = {
             you =        "yellow",
+            ghost =      "yellow",
             boss =       "fuchsia",
-			mob_text =   "white",
-			player_text ="black",
-            xp = {"#003300", "#004c00", "#006600", "#007f00", "#009900", "#00b200", "#00cc00", "#00e500", "#00ff00",},
-			},
-		text = {
+            xp = {"#003300", "#004c00", "#006600", "#007f00", "#009900", "#00b200", "#00cc00", "#00e500", "#00ff00",},},
+        text = {      
+			xp = {"#808080", "#a9a9a9", "#c0c0c0", "#ffffff"},
+			players =    "black",
 			path =       "cornflowerblue",},
         note = {
             bracket =    "white",

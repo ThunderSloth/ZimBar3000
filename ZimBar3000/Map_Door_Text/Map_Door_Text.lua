@@ -97,8 +97,8 @@ function mdt_get_windows(dim) -- dimensions
     for k in pairs(win) do
 		WindowCreate(win[k], 0, 0, 0, 0, miniwin.pos_center_all, 0, col.background)
 	end
-    WindowSetZOrder(win[1], 199)
-    WindowSetZOrder(win[2], 198)
+    WindowSetZOrder(win[1], 201)
+    WindowSetZOrder(win[2], 200)
 end
 
 function mdt_window_setup(window_width, window_height) -- define window attributes
@@ -555,8 +555,10 @@ function mdt_recieve_GMCP(text)
 		table.remove(mdt.sequence, 1)
 		table.remove(mdt.commands.move, 1)
 		mdt.sequence[1] = text:match('^.*"identifier":"(.-)".*$')
-	    mdt.title[1] = get_map_name(mdt.sequence[1])
-		mdt.title[2] = (text:match('"name":"(.-)"') or mdt.sequence[1] == "BPMedina" and "somewhere in an alleyway" or "unknown"):gsub("^(%w)", string.upper):gsub("(%s%w)", string.upper)
+		mdt.title[1] = get_map_name(mdt.sequence[1])
+		if mdt.sequence[1] and not mdt.special_areas[mdt.sequence[1]] then
+			mdt.title[2] = (text:match('"name":"(.-)"') or "unknown"):gsub("^(%w)", string.upper):gsub("(%s%w)", string.upper)
+		end
 	elseif (string.sub(text, 1, 9) == "room.map ") then
 		mdt_parse_map(text)
     elseif (string.sub(text, 1, 16) == "room.writtenmap ") and 
@@ -1024,9 +1026,10 @@ end
 -------------------------------------------------------------------------------
 --  CROSS-PLUGIN COMMUNICATION
 -------------------------------------------------------------------------------
-function mdt_special_area_text(s)
-	assert(loadstring(s))()
+function mdt_special_area_text(special_text_styles, special_title)
+	assert(loadstring(special_text_styles))()
 	mdt.styles = text_styles
+	mdt.title[2] = special_title
 	mdt_draw_text(mdt.styles)
 end
 -------------------------------------------------------------------------------

@@ -217,7 +217,7 @@ function medina_print_map()
 				end
 				if room_colour then
 					draw_thyng({room}, coordinates.rooms, room_colour)
-					fill_colours[room] = {bg_colour = room_colour, colour = player_room and col.thyngs.player_text or col.thyngs.mob_text}
+					fill_colours[room] = {bg_colour = room_colour, colour = player_room and col.text.players or col.text.xp[4]}
 				end
 			end
 			return fill_colours
@@ -239,14 +239,14 @@ function medina_print_map()
 					if icon_styles[r] then
 						local fill_style = #current_room == 1 and 0 or 8
 						icon_styles[r].bg_colour = col.thyngs.you
-						icon_styles[r].colour = col.thyngs.player_text
+						icon_styles[r].colour = col.text.players
 						icon_styles[r].fill_style = fill_style
 						icon_styles[r].border_colour = col.rooms.solved
 					end
 				end
 				for _, r in ipairs(trajectory_room) do
 					if icon_styles[r] then
-						icon_styles[r].border_colour = col.rooms.ghost
+						icon_styles[r].border_colour = col.thyngs.ghost
 					end
 				end
 				local text_styles = {}
@@ -265,14 +265,14 @@ function medina_print_map()
 						fill_style = 0,	
 					}})
 					local mobs = {
-						boss = med.rooms[k].thyngs.mobs.boss,
+						boss    = med.rooms[k].thyngs.mobs.boss,
 						heavies = med.rooms[k].thyngs.mobs.heavies,
-						thugs = med.rooms[k].thyngs.mobs.thugs,	
+						thugs   = med.rooms[k].thyngs.mobs.thugs,	
 					}
 					-- exploiting the fact that "boss, heavies, thugs" 
 					-- just happens to be in alphabetical order 
 					for mob, n in pairsByKeys(mobs) do
-						local text, colour, bg_colour, border_colour, underline, fill_style = "", col.thyngs.mob_text, 0, false, false, 0
+						local text, colour, bg_colour, border_colour, underline, fill_style = "", col.text.xp[4], false, false, false, 0
 						if n > 0 then
 							if mob == "boss" then
 								text = "boss"
@@ -290,7 +290,12 @@ function medina_print_map()
 								else
 									text = "thug"
 								end
-								bg_colour =	col.thyngs.xp[n > 9 and 9 or n]			
+								if n < 4 then
+									colour = col.text.xp[n]
+								else
+									colour = col.text.xp[4]
+									bg_colour =	col.thyngs.xp[n > 9 and 9 or math.ceil(n)]
+								end
 							end
 							table.insert(text_styles[#text_styles], {
 								text = text,
@@ -304,14 +309,14 @@ function medina_print_map()
 					for player, player_colour in pairsByKeys(med.rooms[k].thyngs.players) do
 							table.insert(text_styles[#text_styles], {
 								text = player,
-								colour = col.thyngs.player_text,
+								colour = col.text.players,
 								bg_colour = player_colour,
 								border_colour = false,
 								fill_style = 0,						
 							})
 					end
 				end
-				CallPlugin(MDT, "mdt_special_area_text", "text_styles = "..serialize.save_simple(text_styles))
+				CallPlugin(MDT, "mdt_special_area_text", "text_styles = "..serialize.save_simple(text_styles), "Somewhere In An Alleyway")
 			end
         end
         local trajectory_room = #med.sequence ~= 0 and med.sequence[#med.sequence] or {} 
@@ -320,7 +325,7 @@ function medina_print_map()
 		local fill_colours = draw_population(coordinates, col)
 		draw_thyng(current_room, coordinates.rooms, col.thyngs.you) -- you
 		draw_herd_path(coordinates.rooms, col.rooms.herd_path)
-		draw_border(trajectory_room, coordinates.rooms, col.rooms.ghost) -- ghost
+		draw_border(trajectory_room, coordinates.rooms, col.thyngs.ghost) -- ghost
 		get_text_styles(current_room, trajectory_room, look_room, scry_room, fill_colours, col)
     end
     local current_room, look_room, scry_room = med.sequence[1] or {}, med.look_room or {}, med.scry_room or {}

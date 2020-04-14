@@ -119,10 +119,7 @@ function smugs_get_colours()
         thyngs = {
             you =        "yellow",
             ghost =      "yellow",
-            players =    "blue",
             captain =    "fuchsia",
-            smugglers =  "white",
-            others =     "gray",
             xp = {"#003300", "#004c00", "#006600", "#007f00", "#009900", "#00b200", "#00cc00", "#00e500", "#00ff00",},},
         note = {
             bracket =    "white",
@@ -163,7 +160,7 @@ function smugs_get_windows(dim) -- dimensions
     WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- base: room structure, static objects
     WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, col.background) -- display window: only dynamic objects will be printed directly here
     WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
-    WindowSetZOrder(win, 200)
+    WindowSetZOrder(win, 202)
 end
 
 function smugs_window_setup(window_width, window_height) -- define window attributes

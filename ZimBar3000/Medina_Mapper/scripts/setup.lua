@@ -7,7 +7,7 @@ function medina_get_windows()
     WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent)      -- base: room structure, static objects and bmp images
     WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window.background)-- display window: dynamic objects draw here
     WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent)   -- overlay: room-letters
-    WindowSetZOrder(win, 200)
+    WindowSetZOrder(win, 204)
 end
 --------------------------------------------------------------------------------
 --   WINDOW SETUP

@@ -47,7 +47,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    lines_to_match="2"
    multi_line="y"
    match="^(There are no obvious exits|There is one obvious exit: down|A (dingy tunnel|small chamber) \[(none|d)\])\.\n(?<thyngs>.*) here\.\Z"
-   name="smugs_mobs_here"
+   name="smugs_mob_here"
    regexp="y"
    send_to="12"
    sequence="100"

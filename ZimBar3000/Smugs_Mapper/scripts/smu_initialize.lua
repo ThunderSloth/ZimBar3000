@@ -10,6 +10,8 @@ function on_plugin_start()
     smugs_get_windows()
     smugs_window_setup(window_width, window_height)
     smugs_get_hotspots(smu.dimensions)
+    smugs_get_regex()
+    smu_get_triggers()
     if (type(window_pos_x) == "number") and (type(window_pos_y) == "number") then
 	   WindowPosition(win, window_pos_x, window_pos_y, 0, 2)
     end
@@ -24,6 +26,7 @@ function smugs_get_variables()
 	smu.colours = smugs_get_colours()
 	smu.commands = {count = 0}
 	smu.sequence = {}
+	smu.players = {}
 	smu.is_in_smugs = false
     for k, v in pairs(smu.rooms) do -- create inverse set of exits
         smu.rooms[k].path = smu.rooms[k].path or {}

@@ -61,3 +61,10 @@ function smugs_reset_rooms()
             },
         chambers = {I = true, T = true, N = true,},}
 end
+
+function smugs_unvisit()
+    for r, _ in pairs(smu.rooms) do
+        smu.rooms[r].visited = false
+        smugs_draw_room_letter(r, smu.coordinates.rooms[r], smu.colours)
+    end
+end

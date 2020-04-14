@@ -193,10 +193,10 @@ function shades_get_trigs()
     for _, v in ipairs(tracking) do
         local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\")..v..".txt", 'r')
 		local match_on = Trim(assert(f:read("*a"), "Can't locate "..v..".txt"))
-		AddTrigger("shades__mob_"..v, match_on, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", "on_trigger_shades_mob_track")
+		AddTrigger("shades_mob_"..v, match_on, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", "on_trigger_shades_mob_track")
 		f:close()
-		SetTriggerOption ("shades__mob_"..v, "group", "shades")
-		SetTriggerOption ("shades__mob_"..v, "send_to", 12)
+		SetTriggerOption ("shades_mob_"..v, "group", "shades")
+		SetTriggerOption ("shades_mob_"..v, "send_to", 12)
     end
 
 	for i, v in ipairs({"shades_room_brief", "shades_mob_enter", "shades_mob_exit"}) do

@@ -17,7 +17,7 @@ function voyage_get_windows(col) -- colours
     WindowCreate(win.."sea_frame", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.window.transparent) -- sea map frame
     WindowCreate(win.."sea_map",   0, 0, 0, 0, miniwin.pos_center_all, 0, col.window.transparent) -- sea map
     WindowCreate(win.."sea_room",  0, 0, 0, 0, miniwin.pos_center_all, 0, col.window.background ) -- sea map room (individual room construction)
-    WindowSetZOrder(win, 200)
+    WindowSetZOrder(win, 205)
 end
 --------------------------------------------------------------------------------
 --   WINDOW SETUP

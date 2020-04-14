@@ -462,11 +462,17 @@ function voyage_print_map(look_room)
         local function draw_frame(coor, col)
             local directions = {'H', 'WH', 'W', 'WR', 'R', 'TR', 'T', 'TH'}
             local count = 0
-            while directions[1] ~= voy.heading do
-                table.insert(directions, directions[1])
-                table.remove(directions, 1)
-                count = count + 1
-                if count > #directions then break end
+            if voy.heading == "?" then
+				for i, v in ipairs(directions) do
+					directions[i] = "?"
+				end
+            else
+				while directions[1] ~= voy.heading do
+					table.insert(directions, directions[1])
+					table.remove(directions, 1)
+					count = count + 1
+					if count > #directions then break end
+				end
             end
             for i = -2, 2, 1 do
                 coor = voy.coordinates.direction[i]

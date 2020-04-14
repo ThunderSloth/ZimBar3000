@@ -72,7 +72,7 @@ function on_trigger_voyage_boat_turn(name, line, wildcards, styles)
     local function new_direction(rotation)
         local dir = {"H", "WH", "W", "WR", "R", "TR", "T", "TH"}
         local rid = {H = 1, WH = 2, W = 3, WR = 4, R = 5, TR = 6, T = 7, TH = 8}
-        local n = rid[voy.heading]
+        local n = rid[voy.heading] or false
         n = n + rotation
         while n < 1 or n > 8 do
             if n < 1 then
@@ -92,8 +92,43 @@ function on_trigger_voyage_boat_turn(name, line, wildcards, styles)
     if wildcards.sharply ~= "" then
         rotation = rotation * 2
     end
-    voy.heading = new_direction(rotation)
+    voy.heading = voy.heading ~= "?" and new_direction(rotation) or voy.heading 
     voyage_print_map()
+end
+
+function on_trigger_voyage_set_direction(name, line, wildcards, styles)
+	local directions = {
+		["hubwards"] = "H", 
+		["widdershins-hubwards"] = "WH", 
+		["widdershins"] = "W", 
+		["widdershins-rimwards"] = "WR", 
+		["rimwards"] = "R", 
+		["turnwise-rimwards"] = "TR", 
+		["turnwise"] = "T", 
+		["turnwise-hubwards"] = "TH",}
+	local dir = string.lower(wildcards.direction)
+	voy.heading = directions[dir] or voy.heading
+    voyage_print_map()
+end
+
+function on_trigger_voyage_charts(name, line, wildcards, styles)
+	local miles_x = tonumber(tostring(convert_words_to_numbers(wildcards.miles_x) or 0))
+	local miles_y = tonumber(tostring(convert_words_to_numbers(wildcards.miles_y) or 0))
+	local rim_or_hub  = wildcards.rim_or_hub :match("^r") and "r" or wildcards.rim_or_hub :match("^h") and "h" or false
+	local turn_or_wid = wildcards.turn_or_wid:match("^t") and "t" or wildcards.turn_or_wid:match("^w") and "w" or false
+	local charts = ""
+	if miles_y and rim_or_hub then
+		charts = charts..miles_y..rim_or_hub.." "
+	end
+	if miles_x and turn_or_wid then
+		charts = charts..miles_x..turn_or_wid
+	end
+	ColourNote("orange", "", charts)
+end
+
+function on_trigger_voyage_whirlpool(name, line, wildcards, styles)
+	voy.heading = "?"
+	voyage_print_map()
 end
 --------------------------------------------------------------------------------
 --   MOVEMENT DETECTION

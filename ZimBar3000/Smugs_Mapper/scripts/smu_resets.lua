@@ -60,11 +60,40 @@ function smugs_reset_rooms()
             entrance = {location = {x=-100, y=-100}, exits = {se = "A"},},
             },
         chambers = {I = true, T = true, N = true,},}
+     -- create inverse set of exits
+    for k, v in pairs(smu.rooms) do
+        smu.rooms[k].path = smu.rooms[k].path or {}
+        for r, x in pairs(v.exits) do
+            smu.rooms[k].path[x] = r
+        end
+    end
+    smugs_unvisit()
+    smugs_depopulate()
 end
 
+-- reset mobs/players in a specific room
+function smugs_reset_thyngs(room)
+	smu.rooms[room].thyngs = {mobs = {captain = 0, smugglers =  0}, players = {}}
+	smu.rooms[room].aggro = false
+end
+
+-- reset all mobs
+function smugs_depopulate()
+	for r, _ in pairs(smu.rooms) do
+		smugs_reset_thyngs(r)
+	end
+end
+
+-- reset all
 function smugs_unvisit()
     for r, _ in pairs(smu.rooms) do
         smu.rooms[r].visited = false
-        smugs_draw_room_letter(r, smu.coordinates.rooms[r], smu.colours)
+       	if (tonumber(WindowInfo(win.."overlay", 3) or 0) > 0) and smu.coordinates then -- if overlay has been constructed,
+			smugs_draw_room_letter(r, smu.coordinates.rooms[r], smu.colours)
+		end
     end
 end
+
+
+
+

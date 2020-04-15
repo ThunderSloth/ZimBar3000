@@ -30,6 +30,7 @@ end
 function smugs_recieve_GMCP(text)
     if text:match("^room.info .*") then
         local id = text:match('^.*"identifier":"(.-)".*$')
+		smu.text_title = text:match('"name":"(.-)"') or "Smugs"
         local room = smu.id[id]
         if room then
             smugs_enter()

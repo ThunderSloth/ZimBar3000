@@ -46,32 +46,35 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    keep_evaluating="y"
    lines_to_match="2"
    multi_line="y"
-   match="^(There are no obvious exits|There is one obvious exit: down|A (dingy tunnel|small chamber) \[(none|d)\])\.\n(?<thyngs>.*) here\.\Z"
+   match="^(There are no obvious exits|There is one obvious exit: down|A (dingy tunnel|small chamber) \[(none|d)\])\.\n(?<thyngs>.* here\.)\Z"
    name="smugs_mob_here"
    regexp="y"
    send_to="12"
    sequence="100"
    script="on_trigger_smugs_mob_track"
   ></trigger>
+   <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^.* smugglers? (attacks you from behind\.  .*|moves? aggressively towards you!)$"
+   name="smugs_room_aggro"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_room_aggro"
+  ></trigger>
 </triggers>
 <aliases>
-  <alias
-   group="smugs"
-   name="smugs_move_room"
-   match="^(?<direction>n|ne|e|se|s|sw|w|nw|north|northeast|east|southeast|south|southwest|west|northwest|look|l)$"
+ <!--  debug  -->
+   <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_debug_table"
+   match="^smugs debug table$"
    regexp="y"
    ignore_case="y"
    sequence="100"
-   script="on_alias_smugs_move_room"
- ></alias>
-  <alias
-   group="smugs"
-   name="smugs_stop"
-   match="^stop$"
-   regexp="y"
-   ignore_case="y"
-   sequence="100"
-   script="on_alias_smugs_stop"
+   script="on_alias_smugs_debug_table"
   ></alias>
 </aliases>
 </muclient>

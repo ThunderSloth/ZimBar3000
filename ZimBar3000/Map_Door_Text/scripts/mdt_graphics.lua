@@ -266,7 +266,7 @@ function mdt_prepare_text(map_data)
 			local rs = {}
 			-- add players
 			for k, v in pairs(map_data[y][x].population.players) do
-				local text, colour, bg_colour, border_colour, underline = k, col.letters.players, ColourNameToRGB(v.colour) ~= -1 and ColourNameToRGB(v.colour) or v.colour, false, false
+				local text, colour, bg_colour, border_colour, underline = k, col.text.players, ColourNameToRGB(v.colour) ~= -1 and ColourNameToRGB(v.colour) or v.colour, false, false
 				table.insert(rs, {text = text, colour = colour, bg_colour = bg_colour, border_colour = border_colour, underline = underline})
 			end
 			-- add mobs

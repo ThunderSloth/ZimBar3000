@@ -38,6 +38,8 @@ local funcs = {
 				
 	'bfs',        -- breadth-first search (shortest-path algorithm)
 	
+	'debug',      -- expose internal variables
+	
 	'config',     -- mudside compatability configuration
 	
 	'help',       -- help-file

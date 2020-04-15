@@ -61,8 +61,36 @@ function mdt_get_map_ids()
 end
 
 function mdt_get_special_areas()
-	local ids = {"AMShades", "BPMedina"}
-	local t = {}
+	local ids = {
+		"AMShades", "BPMedina",
+		-- smugs
+		"ebff897af2b8bb6800a9a8636143099d0714be07",
+		"c0495c993b8ba463e6b3008a88f962ae28084582",
+		"501c0b35601b8649c57bb98b8a1d6c2d1f1cea02",
+		"8c022638ba642395094bc4dc7ba0a3aaf64c02c1",
+		"898b33dcc8da01ef21b064f66062ea2f89235f5f",
+		"0b43758d635f631d46b1a1f041fd651e446856ca",  
+		"1793722d05f49d48f28ce3a49e8b97d59158b916",            
+		"e28d07530ae163f93ade722c780ce897a4e93a15",            
+		"a184520b84e948f89e621ab50a500c47faefa920",            
+		"8048df6be9b61c0f49e988924185ce937a38814b",            
+		"f026140904d9f0c910b4975b937b20189f225605",            
+		"952786ea48134ac3505cbabb6567ef35fad13af8",            
+		"b9bb8741399c7bdf6836cb06148c2e7c4f033853",            
+		"0663269ccae61f6b313cb378213c74131b394fbc",            
+		"03a3ca540e9c7fc9dfa914d213b974a0b207f596",            
+		"3fedc83188999bd20733ba77f02409aee8011127",            
+		"033906622a542f9e0550608b86932dff52d7e8c2",            
+		"6ef15a8643f1515f8a96fb646dd8e2ab80bade15",            
+		"ddabfb40040805889125b223a2d679e0a9716fd2",            
+		"468f6243998bda671161e6afe079ff5fac866fc1",            
+		"372dd28add7bfc7ed26f4da4047a501afcf24696",            
+		"d57af869e7ff7abe31ceb1245ccbc6d47df49b7b",            
+		"a9734849233e5f97fd676676a9853b22b0cb22e8",            
+		"4e6aef2cd732fb35c2c110d768605f4aa56194af",            
+		"16a0b8c39025147f9f87cf860b76380af6c9e1d4",			
+		"886a1404021cdfb21668823aa0ab2cefd05fbcd1",}
+		local t = {}
 	for _, v in ipairs(ids) do
 		t[v] = true
 	end

@@ -16,6 +16,7 @@ function smugs_exit()
         smu.commands, smu.sequence = {count = 0}, {}
         EnableGroup("smugs", false)
         AddTimer("smugs_unvisit", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "smugs_unvisit")
+        AddTimer("smugs_depopulate", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "smugs_depopulate")
     end
 end
 

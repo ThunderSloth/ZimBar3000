@@ -68,6 +68,8 @@ end
 function medina_unvisit()
 	for r, _ in pairs(med.rooms) do
 		med.rooms[r].visited = false
-        medina_draw_room_letter(r, med.coordinates.rooms[r], med.colours) -- reprint letter
+		if (tonumber(WindowInfo(win.."overlay", 3) or 0) > 0) and med.coordinates then -- if overlay has been constructed,
+			medina_draw_room_letter(r, med.coordinates.rooms[r], med.colours) -- reprint letter
+        end
 	end
 end

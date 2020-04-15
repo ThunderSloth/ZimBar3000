@@ -5,13 +5,14 @@ function on_plugin_start()
     require "tprint"
     require "serialize"
     require "var"
+    require "pairsbykeys"
     win = "smugs_map"..GetPluginID() -- define window name
     smugs_get_variables()
     smugs_get_windows()
     smugs_window_setup(window_width, window_height)
     smugs_get_hotspots(smu.dimensions)
     smugs_get_regex()
-    smu_get_triggers()
+    smugs_get_triggers()
     if (type(window_pos_x) == "number") and (type(window_pos_y) == "number") then
 	   WindowPosition(win, window_pos_x, window_pos_y, 0, 2)
     end
@@ -23,17 +24,13 @@ function smugs_get_variables()
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
     assert(loadstring(GetVariable("smu") or ""))()
     if not smu then smu = {}; smugs_reset_rooms() end
+    smu.text_title = "Smugs"
 	smu.colours = smugs_get_colours()
 	smu.commands = {count = 0}
 	smu.sequence = {}
 	smu.players = {}
 	smu.is_in_smugs = false
-    for k, v in pairs(smu.rooms) do -- create inverse set of exits
-        smu.rooms[k].path = smu.rooms[k].path or {}
-        for r, x in pairs(v.exits) do
-            smu.rooms[k].path[x] = r
-        end
-    end
+	MDT = "a4f2436e923441ce4ba7ab6b" -- mdt plugin
 end
 
 function OnPluginSaveState () -- save variables

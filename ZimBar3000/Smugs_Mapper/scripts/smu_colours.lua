@@ -19,14 +19,15 @@ function smugs_get_colours()
             exits =      "lightgray",
             entrance =   "white",
             visited =    "gray",
-            unvisited =  "lightblue",},
+            unvisited =  "lightblue",
+            fight =      "red",},
         thyngs = {
             you =        "yellow",
             ghost =      "yellow",
             captain =    "fuchsia",
             xp = {"#003300", "#004c00", "#006600", "#007f00", "#009900", "#00b200", "#00cc00", "#00e500", "#00ff00",},},
         text = {      
-			xp = {       "#696969", "#808080", "#a9a9a9", "#c0c0c0", "#ffffff"},
+			xp = {       "#808080", "#a9a9a9", "#c0c0c0", "#ffffff"},
 			players =    "black",
 			path =       "cornflowerblue",},
         note = {

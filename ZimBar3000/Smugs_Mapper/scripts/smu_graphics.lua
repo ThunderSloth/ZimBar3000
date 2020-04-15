@@ -77,7 +77,8 @@ end
 function smugs_print_map()
     local start_time = os.clock()
     local function draw_dynamic(coordinates, col, current_room)
-        local function draw_thyng(room, coor, colour) -- room, coordinates
+        -- draw inner fill
+        local function draw_thyng(room, coor, colour)
             if room then
                 WindowCircleOp(win, 2,
                     coor.room.inner.x1, coor.room.inner.y1, coor.room.inner.x2, coor.room.inner.y2,            
@@ -85,6 +86,7 @@ function smugs_print_map()
                     colour, 0)
             end
         end
+        -- room border
         local function draw_border(room, coor, colour)
             if room then
                 WindowRectOp(win, miniwin.rect_frame, 
@@ -92,9 +94,123 @@ function smugs_print_map()
                     colour)
             end
         end
+        -- insert players/mobs
+        local function draw_population(coor, col)
+			local fill_colours = {}
+			for room, v in pairs(smu.rooms) do
+				local player_room = false
+				local room_colour = false
+				for p, c in pairs(v.thyngs.players) do
+					player_room = true
+					room_colour = c
+					break
+				end
+				if not room_colour then
+					if smu.rooms[room].thyngs.mobs.captain > 0 then
+						room_colour = col.thyngs.captain
+					elseif smu.rooms[room].thyngs.mobs.smugglers > 0 then
+						room_colour = col.thyngs.xp[smu.rooms[room].thyngs.mobs.smugglers > 9 and 9 or smu.rooms[room].thyngs.mobs.smugglers]
+					end
+				end
+				if room_colour then
+					draw_thyng(room, coor[room], room_colour)
+					fill_colours[room] = {
+						bg_colour = room_colour, 
+						colour = player_room and col.text.players or col.text.xp[4],
+						border_colour == smu.rooms[room].aggro and col.rooms.fight or col.rooms.border}
+				end
+				if smu.rooms[room].aggro then
+					draw_border(room, coor[room], col.rooms.fight)
+				end
+			end
+			return fill_colours
+        end
+        local function get_text_styles(current_room, trajectory_room, fill_colours, col)
+			if IsPluginInstalled(MDT) and PluginSupports(MDT, "mdt_special_area_text") == error_code.eOK then
+				local icon_styles = {}
+				for r, v in pairs(fill_colours) do
+					icon_styles[r] = {
+						colour = smu.rooms[r].visited and col.rooms.visited or col.rooms.unvisited,
+						colour = v.colour,
+						bg_colour = v.bg_colour,
+						border_colour = v.border,
+						fill_style = 0
+					}
+				end
+	
+				if icon_styles[current_room] then
+					local fill_style = #current_room == 1 and 0 or 8
+					icon_styles[current_room].bg_colour = col.thyngs.you
+					icon_styles[current_room].colour = col.text.players
+					icon_styles[current_room].fill_style = fill_style
+					icon_styles[current_room].border_colour = col.rooms.solved
+				end
+
+
+				if icon_styles[trajectory_room] then
+					icon_styles[trajectory_room].border_colour = col.thyngs.ghost
+				end
+
+				local text_styles = {}
+				for k, v in pairsByKeys(icon_styles) do
+					table.insert(text_styles,{{
+						text = k,
+						colour = v.colour,
+						bg_colour = v.bg_colour,
+						border_colour = v.border_colour,
+						fill_style = v.fill_style,
+					},{ -- placeholder for path
+						text = "",
+						colour = col.text.path,
+						bg_colour = false,
+						border_colour = false,
+						fill_style = 0,	
+					}})
+					local mobs = {
+						captain   = smu.rooms[k].thyngs.mobs.captain,
+						smugglers = smu.rooms[k].thyngs.mobs.smugglers,	
+					}
+					for _, mob in ipairs({"captain", "smugglers"}) do
+						local n = mobs[mob]
+						local text, colour, bg_colour, border_colour, underline, fill_style = "", col.text.xp[4], false, false, false, 0
+						if n > 0 then
+							if mob == "captain" then
+								bg_colour = col.thyngs.captain
+							elseif n < 4 then
+								colour = col.text.xp[n]
+							else
+								bg_colour = col.thyngs.xp[n > 9 and 9 or n]	
+							end
+							text = n == 1 and mob:gsub("(s)$", "") or tostring(n).." "..mob
+							table.insert(text_styles[#text_styles], {
+								text = text,
+								colour = colour,
+								bg_colour = bg_colour,
+								border_colour = border_colour,
+								fill_style = 0,						
+							})
+						end
+					end
+					for player, player_colour in pairsByKeys(smu.rooms[k].thyngs.players) do
+						table.insert(text_styles[#text_styles], {
+							text = player,
+							colour = col.text.players,
+							bg_colour = player_colour,
+							border_colour = false,
+							fill_style = 0,						
+						})
+					end
+				end
+				CallPlugin(MDT, "mdt_special_area_text", "text_styles = "..serialize.save_simple(text_styles), smu.text_title:gsub("^(%w)", string.upper):gsub("(%s%w)", string.upper))
+			end
+		end
         local trajectory_room = smu.sequence[#smu.sequence]
-        draw_border(trajectory_room, coordinates.rooms[trajectory_room], col.thyngs.ghost)
+        local fill_colours = draw_population(coordinates.rooms, col)
         draw_thyng(current_room, coordinates.rooms[current_room], col.thyngs.you)
+        if current_room and trajectory_room and not (current_room == trajectory_room and smu.rooms[current_room].aggro) then
+			draw_border(trajectory_room, coordinates.rooms[trajectory_room], col.thyngs.ghost)
+		end
+        get_text_styles(current_room, trajectory_room, fill_colours, col)
     end
     local current_room = smu.sequence[1] or false
     WindowImageFromWindow(win, "base", win.."base")

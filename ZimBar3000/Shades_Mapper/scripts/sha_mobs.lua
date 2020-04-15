@@ -84,54 +84,67 @@ end
 
 function shades_set_follow_delay(previous_room, direction)
 	if previous_room and direction then
-		local rooms, is_mobs = "", false
+		local rooms = ""
+		local trolls, fighters, muggers = 0, 0, 0
 		for _, r in ipairs(previous_room) do
-			rooms = rooms..r
-			if 
-				sha.rooms[r].thyngs.mobs.muggers  > 0 or
-				sha.rooms[r].thyngs.mobs.fighters > 0 or
-				sha.rooms[r].thyngs.mobs.trolls   > 0
-			then
-				is_mobs = true
+			trolls = sha.rooms[r].thyngs.mobs.trolls 
+			fighters = sha.rooms[r].thyngs.mobs.fighters 
+			muggers = sha.rooms[r].thyngs.mobs.muggers 
+			if trolls + fighters + muggers > 0 then
+				rooms = rooms..r			
 			end
 		end
-		if is_mobs then
-			AddTimer(rooms.."_"..direction, 0, 0, 5.25, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "shades_follow_delay")
+		if #rooms > 0 then
+			local name = false
+			for _, v in ipairs({rooms, direction, trolls, fighters, muggers}) do
+				name = name and name.."_"..tostring(v) or rooms
+			end
+			AddTimer(name, 0, 0, 5.25, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "shades_follow_delay")
 		end
 	end
 end
 
 function shades_follow_delay(name)
-	local s, direction = name:match("^(%w*)_(%d)$")
-	if s and direction then
+	local rooms, direction, trolls, fighters, muggers = name:match("^(%w*)_(%d)_(%d+)_(%d+)_(%d+)$")
+	if rooms and direction and trolls and fighters and muggers then
 		direction = tonumber(direction)
-		local room = {}
-		s:gsub(".", function(c)
-			for k, _ in pairs(sha.rooms[c].thyngs.players) do
-				if k then 
-				return end -- only if players are not present in the room
+		local mobs = {trolls = trolls, fighters = fighters, muggers = muggers}
+		for k, v in pairs(mobs) do
+			mobs[k] = tonumber(v)
+		end
+		local current_room = {}
+		for i, v in ipairs (sha.sequence[1] or {}) do
+			current_room[v] = true
+		end
+		rooms:gsub(".", function(start_room)
+			local end_room = sha.rooms[start_room].exits[direction]
+			local is_player = false
+			for k, _ in pairs(sha.rooms[start_room].thyngs.players) do
+				if r then 
+					is_player = true
+				end -- only if players are not present in the room
 			end
-			table.insert(room, c)
+			-- can not follow to entrance room, or if a player is in the room
+			if end_room ~= 'G' and not is_player then
+				for k, v in pairs(mobs) do
+					if not current_room[start_room] then
+						local p = sha.rooms[start_room].thyngs.mobs[k]
+						local n = v
+						if p - n < 0 then n = p end
+						sha.rooms[start_room].thyngs.mobs[k] = p - n
+					end
+					if not current_room[end_room] then
+						local p = sha.rooms[end_room].thyngs.mobs[k]
+						local n = v
+						sha.rooms[end_room].thyngs.mobs[k] = p + n					
+					end
+				end
+			end
 		end)
-		for _, r in ipairs(room) do
-			local mobs = {
-				muggers =  sha.rooms[r].thyngs.mobs.muggers,
-				fighters = sha.rooms[r].thyngs.mobs.fighters,
-				trolls =   sha.rooms[r].thyngs.mobs.trolls,
-			}
-			local trajectory_room = sha.rooms[r].exits[direction]
-			local current_room = sha.sequence[1] or {}
-			local is_impeding = false
-			for _, cr in ipairs(current_room) do
-				if cr == trajectory_room then is_impeding = true end
-			end
-			sha.rooms[r].thyngs.mobs = {muggers = 0, fighters = 0, trolls = 0}
-			if not is_impeding then
-				sha.rooms[trajectory_room].thyngs.mobs = {muggers = mobs.muggers, fighters = mobs.fighters, trolls = mobs.trolls}
-			end
-			if sha.is_in_shades then
-				shades_print_map()
-			end
+		if sha.is_in_shades then
+			shades_print_map()
 		end
 	end
 end
+		
+		

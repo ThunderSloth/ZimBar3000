@@ -62,6 +62,8 @@ end
 
 on_plugin_start()
 
+medina_print_map()
+
 --tprint(med.rooms)
 --tprint(med.exit_counts)
 --tprint(med.colours)

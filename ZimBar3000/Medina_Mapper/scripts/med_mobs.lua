@@ -149,61 +149,78 @@ end
 
 function medina_set_follow_delay(previous_room, direction)
 	if previous_room and direction then
-		local rooms, distance = "", 0
+		local rooms = ""
+		local boss, heavies, thugs = 0, 0, 0
 		for _, r in ipairs(previous_room) do
-			rooms = rooms..r
-			distance = med.rooms[r].thyngs.mobs.thugs
+			boss = med.rooms[r].thyngs.mobs.boss
+			heavies = med.rooms[r].thyngs.mobs.heavies
+			thugs = med.rooms[r].thyngs.mobs.thugs
+			if boss + thugs + heavies > 0 then
+				rooms = rooms..r			
+			end
 		end
-		if distance > 0 then
-			AddTimer(rooms.."_"..distance.."_"..direction, 0, 0, 5.25, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "medina_follow_delay")
+		if #rooms > 0 then
+			local name = false
+			for _, v in ipairs({rooms, direction, boss, heavies, thugs}) do
+				name = name and name.."_"..tostring(v) or rooms
+			end
+			AddTimer(name, 0, 0, 5.25, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "medina_follow_delay")
 		end
 	end
 end
-
+		
 function medina_follow_delay(name)
-	local s, distance, direction = name:match("^(%w*)_(%d+)_(%w+)$")
-	if s and distance and  direction then
-		distance = tonumber(distance)
-		local room = {}
-		s:gsub(".", function(c)
-			for k, _ in pairs(med.rooms[c].thyngs.players) do
-				if k then 
-				return end -- only if players are not present in the room
-			end
-			table.insert(room, c)
-		end)
-		for _, r in ipairs(room) do
-			local mobs = {
-				thugs = med.rooms[r].thyngs.mobs.thugs,
-				heavies = med.rooms[r].thyngs.mobs.heavies,
-				boss = med.rooms[r].thyngs.mobs.boss,
-			}
-			local path_set = {[r] = true}
-			local path_room = r
-			local rooms_moved = 0
-			while 
-				med.rooms[path_room].exits and 
-				med.rooms[path_room].exits[direction] and 
-				med.rooms[path_room].exits[direction].room and
-				rooms_moved < distance
-			do
-				path_room = med.rooms[path_room].exits[direction].room
-				path_set[path_room] = true
-				rooms_moved = rooms_moved + 1
-			end
-			local current_room = med.sequence[1] or {}
-			local is_impeding = false
-			for _, cr in ipairs(current_room) do
-				if path_set[cr] then is_impeding = true end
-			end
-			med.rooms[r].thyngs.mobs = {thugs = 0, heavies = 0, boss = 0}
-			if not is_impeding then
-				med.rooms[path_room].thyngs.mobs = {thugs = mobs.thugs, heavies = mobs.heavies, boss = mobs.boss}
-			end
-			if med.is_in_medina then
-				medina_print_map()
-			end
+	local rooms, direction, boss, heavies, thugs = name:match("^(%w*)_(%w+)_(%d+)_(%d+)_(%d+)$")
+	if rooms and  direction and boss and heavies and thugs then
+		local mobs = {boss = boss, heavies = heavies, thugs = thugs}
+		for k, v in pairs(mobs) do
+			mobs[k] = tonumber(v)
 		end
+		local distance = mobs.thugs
+		local current_room = {}
+		for i, v in ipairs (med.sequence[1] or {}) do
+			current_room[v] = true
+		end
+		rooms:gsub(".", function(start_room)
+			is_player = false
+			for k, _ in pairs(med.rooms[start_room].thyngs.players) do
+				if k then 
+					is_player = true
+				end -- only if players are not present in the room
+			end
+			if not (is_player and current_room[start_room]) then
+				local end_room = start_room
+				local rooms_moved = 0
+				local impeding = false
+				while 
+					med.rooms[end_room].exits and 
+					med.rooms[end_room].exits[direction] and 
+					med.rooms[end_room].exits[direction].room and
+					rooms_moved < distance
+				do
+					end_room = med.rooms[end_room].exits[direction].room
+					rooms_moved = rooms_moved + 1
+					if current_room[end_room] then
+						impeding = true
+						break
+					end
+				end
+				for k, v in pairs(mobs) do				
+					local p = med.rooms[start_room].thyngs.mobs[k]
+					local n = v
+					if p - n < 0 then n = p end
+					med.rooms[start_room].thyngs.mobs[k] = p - n
+					if not impeding then
+						local p = med.rooms[end_room].thyngs.mobs[k]
+						local n = v
+						med.rooms[end_room].thyngs.mobs[k] = p + n					
+					end
+				end				
+				if med.is_in_medina then
+					medina_print_map()
+				end
+			end
+		end)
 	end
 end
 

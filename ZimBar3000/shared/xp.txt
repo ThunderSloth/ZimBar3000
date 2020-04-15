@@ -35,7 +35,7 @@ HIGH XP: 5
 * fe --> ves
 )(?<xp2fe_ves_I>housewi)|(?#
 * '' --> s
-)((?<xp2_s_M>(swarthy|muscular) slave|duke|courtier)|(<xp2_s_M>(well.off|rich) citizen)|(?<xp2_s_>accountant|ambassador|architect|artisan|beggar|believer|brat|cadger|cat|citizen|dinoe|docker|dog|drunk guest|dwarf|engineer|farmer|father|juggler|labourer|mother|nacirrut|paperboy|pickpocket|sailor|sandy ptate|seller|sensei|servant|slave|sle-pingh-beuh-tei|snaxabraxas|sow|starlet|stone mason|sweeper|troll|ylit)|(?<xp2_s_I>(adelphe|calleis|cynere|driver|goat|lea|limos|odeas|urchin))s?)|(?#
+)((?<xp2_s_M>(swarthy|muscular) slave|duke|courtier)|(<xp2_s_M>(well.off|rich) citizen)|(?<xp2_s_>accountant|ambassador|architect|artisan|beggar|believer|brat|cadger|cat|citizen|dinoe|docker|dog|drunk guest|dwarf|engineer|farmer|father|juggler|labourer|mother|nacirrut|paperboy|pickpocket|sailor|sandy ptate|seller|sensei|servant|slave|sle-pingh-beuh-tei|snaxabraxas|sow|starlet|stone mason|sweeper|troll|ylit)|(?<xp2_s_I>(adelphe|calleis|cynere|driver|goat|lea|limos|odeas|urchin)))s?|(?#
 * man --> men
 )(?<xp2man_men_>(old )?(wo)?)m[ea]n|(?#
  LOW XP:  1

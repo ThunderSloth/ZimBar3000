@@ -2,11 +2,10 @@
 --   MINIWINDOW SETUP
 --------------------------------------------------------------------------------
 function smugs_get_windows(dim) -- dimensions
-    local col = smu.colours.window
-    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- for loading images
-    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- base: room structure, static objects
-    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, col.background) -- display window: only dynamic objects will be printed directly here
-    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
+    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, smu.colours.window_transparency) -- for loading images
+    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, smu.colours.window_transparency) -- base: room structure, static objects
+    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, smu.colours.window_background) -- display window: only dynamic objects will be printed directly here
+    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, smu.colours.window_transparency) --overlay: room-letters
     WindowSetZOrder(win, 202)
 end
 
@@ -101,11 +100,10 @@ function smugs_window_setup(window_width, window_height) -- define window attrib
     end
 
     local function resize_windows(dim) -- dimensions 
-        local col = smu.colours.window
-        WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, col.transparent) -- for loading images
-        WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, col.transparent) -- base: room structure, static objects and bmp images
-        WindowResize(win, dim.window.x, dim.window.y, col.background) -- display window: only dynamic objects will be printed directly here
-        WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
+        WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, smu.colours.window_transparency) -- for loading images
+        WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, smu.colours.window_transparency) -- base: room structure, static objects and bmp images
+        WindowResize(win, dim.window.x, dim.window.y, smu.colours.window_background) -- display window: only dynamic objects will be printed directly here
+        WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, smu.colours.window_transparency) --overlay: room-letters
     end
 
 local function get_font(dim) -- dimensions

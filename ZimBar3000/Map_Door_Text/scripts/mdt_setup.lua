@@ -2,9 +2,8 @@
 --   MINIWINDOW SETUP
 --------------------------------------------------------------------------------
 function mdt_get_windows(dim) -- dimensions
-    local col = mdt.colours.window
     for k in pairs(win) do
-		WindowCreate(win[k], 0, 0, 0, 0, miniwin.pos_center_all, 0, col.background)
+		WindowCreate(win[k], 0, 0, 0, 0, miniwin.pos_center_all, 0, mdt.colours.window_background)
 	end
     WindowSetZOrder(win[1], 201)
     WindowSetZOrder(win[2], 200)
@@ -127,11 +126,10 @@ function mdt_window_setup(window_width, window_height) -- define window attribut
     end
 
     local function resize_windows(dim) -- dimensions 
-        local col = mdt.colours.window
         for k in pairs(win) do
 			local clone = {map = 1, text = 2}
 			local i = clone[k] or k
-			WindowResize(win[k], dim.window[i].x, dim.window[i].y, miniwin.pos_center_all, 0, col.transparent)
+			WindowResize(win[k], dim.window[i].x, dim.window[i].y, miniwin.pos_center_all, 0, mdt.colours.window_transparency)
         end
     end
 

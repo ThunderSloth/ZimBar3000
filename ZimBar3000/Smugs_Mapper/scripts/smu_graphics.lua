@@ -7,10 +7,10 @@ function smugs_draw_room(room, coor, col, mw) -- room, coordinates, colours, min
         if chamber then
             WindowCircleOp(mw, 2, -- draw room
                 coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2,            
-                col.window.background, 0, 1,
-                col.rooms.chambers, miniwin.brush_fine_pattern)
+                col.window_background, 0, 1,
+                col.room_outter_fill_chamber, miniwin.brush_fine_pattern)
         end
-        WindowRectOp(mw, 1, coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2, col.rooms.border)
+        WindowRectOp(mw, 1, coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2, col.room_border)
     end
 end
 
@@ -18,7 +18,7 @@ function smugs_draw_room_exits(room, coor, col, mw) -- room, coordinates, colour
     if room ~= 'entrance' then
         for dir, v in pairs(smu.rooms[room].exits) do
             local line_style =  v == 'entrance' and miniwin.pen_dot    or miniwin.pen_solid
-            local line_colour = v == 'entrance' and col.rooms.entrance or col.rooms.exits
+            local line_colour = v == 'entrance' and col.exit_line_entrance or col.exit_line
             WindowLine(
                 mw, 
                 coor.exit[dir].x1, coor.exit[dir].y1, coor.exit[dir].x2, coor.exit[dir].y2,  
@@ -32,20 +32,20 @@ function smugs_draw_base(dim, col) -- dimensions, colours
     WindowCircleOp( -- window border
         win.."base", miniwin.circle_rectangle, 
         0, 0, dim.window.x, dim.window.y,
-        col.window.border, miniwin.pen_solid, 1,
-        col.window.background, 0) 
+        col.window_border, miniwin.pen_solid, 1,
+        col.window_background, 0) 
     WindowCircleOp( -- title bar
         win.."base", miniwin.circle_rectangle, 
         0, 0, dim.window.x, dim.font.title * 1.1,
-        col.title.border, miniwin.pen_solid, 1,
-        col.title.fill, 0)
+        col.titlebar_border, miniwin.pen_solid, 1,
+        col.titlebar_fill, 0)
     local title = "Smugs Cave"
     local text_width = WindowTextWidth(win.."base", "title", title)
     local x1 = (dim.window.x - text_width) / 2
     local y1 = coordinates.title_text.y1 
     local x2 = x1 + text_width
     local y2 = y1 + dim.font.title
-    WindowText(win.."base", "title", title, x1, y1, x2, y2, col.title.text)
+    WindowText(win.."base", "title", title, x1, y1, x2, y2, col.titlebar_text)
     for room, coor in pairs(coordinates.rooms) do
         smugs_draw_room_exits(room, coor, col, win.."base") -- draw exits
         smugs_draw_room(room, coor, col, win.."base") -- draw room
@@ -54,7 +54,7 @@ end
 
 function smugs_draw_room_letter(room, coor, col) -- room, coordinates, colours
     if room ~= 'entrance' then
-        local letter_colour = smu.rooms[room].visited and col.rooms.visited or col.rooms.unvisited
+        local letter_colour = smu.rooms[room].visited and col.room_text_visited or col.room_text_unvisited
         WindowText (win.."overlay", "larger", room,
             coor.letter.x1, coor.letter.y1, 0, 0,
             letter_colour, 
@@ -66,8 +66,8 @@ function smugs_draw_overlay(dim, col) -- dimensions, colours
     WindowCircleOp( -- transparent background
         win.."overlay", miniwin.circle_rectangle, 
         0, 0, dim.window.x, dim.window.y,
-        col.window.transparent, miniwin.pen_solid, 1,
-        col.window.transparent, 0)
+        col.window_transparency, miniwin.pen_solid, 1,
+        col.window_transparency, 0)
     local coordinates = smu.coordinates
     for room, coor in pairs(coordinates.rooms) do
         smugs_draw_room_letter(room, coor, col)
@@ -107,20 +107,20 @@ function smugs_print_map()
 				end
 				if not room_colour then
 					if smu.rooms[room].thyngs.mobs.captain > 0 then
-						room_colour = col.thyngs.captain
+						room_colour = col.room_inner_fill_captain
 					elseif smu.rooms[room].thyngs.mobs.smugglers > 0 then
-						room_colour = col.thyngs.xp[smu.rooms[room].thyngs.mobs.smugglers > 9 and 9 or smu.rooms[room].thyngs.mobs.smugglers]
+						room_colour = col.room_inner_fill_xp[smu.rooms[room].thyngs.mobs.smugglers > 9 and 9 or smu.rooms[room].thyngs.mobs.smugglers]
 					end
 				end
 				if room_colour then
 					draw_thyng(room, coor[room], room_colour)
 					fill_colours[room] = {
 						bg_colour = room_colour, 
-						colour = player_room and col.text.players or col.text.xp[4],
-						border_colour == smu.rooms[room].aggro and col.rooms.fight or col.rooms.border}
+						colour = player_room and col.room_text_player or col.room_text_xp[#col.room_text_xp],
+						border_colour == smu.rooms[room].aggro and col.room_border_fight or col.room_border}
 				end
 				if smu.rooms[room].aggro then
-					draw_border(room, coor[room], col.rooms.fight)
+					draw_border(room, coor[room], col.room_border_fight)
 				end
 			end
 			return fill_colours
@@ -130,7 +130,7 @@ function smugs_print_map()
 				local icon_styles = {}
 				for r, v in pairs(fill_colours) do
 					icon_styles[r] = {
-						colour = smu.rooms[r].visited and col.rooms.visited or col.rooms.unvisited,
+						colour = smu.rooms[r].visited and col.room_border_visited or col.room_border_unvisited,
 						colour = v.colour,
 						bg_colour = v.bg_colour,
 						border_colour = v.border,
@@ -140,15 +140,15 @@ function smugs_print_map()
 	
 				if icon_styles[current_room] then
 					local fill_style = #current_room == 1 and 0 or 8
-					icon_styles[current_room].bg_colour = col.thyngs.you
-					icon_styles[current_room].colour = col.text.players
+					icon_styles[current_room].bg_colour = col.room_inner_fill_you
+					icon_styles[current_room].colour = col.room_text_player
 					icon_styles[current_room].fill_style = fill_style
-					icon_styles[current_room].border_colour = col.rooms.solved
+					icon_styles[current_room].border_colour = col.room_border
 				end
 
 
 				if icon_styles[trajectory_room] then
-					icon_styles[trajectory_room].border_colour = col.thyngs.ghost
+					icon_styles[trajectory_room].border_colour = col.room_border_trajectory
 				end
 
 				local text_styles = {}
@@ -161,7 +161,7 @@ function smugs_print_map()
 						fill_style = v.fill_style,
 					},{ -- placeholder for path
 						text = "",
-						colour = col.text.path,
+						colour = col.path_text,
 						bg_colour = false,
 						border_colour = false,
 						fill_style = 0,	
@@ -172,14 +172,14 @@ function smugs_print_map()
 					}
 					for _, mob in ipairs({"captain", "smugglers"}) do
 						local n = mobs[mob]
-						local text, colour, bg_colour, border_colour, underline, fill_style = "", col.text.xp[4], false, false, false, 0
+						local text, colour, bg_colour, border_colour, underline, fill_style = "", col.room_text_xp[#col.room_text_xp], false, false, false, 0
 						if n > 0 then
 							if mob == "captain" then
-								bg_colour = col.thyngs.captain
+								bg_colour = col.room_inner_fill_captain
 							elseif n < 4 then
-								colour = col.text.xp[n]
+								colour = col.room_text_xp[n + 1]
 							else
-								bg_colour = col.thyngs.xp[n > 9 and 9 or n]	
+								bg_colour = col.room_inner_fill_xp[n > 9 and 9 or n]	
 							end
 							text = n == 1 and mob:gsub("(s)$", "") or tostring(n).." "..mob
 							table.insert(text_styles[#text_styles], {
@@ -194,7 +194,7 @@ function smugs_print_map()
 					for player, player_colour in pairsByKeys(smu.rooms[k].thyngs.players) do
 						table.insert(text_styles[#text_styles], {
 							text = player,
-							colour = col.text.players,
+							colour = col.room_text_player,
 							bg_colour = player_colour,
 							border_colour = false,
 							fill_style = 0,						
@@ -206,9 +206,9 @@ function smugs_print_map()
 		end
         local trajectory_room = smu.sequence[#smu.sequence]
         local fill_colours = draw_population(coordinates.rooms, col)
-        draw_thyng(current_room, coordinates.rooms[current_room], col.thyngs.you)
+        draw_thyng(current_room, coordinates.rooms[current_room], col.room_inner_fill_you)
         if current_room and trajectory_room and not (current_room == trajectory_room and smu.rooms[current_room].aggro) then
-			draw_border(trajectory_room, coordinates.rooms[trajectory_room], col.thyngs.ghost)
+			draw_border(trajectory_room, coordinates.rooms[trajectory_room], col.room_border_trajectory)
 		end
         get_text_styles(current_room, trajectory_room, fill_colours, col)
     end

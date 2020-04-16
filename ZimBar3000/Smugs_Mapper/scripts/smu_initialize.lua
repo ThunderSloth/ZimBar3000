@@ -19,13 +19,14 @@ function on_plugin_start()
 end
 
 function smugs_get_variables()
+	colours_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
     defualt_window_width, defualt_window_height = 300, 300
     window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
     assert(loadstring(GetVariable("smu") or ""))()
     if not smu then smu = {}; smugs_reset_rooms() end
     smu.text_title = "Smugs"
-	smu.colours = smugs_get_colours()
+	smugs_get_colours()
 	smu.commands = {count = 0}
 	smu.sequence = {}
 	smu.players = {}

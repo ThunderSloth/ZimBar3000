@@ -17,6 +17,7 @@ end
 -- load variables
 function mdt_get_variables()
 	quowmap_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_quowmap_database.db"
+	colours_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
 	FIXED_TITLE_HEIGHT = 16
     assert(loadstring(GetVariable("window_width" ) or ""))()
     assert(loadstring(GetVariable("window_height") or ""))()
@@ -30,9 +31,9 @@ function mdt_get_variables()
 	-- 'text' will contain room info for our text window
 	mdt = mdt or {rooms = {range = 0}, locations = {}, fight_room = {}, text = {}}
 	mdt.title = {"Map Door Text: Map", "Map Door Text: Text"}
-    mdt.colours = mdt_get_colours()
-    mdt.map_ids = mdt_get_map_ids()  
-    mdt.special_areas = mdt_get_special_areas()
+    mdt_get_colours()
+    mdt_get_map_ids()  
+    mdt_get_special_areas()
     mdt.sequence = {}
     mdt.commands = {move = {count = 0}, look = {count = 0}}
     mdt.styles = {}
@@ -56,8 +57,7 @@ function mdt_pos_window()
 end
 -- map ids
 function mdt_get_map_ids()
-	local ids = {"Ankh-Morpork", "AM Assassins", "AM Buildings", "AM Cruets", "AM Docks", "AM Guilds", "AM Isle of Gods", "Shades Maze", "Temple of Small Gods", "AM Temples", "AM Thieves", "Unseen University", "AM Warriors", "Pseudopolis Watch House", "Magpyr's Castle", "Bois", "Bes Pelargic", "BP Buildings", "BP Estates", "BP Wizards", "Brown Islands", "Death's Domain", "Djelibeybi", "IIL - DJB Wizards", "Ephebe", "Ephebe Underdocks", "Genua", "Genua Sewers", "GRFLX Caves", "Hashishim Caves", "Klatch Region", "Lancre Region", "Mano Rossa", "Monks of Cool", "Netherworld", false, "Pumpkin Town", "Ramtops Regions", "Sto-Lat", "Academy of Artificers", "Cabbage Warehouse", "AoA Library", "Sto-Lat Sewers", "Sprite Caves", "Sto Plains Region", "Uberwald Region", "UU Library", "Klatchian Farmsteads", "CTF Arena", "PK Arena", "AM Post Office", "Ninja Guild", "The Travelling Shop", "Slippery Hollow", "House of Magic - Creel", "Special Areas", "Skund Wolf Trail", "Medina", "Copperhead", "The Citadel", "AM Fools' Guild", "Thursday's Island", "SS Unsinkable", }
-	return ids
+	mdt.map_ids = {"Ankh-Morpork", "AM Assassins", "AM Buildings", "AM Cruets", "AM Docks", "AM Guilds", "AM Isle of Gods", "Shades Maze", "Temple of Small Gods", "AM Temples", "AM Thieves", "Unseen University", "AM Warriors", "Pseudopolis Watch House", "Magpyr's Castle", "Bois", "Bes Pelargic", "BP Buildings", "BP Estates", "BP Wizards", "Brown Islands", "Death's Domain", "Djelibeybi", "IIL - DJB Wizards", "Ephebe", "Ephebe Underdocks", "Genua", "Genua Sewers", "GRFLX Caves", "Hashishim Caves", "Klatch Region", "Lancre Region", "Mano Rossa", "Monks of Cool", "Netherworld", false, "Pumpkin Town", "Ramtops Regions", "Sto-Lat", "Academy of Artificers", "Cabbage Warehouse", "AoA Library", "Sto-Lat Sewers", "Sprite Caves", "Sto Plains Region", "Uberwald Region", "UU Library", "Klatchian Farmsteads", "CTF Arena", "PK Arena", "AM Post Office", "Ninja Guild", "The Travelling Shop", "Slippery Hollow", "House of Magic - Creel", "Special Areas", "Skund Wolf Trail", "Medina", "Copperhead", "The Citadel", "AM Fools' Guild", "Thursday's Island", "SS Unsinkable", }
 end
 
 function mdt_get_special_areas()
@@ -90,11 +90,10 @@ function mdt_get_special_areas()
 		"4e6aef2cd732fb35c2c110d768605f4aa56194af",            
 		"16a0b8c39025147f9f87cf860b76380af6c9e1d4",			
 		"886a1404021cdfb21668823aa0ab2cefd05fbcd1",}
-		local t = {}
+	mdt.special_areas = {}
 	for _, v in ipairs(ids) do
-		t[v] = true
+		mdt.special_areas[v] = true
 	end
-	return t
 end
 -- save variables
 function OnPluginSaveState () 

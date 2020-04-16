@@ -15,7 +15,7 @@ function mdt_print_map()
 			local y1 = coor.rooms[view][y][x].outter.y1
 			local x2 = coor.rooms[view][y][x].outter.x2
 			local y2 = coor.rooms[view][y][x].outter.y2
-			WindowRectOp(win[1], 1, x1, y1, x2, y2, mdt.colours.thyngs.ghost)
+			WindowRectOp(win[1], 1, x1, y1, x2, y2, mdt.colours.room_border_trajectory)
 		end
 	end
     WindowDrawImage(win[1], "map_image", 0, 0, 0, 0, 1)
@@ -33,7 +33,7 @@ function mdt_print_text()
 			local y1 = ghost.y1
 			local x2 = ghost.x2
 			local y2 = ghost.y2
-			WindowRectOp(win[2], 1, x1, y1, x2, y2, mdt.colours.thyngs.ghost)
+			WindowRectOp(win[2], 1, x1, y1, x2, y2, mdt.colours.room_border_trajectory)
 		end
 	end
 	WindowDrawImage(win[2], "text_image", 0, 0, 0, 0, 1)
@@ -44,7 +44,7 @@ end
 function mdt_window_background(mw, dim, col)
 	local clone = {map = 1, text = 2}
 	local i = clone[mw] or mw
-    WindowRectOp(win[mw], 2, 0, 0, dim.window[i].x, dim.window[i].y, col.window.background)
+    WindowRectOp(win[mw], 2, 0, 0, dim.window[i].x, dim.window[i].y, col.window_background)
 end
 
 function mdt_titlebar(mw, dim, coor, col)
@@ -52,16 +52,16 @@ function mdt_titlebar(mw, dim, coor, col)
 	local i = clone[mw] or mw
 	WindowCircleOp (win[mw], 2, 
 		0, 0, dim.window[i].x, dim.font.title,
-		col.window.border, 0, 1, col.title.fill, 0)
+		col.titlebar_border, 0, 1, col.titlebar_fill, 0)
 	local w = WindowTextWidth(win[i], "title", mdt.title[i])
 	local x1 = (dim.window[i].x - w) / 2
 	local min = 1
 	if x1 < min then x1 = min end
 	WindowText(win[mw], "title", mdt.title[i], 
 		x1, 0, 0, 0,
-		col.title.text)
+		col.titlebar_text)
 	-- add window border also 
-    WindowRectOp(win[mw], 1, 0, 0, dim.window[i].x, dim.window[i].y, col.window.border)       
+    WindowRectOp(win[mw], 1, 0, 0, dim.window[i].x, dim.window[i].y, col.window_border)       
 end
 
 function mdt_draw_map(map_data)
@@ -123,7 +123,7 @@ function mdt_draw_map(map_data)
 				mdt.fight_room[room_count] = nil
 			end
 			if mdt.fight_room[id] then
-				border_colour =  col.rooms.fight
+				border_colour =  col.room_border_fight
 			end
 		end
 		return border_colour
@@ -138,7 +138,7 @@ function mdt_draw_map(map_data)
 				break
 			end
 			icon = string.char(player_room)
-            icon_colour = col.text.players
+            icon_colour = col.room_text_player
 			player_room = player_room + 1
 		elseif map_data[y][x].population.is_mob_room then
 			players_or_mobs = "mobs"
@@ -147,24 +147,24 @@ function mdt_draw_map(map_data)
                 return math.floor(num * mult + 0.5) / mult
             end
             if pop.xp < 1/4 then
-                icon_colour = col.text.xp[1]
+                icon_colour = col.room_text_xp[1]
                 icon = 0                -- 0
             elseif pop.xp < 1/2 then
-                icon_colour = col.text.xp[2]
+                icon_colour = col.room_text_xp[2]
                 icon = string.char(188) -- 1/4
             elseif pop.xp < 3/4 then
-                icon_colour = col.text.xp[3]
+                icon_colour = col.room_text_xp[3]
                 icon = string.char(189) -- 1/2
             elseif pop.xp < 1 then
-                icon_colour = col.text.xp[4]
+                icon_colour = col.room_text_xp[4]
                 icon = string.char(190) -- 3/4
             else
-				icon_colour = col.text.xp[#col.text.xp]
+				icon_colour = col.room_text_xp[#col.room_text_xp]
                 icon = round(pop.xp)        -- 1-9
                 icon = icon >= 10 and 9 or icon
                 -- only colour fill room if xp is greater than one
                 if icon >= 1 then
-                    icon_bg = col.thyngs.xp[icon]
+                    icon_bg = col.room_inner_fill_xp[icon]
                 end
             end
 		end
@@ -173,7 +173,7 @@ function mdt_draw_map(map_data)
 			if icon_bg then
 				draw_room_fill(mw, dim, coor, icon_bg, map_data, view, x, y)
 			end
-			local icon_border =  get_fight_rooms(mw, dim, coor, col,map_data, view, x, y, room_count) or is_priest and col.thyngs.priests or is_money and col.thyngs.money or false	
+			local icon_border =  get_fight_rooms(mw, dim, coor, col,map_data, view, x, y, room_count) or is_priest and col.room_border_priest or is_money and col.room_border_money or false	
 			if icon_border  then
 				draw_room_border(mw, dim, coor, icon_border , map_data, view, x, y)
 			end
@@ -203,7 +203,7 @@ function mdt_draw_map(map_data)
 				icon = icon, 
 				icon_colour = icon_colour, 
 				icon_bg = icon_bg, 
-				icon_border = icon_border or col.rooms.border,
+				icon_border = icon_border or col.room_border,
 				underline = is_immobile, 
 				xp = pop.xp, 
 				x = x,
@@ -225,14 +225,14 @@ function mdt_draw_map(map_data)
 		for y = range, - range, -1 do
 			for x = - range, range do
 				if map_data[y][x].in_vision then				
-					draw_room_border(mw, dim, coor, col.rooms.border, map_data, view, x, y)
-					draw_room_exits (mw, dim, coor, col.rooms.exits,  map_data, view, x, y)
-					draw_room_doors (mw, dim, coor, col.rooms.doors,  map_data, view, x, y)
-					room_count, player_room = draw_room_thyngs(mw, dim, coor, col,map_data, view, x, y, room_count, player_room)
+					draw_room_border(mw, dim, coor, col.room_border, map_data, view, x, y)
+					draw_room_exits (mw, dim, coor, col.exit_line,  map_data, view, x, y)
+					draw_room_doors (mw, dim, coor, col.exit_border_door,  map_data, view, x, y)
+					room_count, player_room = draw_room_thyngs(mw, dim, coor, col, map_data, view, x, y, room_count, player_room)
 				end
 			end
 		end	
-		draw_room_fill(mw, dim, coor, col.thyngs.you, map_data, view, 0, 0) -- you
+		draw_room_fill(mw, dim, coor, col.room_border_trajectory, map_data, view, 0, 0) -- you
 	end
 	local mw, dim, coor, col = "map", mdt.dimensions, mdt.coordinates, mdt.colours
 	mdt_window_background(mw, dim, col)
@@ -266,7 +266,7 @@ function mdt_prepare_text(map_data)
 			local rs = {}
 			-- add players
 			for k, v in pairs(map_data[y][x].population.players) do
-				local text, colour, bg_colour, border_colour, underline = k, col.text.players, ColourNameToRGB(v.colour) ~= -1 and ColourNameToRGB(v.colour) or v.colour, false, false
+				local text, colour, bg_colour, border_colour, underline = k, col.room_text_player, ColourNameToRGB(v.colour) ~= -1 and ColourNameToRGB(v.colour) or v.colour, false, false
 				table.insert(rs, {text = text, colour = colour, bg_colour = bg_colour, border_colour = border_colour, underline = underline})
 			end
 			-- add mobs
@@ -282,21 +282,21 @@ function mdt_prepare_text(map_data)
 						local xp_val = {1/12, 1/6, 1/3, 2/3, 1}
 						local xp = (xp_val[i] or 0) * v.quantity
 						if xp < 1/4 then
-							colour = col.text.xp[1]
+							colour = col.room_text_xp[1]
 						elseif xp < 1/2 then
-							colour = col.text.xp[2]
+							colour = col.room_text_xp[2]
 						elseif xp < 3/4 then
-							colour = col.text.xp[3]
+							colour = col.room_text_xp[3]
 						elseif xp < 1 then
-							colour = col.text.xp[4]
+							colour = col.room_text_xp[4]
 						else
-							colour = col.text.xp[5]
-							bg_colour = xp > 9 and col.thyngs.xp[9] or col.thyngs.xp[math.floor(xp)]
+							colour = col.room_text_xp[5]
+							bg_colour = xp > 9 and col.room_inner_fill_xp[9] or col.room_inner_fill_xp[math.floor(xp)]
 						end
 						if v.is_priest then
-							border_colour = col.thyngs.priests
+							border_colour = col.room_border_priest
 						elseif v.is_money then
-							border_colour = col.thyngs.money
+							border_colour = col.room_border_money
 						end
 						table.insert(rs, {text = text, colour = colour, bg_colour = bg_colour, border_colour = border_colour, underline = underline})
 					end
@@ -312,7 +312,7 @@ function mdt_prepare_text(map_data)
 				-- add icon
 				table.insert(rs, 1, {text = v.icon, colour = v.icon_colour, bg_colour = v.icon_bg, border_colour = v.icon_border, underline = v.underline})
 				-- add path
-				table.insert(rs, 2, {text = v.formatted_path, colour = col.text.path, bg_colour = false, border_colour = false, underline = false})
+				table.insert(rs, 2, {text = v.formatted_path, colour = col.path_text, bg_colour = false, border_colour = false, underline = false})
 				-- must have more than just the the icon and path 
 				-- in the event that the only thing occupying a room is an empty string.
 				-- (the regex captures return empty strings interntionally for certain things

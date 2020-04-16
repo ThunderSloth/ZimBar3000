@@ -2,47 +2,18 @@
 --   COLOURS
 --------------------------------------------------------------------------------
 function mdt_get_colours()
-    local col = {
-        window = {
-            background = "black",
-            border =     "white",
-            transparent ="teal",},
-        title = {
-            text =       "black",
-            border =     "white",
-            fill =       "lightgray",},
-        rooms = {
-            border =     "white",
-            background = "black",
-            exits =      "lightgray",
-            doors =      "red",
-            entrance =   "white",
-            fight =      "red",},
-        thyngs = {
-            you =        "yellow",
-            ghost =      "yellow",
-            priests =    "orange",
-            money =      "mediumorchid",
-            xp = {       "#003300", "#004c00", "#006600", "#007f00", "#009900", "#00b200", "#00cc00", "#00e500", "#00ff00",},},
-        text = {      
-			xp = {       "#696969", "#808080", "#a9a9a9", "#c0c0c0", "#ffffff"},
-			players =    "black",
-			path =       "cornflowerblue",},
-        note = {
-            bracket =    "white",
-            error =      "red",
-            text =       "gray",},}
-
-    for k, v in pairs(col) do
-        for kk, c in pairs(v) do
-            if type(c) == 'string' then
-                col[k][kk] = ColourNameToRGB(c)
-            else
-                for i, cc in ipairs(c) do
-                   col[k][kk][i] = ColourNameToRGB(cc) 
-                end
-            end
-        end
-    end
-    return col
+	mdt.colours = {}
+	cdb = sqlite3.open(colours_database)
+	for t in cdb:nrows("SELECT colour_name FROM mdt") do 
+		for k, v in pairs(t) do
+			mdt.colours[v] = {}
+			for c in cdb:nrows("SELECT * FROM "..v) do
+				mdt.colours[v][c.id] = ColourNameToRGB(c.custom or c.preset)
+			end
+			if #mdt.colours[v] == 1 then
+				mdt.colours[v] = mdt.colours[v][1]
+			end
+		end 
+	end
+	cdb:close()
 end

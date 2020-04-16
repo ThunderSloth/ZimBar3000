@@ -273,12 +273,12 @@ function mdt_prepare_text(map_data)
 			for i = 5, 0, -1 do
 				for k, v in pairs(map_data[y][x].population.mobs[i]) do
 					local text, colour, bg_colour, border_colour, underline = "", 0, false, false, v.is_immobile
-					if v.quantity > 1 then
-						text = v.quantity.." "..k..v.plural
-					else
-						text = k..v.singular
-					end
-					if text ~= "" then
+					if not (v.text == "" and v.plural == "men") then
+						if v.quantity > 1 then
+							text = v.quantity.." "..k..v.plural
+						else
+							text = k..v.singular
+						end
 						local xp_val = {1/12, 1/6, 1/3, 2/3, 1}
 						local xp = (xp_val[i] or 0) * v.quantity
 						if xp < 1/4 then
@@ -317,7 +317,7 @@ function mdt_prepare_text(map_data)
 				-- in the event that the only thing occupying a room is an empty string.
 				-- (the regex captures return empty strings interntionally for certain things
 				-- we would like to omit, like clouds or pets)
-				if #rs > 1 then 
+				if #rs > 2 then 
 					table.insert(styles, rs)
 				end
 				rs[0] = mdt.rooms[v.y][v.x].id

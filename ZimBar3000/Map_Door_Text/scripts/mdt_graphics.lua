@@ -11,10 +11,10 @@ function mdt_print_map()
 			local x = ghost.x
 			local y = ghost.y
 			local view = mdt.rooms.range == 0 and 1 or mdt.rooms.range 
-			local x1 = coor.rooms[view][y][x].outter.x1
-			local y1 = coor.rooms[view][y][x].outter.y1
-			local x2 = coor.rooms[view][y][x].outter.x2
-			local y2 = coor.rooms[view][y][x].outter.y2
+			local x1 = coor.rooms[view][y][x].outer.x1
+			local y1 = coor.rooms[view][y][x].outer.y1
+			local x2 = coor.rooms[view][y][x].outer.x2
+			local y2 = coor.rooms[view][y][x].outer.y2
 			WindowRectOp(win[1], 1, x1, y1, x2, y2, mdt.colours.room_border_trajectory)
 		end
 	end
@@ -50,6 +50,8 @@ end
 function mdt_titlebar(mw, dim, coor, col)
 	local clone = {map = 1, text = 2}
 	local i = clone[mw] or mw
+	-- add window border also 
+    WindowRectOp(win[mw], 1, 0, 0, dim.window[i].x, dim.window[i].y, col.window_border) 
 	WindowCircleOp (win[mw], 2, 
 		0, 0, dim.window[i].x, dim.font.title,
 		col.titlebar_border, 0, 1, col.titlebar_fill, 0)
@@ -59,9 +61,7 @@ function mdt_titlebar(mw, dim, coor, col)
 	if x1 < min then x1 = min end
 	WindowText(win[mw], "title", mdt.title[i], 
 		x1, 0, 0, 0,
-		col.titlebar_text)
-	-- add window border also 
-    WindowRectOp(win[mw], 1, 0, 0, dim.window[i].x, dim.window[i].y, col.window_border)       
+		col.titlebar_text)      
 end
 
 function mdt_draw_map(map_data)
@@ -74,20 +74,27 @@ function mdt_draw_map(map_data)
 			WindowLine(mw, x1, y1, x2, y2, colour, 0, 1)
 		end
 	end
-	local function draw_room_doors(mw, dim, coor, colour, map_data, view, x, y)
+	local function draw_room_doors(mw, dim, coor, colour1, colour2, map_data, view, x, y)
 		for _, door in ipairs(map_data[y][x].doors) do
 			local x1 = coor.rooms[view][y][x].door[door].x1
 			local y1 = coor.rooms[view][y][x].door[door].y1
 			local x2 = coor.rooms[view][y][x].door[door].x2
 			local y2 = coor.rooms[view][y][x].door[door].y2
-			WindowRectOp(mw, 1, x1, y1, x2, y2, colour)
+			WindowCircleOp(mw, 2, x1, y1, x2, y2, colour1, 0, 1, colour2, 0)
 		end
 	end
+	local function draw_room(mw, dim, coor, colour1, colour2, map_data, view, x, y)
+		local x1 = coor.rooms[view][y][x].outer.x1
+		local y1 = coor.rooms[view][y][x].outer.y1
+		local x2 = coor.rooms[view][y][x].outer.x2
+		local y2 = coor.rooms[view][y][x].outer.y2
+		WindowCircleOp(mw, 2, x1, y1, x2, y2, colour1, 0, 1, colour2, 0)
+	end
 	local function draw_room_border(mw, dim, coor, colour, map_data, view, x, y)
-		local x1 = coor.rooms[view][y][x].outter.x1
-		local y1 = coor.rooms[view][y][x].outter.y1
-		local x2 = coor.rooms[view][y][x].outter.x2
-		local y2 = coor.rooms[view][y][x].outter.y2
+		local x1 = coor.rooms[view][y][x].outer.x1
+		local y1 = coor.rooms[view][y][x].outer.y1
+		local x2 = coor.rooms[view][y][x].outer.x2
+		local y2 = coor.rooms[view][y][x].outer.y2
 		WindowRectOp(mw, 1, x1, y1, x2, y2, colour)
 	end
 	local function draw_room_fill(mw, dim, coor, colour, map_data, view, x, y)
@@ -100,8 +107,8 @@ function mdt_draw_map(map_data)
 	local function draw_room_number(mw, dim, coor, colour, map_data, view, x, y, xp, underlined)
 		local font_id = "map"..tostring(view)
 		local w = WindowTextWidth(mw, font_id, xp)
-		local x1 = coor.rooms[view][y][x].outter.x1 + (dim.room[view].x - w) / 2
-		local y1 = coor.rooms[view][y][x].outter.y1 + (dim.room[view].y - dim.font.map[view]) / 2
+		local x1 = coor.rooms[view][y][x].outer.x1 + (dim.room[view].x - w) / 2
+		local y1 = coor.rooms[view][y][x].outer.y1 + (dim.room[view].y - dim.font.map[view]) / 2
 		WindowText(mw, underlined and font_id.."underlined" or font_id, xp, x1, y1, 0, 0, colour, false)
 	end
 	local function draw_room_thyngs(mw, dim, coor, col, map_data, view, x, y, room_count, player_room)
@@ -225,14 +232,14 @@ function mdt_draw_map(map_data)
 		for y = range, - range, -1 do
 			for x = - range, range do
 				if map_data[y][x].in_vision then				
-					draw_room_border(mw, dim, coor, col.room_border, map_data, view, x, y)
-					draw_room_exits (mw, dim, coor, col.exit_line,  map_data, view, x, y)
-					draw_room_doors (mw, dim, coor, col.exit_border_door,  map_data, view, x, y)
+					draw_room(mw, dim, coor, col.room_border, col.room_background, map_data, view, x, y)
+					draw_room_exits(mw, dim, coor, col.exit_line,  map_data, view, x, y)
+					draw_room_doors(mw, dim, coor, col.exit_border_door, col.exit_fill_door,  map_data, view, x, y)
 					room_count, player_room = draw_room_thyngs(mw, dim, coor, col, map_data, view, x, y, room_count, player_room)
 				end
 			end
 		end	
-		draw_room_fill(mw, dim, coor, col.room_border_trajectory, map_data, view, 0, 0) -- you
+		draw_room_fill(mw, dim, coor, col.room_inner_fill_you, map_data, view, 0, 0) -- you
 	end
 	local mw, dim, coor, col = "map", mdt.dimensions, mdt.coordinates, mdt.colours
 	mdt_window_background(mw, dim, col)
@@ -328,11 +335,12 @@ function mdt_prepare_text(map_data)
 		return styles, mdt.text.longest_path
 	end
 	local mw, dim, coor, col = "text", mdt.dimensions, mdt.coordinates, mdt.colours
-	mdt.styles, longest_path = get_text_styles(mw, dim, coor, col, map_data)
-	mdt_draw_text(mdt.styles, longest_path)
+	mdt.styles, mdt.longest_path = get_text_styles(mw, dim, coor, col, map_data)
+	mdt_draw_text(mdt.styles)
 end
 
-function mdt_draw_text(styles, longest_path)
+function mdt_draw_text(styles)
+	local longest_path = mdt.longest_path
 	local function draw_text(mw, dim, coor, col)
 		local function next_line(y2, h)
 			local line_buffer = 3

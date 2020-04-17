@@ -105,7 +105,7 @@ function resizemove(flags, hotspot_id)
         check(SetCursor(6)) -- resize cursor
     end
     if (utils.timer() - (last_refresh or 0) > 0.0333) then
-        WindowResize(win[mw], window_width[mw], window_height[mw], mdt.colours.window.background)
+        WindowResize(win[mw], window_width[mw], window_height[mw], mdt.colours.window_background)
         WindowDrawImage(win[mw], "win"..tostring(mw), 0, 0, window_width[mw], window_height[mw], 2)
         WindowShow(win[mw])
         last_refresh = utils.timer()
@@ -133,5 +133,8 @@ function mousedown(flags, hotspot_id)
 end
 
 function mouseup(flags, id)
-
+	if id:match("title%d$") and flags == 32 then
+		local mw = tonumber(id:match("title(%d)$"))
+        mdt_get_title_menu(mw)
+	end
 end

@@ -19,12 +19,13 @@ function on_plugin_start()
 end
 
 function shades_get_variables()
+	colours_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
     defualt_window_width, defualt_window_height = 300, 300
     window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
     assert(loadstring(GetVariable("sha") or ""))()
     if not sha then sha = {}; shades_reset_rooms() end
-	sha.colours = shades_get_colours()
+	shades_get_colours()
 	sha.commands = {count = 0}
 	sha.sequence = {}
 	sha.scry_room = false

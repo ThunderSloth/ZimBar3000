@@ -2,11 +2,10 @@
 --   CREATE WINDOWS
 --------------------------------------------------------------------------------
 function medina_get_windows()
-    local col = med.colours.window
-    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- stage for image loading
-    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent)      -- base: room structure, static objects and bmp images
-    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window.background)-- display window: dynamic objects draw here
-    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent)   -- overlay: room-letters
+    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window_transparency) -- stage for image loading
+    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window_transparency)      -- base: room structure, static objects and bmp images
+    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window_background)-- display window: dynamic objects draw here
+    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, med.colours.window_transparency)   -- overlay: room-letters
     WindowSetZOrder(win, 204)
 end
 --------------------------------------------------------------------------------
@@ -86,7 +85,7 @@ function medina_window_setup(window_width, window_height)
         med.coordinates.exit_text.y1  = dim.buffer.y + dim.block.y * 5.5
         for k, v in pairs(med.rooms) do
             med.coordinates.rooms[k] = {}
-            med.coordinates.rooms[k].room = {outter = {}, inner = {}}
+            med.coordinates.rooms[k].room = {outer = {}, inner = {}}
             local room_center = {
                 x = dim.buffer.x + (v.location.x * dim.block.x) - (dim.block.x / 2),
                 y = dim.buffer.y + (v.location.y * dim.block.y)}
@@ -94,7 +93,7 @@ function medina_window_setup(window_width, window_height)
             local y1 = room_center.y - (dim.room.y / 2)
             local x2 = room_center.x + (dim.room.x / 2)
             local y2 = room_center.y + (dim.room.y / 2)
-            med.coordinates.rooms[k].room.outter = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+            med.coordinates.rooms[k].room.outer = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
             get_exit_coordinates(dim, k, v, room_center)
             get_letter_coordinates(dim, k, v, room_center)
             x1 = room_center.x - ((dim.room.x * .75) / 2)
@@ -109,11 +108,10 @@ function medina_window_setup(window_width, window_height)
 	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	-- resize windows to saved or defualt size
     local function resize_windows(dim) -- dimensions
-        local col = med.colours.window
-        WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, col.transparent) -- for loading images
-        WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, col.transparent) -- base: room structure, static objects and bmp images
-        WindowResize(win, dim.window.x, dim.window.y, col.background) -- display window: only dynamic objects will be printed directly here
-        WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
+        WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, med.colours.window_transparency) -- for loading images
+        WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, med.colours.window_transparency) -- base: room structure, static objects and bmp images
+        WindowResize(win, dim.window.x, dim.window.y, med.colours.window_background) -- display window: only dynamic objects will be printed directly here
+        WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, med.colours.window_transparency) --overlay: room-letters
     end
 	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	--   DIMENSIONS
@@ -171,10 +169,9 @@ function medina_window_setup(window_width, window_height)
 	-- load arrows for exit representation
     local function get_images(dim) -- dimensions
         file_path = (GetPluginInfo(GetPluginID(), 6)):match("^(.*\\).*$")
-        local arrows = "default"
         local dir = {"n", "ne", "e", "se", "s", "sw", "w", "nw"}
         for _, v in ipairs(dir) do
-            WindowLoadImage (win.."copy_from", v, file_path.."arrows\\"..arrows.."\\"..v..".bmp")
+            WindowLoadImage (win.."copy_from", v, file_path.."arrows\\"..arrow_set.."\\"..v..".bmp")
             WindowDrawImage(win.."copy_from", v, 0, 0, dim.exit.x - 4, dim.exit.y - 4, 2)
             WindowImageFromWindow(win.."base", v, win.."copy_from")
         end

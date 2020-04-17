@@ -6,11 +6,13 @@ function smugs_draw_room(room, coor, col, mw) -- room, coordinates, colours, min
         local chamber = smu.chambers[room]
         if chamber then
             WindowCircleOp(mw, 2, -- draw room
-                coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2,            
+                coor.room.outer.x1, coor.room.outer.y1, coor.room.outer.x2, coor.room.outer.y2,            
                 col.window_background, 0, 1,
-                col.room_outter_fill_chamber, miniwin.brush_fine_pattern)
-        end
-        WindowRectOp(mw, 1, coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2, col.room_border)
+                col.room_outer_fill_chamber, miniwin.brush_fine_pattern)
+            WindowRectOp(mw, 1, coor.room.outer.x1, coor.room.outer.y1, coor.room.outer.x2, coor.room.outer.y2, col.room_border)
+        else
+        	WindowCircleOp(mw, 2, coor.room.outer.x1, coor.room.outer.y1, coor.room.outer.x2, coor.room.outer.y2,  col.room_border, 0, 1, col.room_background, 0)
+        end        
     end
 end
 
@@ -90,7 +92,7 @@ function smugs_print_map()
         local function draw_border(room, coor, colour)
             if room then
                 WindowRectOp(win, miniwin.rect_frame, 
-                    coor.room.outter.x1, coor.room.outter.y1, coor.room.outter.x2, coor.room.outter.y2,
+                    coor.room.outer.x1, coor.room.outer.y1, coor.room.outer.x2, coor.room.outer.y2,
                     colour)
             end
         end

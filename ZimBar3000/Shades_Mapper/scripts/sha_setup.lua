@@ -2,11 +2,10 @@
 --   MINIWINDOW SETUP
 --------------------------------------------------------------------------------
 function shades_get_windows()
-    local col = sha.colours.window
-    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- for loading images
-    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) -- base: room structure, static objects
-    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, col.background) -- display window: only dynamic objects will be printed directly here
-    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
+    WindowCreate(win.."copy_from", 0, 0, 0, 0, miniwin.pos_center_all, 0, sha.colours.window_transparency) -- for loading images
+    WindowCreate(win.."base", 0, 0, 0, 0, miniwin.pos_center_all, 0, sha.colours.window_transparency) -- base: room structure, static objects
+    WindowCreate(win, 0, 0, 0, 0, miniwin.pos_center_all, 0, sha.colours.window_background) -- display window: only dynamic objects will be printed directly here
+    WindowCreate(win.."overlay", 0, 0, 0, 0, miniwin.pos_center_all, 0, sha.colours.window_transparency) --overlay: room-letters
     WindowSetZOrder(win, 203)
 end
 
@@ -135,7 +134,7 @@ function shades_window_setup(window_width, window_height) -- define window attri
         sha.coordinates.exit_text.y1  = dim.buffer.y + dim.block.y
         for k, v in pairs(sha.rooms) do
             sha.coordinates.rooms[k] = {}
-            sha.coordinates.rooms[k].room = {outter = {}, inner = {}}
+            sha.coordinates.rooms[k].room = {outer = {}, inner = {}}
             local room_center = {
                 x = dim.buffer.x + (v.location.x * dim.block.x) - (dim.block.x / 2),
                 y = dim.buffer.y + (v.location.y * dim.block.y) - (dim.block.y / 2)}
@@ -143,7 +142,7 @@ function shades_window_setup(window_width, window_height) -- define window attri
             local y1 = room_center.y - (dim.room.y / 2)
             local x2 = room_center.x + (dim.room.x / 2)
             local y2 = room_center.y + (dim.room.y / 2)
-            sha.coordinates.rooms[k].room.outter = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+            sha.coordinates.rooms[k].room.outer = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
             get_exit_coordinates(dim, k, v, room_center)
             get_letter_coordinates(dim, k, v, room_center)
             x1 = room_center.x - ((dim.room.x * .73) / 2)
@@ -156,10 +155,10 @@ function shades_window_setup(window_width, window_height) -- define window attri
 
     local function resize_windows(dim) -- dimensions 
         local col = sha.colours.window
-        WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, col.transparent) -- for loading images
-        WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, col.transparent) -- base: room structure, static objects and bmp images
-        WindowResize(win, dim.window.x, dim.window.y, col.background) -- display window: only dynamic objects will be printed directly here
-        WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, col.transparent) --overlay: room-letters
+        WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, sha.colours.window_transparency) -- for loading images
+        WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, sha.colours.window_transparency) -- base: room structure, static objects and bmp images
+        WindowResize(win, dim.window.x, dim.window.y, sha.colours.window_background) -- display window: only dynamic objects will be printed directly here
+        WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, sha.colours.window_transparency) --overlay: room-letters
     end
 
     local function get_font(dim) -- dimensions

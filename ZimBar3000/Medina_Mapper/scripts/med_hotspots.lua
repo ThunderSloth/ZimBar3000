@@ -16,7 +16,7 @@ function medina_get_hotspots(dim) -- dimensions
     WindowAddHotspot(win, "resize", dim.window.x - 10, dim.window.y - 10, dim.window.x, dim.window.y, "MouseOver", "CancelMouseOver", "mousedown", "", "MouseUp", "Left-click to resize!", 6, 0)
     WindowDragHandler(win, "resize", "ResizeMoveCallback", "ResizeReleaseCallback", 0)
     for r, v in pairs(med.rooms) do
-        local coor = med.coordinates.rooms[r].room.outter
+        local coor = med.coordinates.rooms[r].room.outer
         WindowAddHotspot(win, r,
              coor.x1, coor.y1, coor.x2, coor.y2,
              "mouseover",   
@@ -138,21 +138,19 @@ function mousedown(flags, id)
 		from_x, from_y = WindowInfo(win, 14), WindowInfo(win, 15)
     elseif (id == "resize") then
         WindowImageFromWindow(win, "win", win)
-	elseif id:match("^[A-R]$") then
-		if flags == 32 then
-			medina_room_menu(id)		
-        end
     end
 end
 
 function mouseup(flags, id)
-    if id:match("^[nesw]+$") then
+	if id:match("title") and flags == 32 then
+		medina_get_title_menu()
+    elseif id:match("^[nesw]+$") then
         on_alias_medina_look_room('name', 'line', {direction = id})
 	elseif id:match("^[A-R]$") then
 		if flags == 16 then
 			medina_get_shortest_path(med.rooms, med.sequence[#med.sequence] and med.sequence[#med.sequence][1] or false, id)
         elseif flags == 32 then
-        
+			medina_room_menu(id)		   
         end
     end
 end

@@ -80,7 +80,7 @@ function smugs_window_setup(window_width, window_height) -- define window attrib
         smu.coordinates.exit_text.y1  = dim.buffer.y + dim.block.y
         for k, v in pairs(smu.rooms) do
             smu.coordinates.rooms[k] = {}
-            smu.coordinates.rooms[k].room = {outter = {}, inner = {}}
+            smu.coordinates.rooms[k].room = {outer = {}, inner = {}}
             local room_center = {
                 x = dim.buffer.x + (v.location.x * dim.block.x) - (dim.block.x / 2),
                 y = dim.buffer.y + (v.location.y * dim.block.y)}
@@ -88,7 +88,7 @@ function smugs_window_setup(window_width, window_height) -- define window attrib
             local y1 = room_center.y - (dim.room.y / 2)
             local x2 = room_center.x + (dim.room.x / 2)
             local y2 = room_center.y + (dim.room.y / 2)
-            smu.coordinates.rooms[k].room.outter = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+            smu.coordinates.rooms[k].room.outer = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
             get_exit_coordinates(dim, k, v, room_center)
             get_letter_coordinates(dim, k, v, room_center)
             x1 = room_center.x - ((dim.room.x * .73) / 2)

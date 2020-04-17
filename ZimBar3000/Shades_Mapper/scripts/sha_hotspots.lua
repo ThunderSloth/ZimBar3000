@@ -17,7 +17,7 @@ function shades_get_hotspots(dim) -- dimensions
     WindowAddHotspot(win, "resize", dim.window.x - 10, dim.window.y - 10, dim.window.x, dim.window.y, "MouseOver", "CancelMouseOver", "mousedown", "", "MouseUp", "Left-click to resize!", 6, 0)
     WindowDragHandler(win, "resize", "ResizeMoveCallback", "ResizeReleaseCallback", 0)
     for r, v in pairs(sha.rooms) do
-        local coor = sha.coordinates.rooms[r].room.outter
+        local coor = sha.coordinates.rooms[r].room.outer
         WindowAddHotspot(win, r,
              coor.x1, coor.y1, coor.x2, coor.y2,
              "",   -- MouseOver
@@ -93,7 +93,7 @@ function ResizeMoveCallback()
         check(SetCursor(6)) -- resize cursor
     end
     if (utils.timer() - (last_refresh or 0) > 0.0333) then
-        WindowResize(win, window_width, window_height, sha.colours.window.background)
+        WindowResize(win, window_width, window_height, sha.colours.window_background)
         WindowDrawImage(win, "win", 0, 0, window_width, window_height, 2)
         WindowShow(win)
         last_refresh = utils.timer()
@@ -117,7 +117,9 @@ function mousedown(flags, hotspot_id)
 end
 
 function mouseup(flags, id)
-	if id:match("^[A-Z]$") then
+	if id:match("title") and flags == 32 then
+		shades_get_title_menu()
+	elseif id:match("^[A-Z]$") and flags == 16 then
         shades_get_shortest_path(sha.rooms, sha.sequence[#sha.sequence][1], id)
     end
 end

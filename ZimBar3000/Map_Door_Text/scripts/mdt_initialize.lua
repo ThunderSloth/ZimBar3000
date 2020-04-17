@@ -5,6 +5,7 @@ function on_plugin_start()
     require "tprint"
     require "serialize"
     require "var"
+	require "pairsbykeys"
     win = {"map" .. GetPluginID(), "text" .. GetPluginID(), map = "map_staging" .. GetPluginID(), text = "text_staging" .. GetPluginID()}
     mdt_get_variables()
     mdt_get_regex()

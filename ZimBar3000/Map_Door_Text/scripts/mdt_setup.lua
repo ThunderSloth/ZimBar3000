@@ -78,12 +78,12 @@ function mdt_window_setup(window_width, window_height) -- define window attribut
 				x = map_origin.x + dim.block[i].x *  x,
 				y = map_origin.y + dim.block[i].y * -y,
 			}
-			mdt.coordinates.rooms[i][y][x] = {outter = {}, inner = {}}
+			mdt.coordinates.rooms[i][y][x] = {outer = {}, inner = {}}
 			local x1 = room_center.x - dim.room[i].x / 2
 			local y1 = room_center.y - dim.room[i].y / 2
 			local x2 = room_center.x + dim.room[i].x / 2
 			local y2 = room_center.y + dim.room[i].y / 2
-			mdt.coordinates.rooms[i][y][x].outter =  {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
+			mdt.coordinates.rooms[i][y][x].outer =  {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
 			x1 = room_center.x - dim.thyng[i].x / 2
 			y1 = room_center.y - dim.thyng[i].y / 2
 			x2 = room_center.x + dim.thyng[i].x / 2

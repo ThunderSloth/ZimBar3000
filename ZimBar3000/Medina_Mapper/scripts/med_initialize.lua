@@ -19,13 +19,15 @@ function on_plugin_start()
 end
 -- load variables
 function medina_get_variables() 
+	colours_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
     defualt_window_width, defualt_window_height = 300, 300
     window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
+    arrow_set = GetVariable("arrow_set") or "default"
     assert(loadstring(GetVariable("med") or ""))()
     if not med then med = {}; medina_reset_rooms() end
     med.exit_counts = medina_get_exit_counts(med.rooms) -- for brief/night solving
-    med.colours = medina_get_colours()
+    medina_get_colours()
     med.players = {} -- set containing playernames with associated colour
     med.sync = {received = false, data = {}, is_valid = false}
     med.look_room = false     -- store the room we are looking at
@@ -45,10 +47,11 @@ end
 -- save variables
 function OnPluginSaveState () 
 	var.med = "med = "..serialize.save_simple(med)
-	SetVariable("window_width", window_width)
-	SetVariable("window_height", window_height)
-	SetVariable("window_pos_x", WindowInfo(win, 10))
-	SetVariable("window_pos_y", WindowInfo(win, 11))
+	var.window_width = window_width
+	var.window_height = window_height
+	var.window_pos_x = WindowInfo(win, 10)
+	var.window_pos_y = WindowInfo(win, 11)
+	var.arrow_set = arrow_set
 end
 
 function OnPluginInstall() end

@@ -1,5 +1,6 @@
 --------------------------------------------------------------------------------
---   CONFIG
+--   CONFIGURATION
 --------------------------------------------------------------------------------
--- copy config from voyage mapper
--- note that brief mode and map bottom are also supported configurations
+function on_alias_medina_configure()
+	print("config not yet added")
+end

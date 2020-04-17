@@ -213,7 +213,7 @@ function mdt_window_setup(window_width, window_height) -- define window attribut
 				function(font_id)
 					mdt.dimensions.font[font_id] = {}
 					local font_name = fonts[2]
-					for font_size = 8, 14 do 
+					for font_size = 8, 20 do 
 						local font_height = load_font(font_id..tostring(font_size), font_name, font_size)
 						mdt.dimensions.font[font_id][font_size] = font_height -- store by size
 					end

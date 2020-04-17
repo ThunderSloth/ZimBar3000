@@ -47,7 +47,15 @@ function mdt_get_title_menu(mw)
 		end
 		menu = menu.."<|<|"
 	end
-	menu = menu.."<"
+	menu = menu.."<|>font size|"
+	for i = 8, 20 do
+		menu = menu..(selected_font_size == i and "+" or "")..tostring(i).."|"
+		table.insert(options, function()
+			selected_font_size = i
+			mdt_draw_text(mdt.styles)
+		end)	
+	end
+	menu = menu.."<|<"
 	menu = (string.gsub(menu, "%W%l", string.upper):sub(2));menu = "!"..menu:gsub("(||+)", "||"):gsub("(V%d)", string.lower)
     result = string.lower(WindowMenu(win[mw], 
       WindowInfo(win[mw], 14), --x

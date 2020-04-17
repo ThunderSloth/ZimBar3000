@@ -26,6 +26,8 @@ function mdt_get_variables()
     window_height = window_height or {300, 300 + FIXED_TITLE_HEIGHT}
     assert(loadstring(GetVariable("window_pos_x" ) or ""))()
     assert(loadstring(GetVariable("window_pos_y" ) or ""))()  
+    selected_font_size = GetVariable("selected_font_size")
+    selected_font_size = tonumber(selected_font_size) or 13
     -- 'rooms' will be used to store room data by x, y location relative to the origin ('you' in the center)
     -- 'locations' will be used to store location data by room id
     -- 'fight rooms' will contain which rooms have mobs actively engaged in battle (with 'you')
@@ -104,6 +106,7 @@ function OnPluginSaveState ()
 	var.window_height = "window_height = " ..serialize.save_simple(window_height)
 	var.window_pos_x  = "window_pos_x  = " ..serialize.save_simple(window_pos_x)
 	var.window_pos_y  = "window_pos_y  = " ..serialize.save_simple(window_pos_y)
+	var.selected_font_size = selected_font_size
 end
 
 function OnPluginInstall() end

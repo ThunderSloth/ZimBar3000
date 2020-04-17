@@ -347,7 +347,7 @@ function mdt_draw_text(styles)
 			local y1 = y2 + line_buffer
 			return y1, y1 + h 
 		end
-		local font_size = 13
+		local font_size = selected_font_size
 		local font_id = "text"..tostring(font_size)
 		local h =  dim.font.text[font_size]
 		local y1 = dim.buffer[2].y + FIXED_TITLE_HEIGHT

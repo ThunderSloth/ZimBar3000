@@ -212,7 +212,7 @@ function medina_print_map()
 				if not room_colour then
 					local xp = v.thyngs.mobs.thugs + 2 * v.thyngs.mobs.heavies
 					if xp > 0 then
-						room_colour = col.room_outer_fill_xp[xp > 9 and 9 or xp]
+						room_colour = col.room_inner_fill_xp[xp > 9 and 9 or xp]
 					end
 				end
 				if room_colour then

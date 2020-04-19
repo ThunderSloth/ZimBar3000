@@ -40,3 +40,13 @@ end
 function OnPluginPacketReceived(pkt)
 	--print(pkt)
 end
+--------------------------------------------------------------------------------
+--   PLUGIN COMMUNICATION
+--------------------------------------------------------------------------------
+function OnPluginBroadcast(msg, id, name, text)
+	if msg == 173 then
+		medina_update_colours(msg, id, name, text)
+	elseif msg == 727 then
+		medina_update_fonts(msg, id, name, text)
+	end
+end

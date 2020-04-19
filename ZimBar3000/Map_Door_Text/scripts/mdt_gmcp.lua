@@ -67,3 +67,11 @@ function mdt_special_area_text(special_text_styles, special_title)
 	mdt.title[2] = special_title or mdt.title[2]
 	mdt_draw_text(mdt.styles)
 end
+
+function OnPluginBroadcast(msg, id, name, text)
+	if msg == 173 then
+		mdt_update_colours(msg, id, name, text)
+	elseif msg == 727 then
+		mdt_update_fonts(msg, id, name, text)
+	end
+end

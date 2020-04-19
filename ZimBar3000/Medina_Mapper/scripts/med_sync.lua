@@ -63,7 +63,7 @@ function medina_get_sync()
     end
 	time = tostring(n == 0 and 0 or math.floor(time / n))
 	text = time .. text
-    local version = string.format ("%1.1f", GetPluginInfo (GetPluginID (), 19) )
+    local version = string.format ("%1.1f", GetPluginInfo (MED, 19) )
     local signiture = "/zMMv" .. version .. "/"
     local based = medina_convert_base(text, 10, 94) --:format("%0c", 56)
     --based = string.rep('!', 56 - #based)..based 
@@ -156,7 +156,7 @@ function medina_sync_unpacking_successful(percent, time, version, sender)
 	ColourNote(
 		text_colour1, "black", "(This will override your current map.)"
 	)
-	if GetPluginInfo(GetPluginID (), 19) < tonumber(version) then
+	if GetPluginInfo(MED, 19) < tonumber(version) then
 		medina_print_error("There is a newer version of this plugin available!")
 	end
 	Note('\n')

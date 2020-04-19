@@ -15,7 +15,8 @@
 </plugin>
 <script>
 <![CDATA[
-dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)) .. ".lua")
+SHA = GetPluginID (); SHA_PATH = GetPluginInfo (SHA, 20)
+dofile( SHA_PATH .. (GetPluginInfo (SHA, 1)) .. ".lua")
 ]]>
 </script>
 <triggers>

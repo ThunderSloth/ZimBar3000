@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 function medina_get_hotspots(dim) -- dimensions
     WindowAddHotspot(win, "title",
-         0, 0, dim.window.x, dim.font.title, 
+         0, 0, dim.window.x, dim.font.titlebar_text, 
          "",   -- MouseOver
          "",   -- CancelMouseOver
          "mousedown",

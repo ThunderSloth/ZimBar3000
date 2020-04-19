@@ -6,7 +6,7 @@ function on_plugin_start()
     require "serialize"
     require "var"
 	require "pairsbykeys"
-    win = {"map" .. GetPluginID(), "text" .. GetPluginID(), map = "map_staging" .. GetPluginID(), text = "text_staging" .. GetPluginID()}
+    win = {"map" .. MDT, "text" .. MDT, map = "map_staging" .. MDT, text = "text_staging" .. MDT}
     mdt_get_variables()
     mdt_get_regex()
     mdt_get_windows()
@@ -17,9 +17,9 @@ function on_plugin_start()
 end
 -- load variables
 function mdt_get_variables()
-	quowmap_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_quowmap_database.db"
-	colours_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
-	fonts_database   =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_fonts.db"
+	quowmap_database =  GetPluginInfo(MDT, 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_quowmap_database.db"
+	colours_database =  GetPluginInfo(MDT, 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
+	fonts_database   =  GetPluginInfo(MDT, 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_fonts.db"
 	FIXED_TITLE_HEIGHT = 16
     assert(loadstring(GetVariable("window_width" ) or ""))()
     assert(loadstring(GetVariable("window_height") or ""))()

@@ -15,7 +15,8 @@
 </plugin>
 <script>
 <![CDATA[
-dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)) .. ".lua")
+SMU = GetPluginID (); SMU_PATH = GetPluginInfo (SMU, 20)
+dofile( SMU_PATH .. (GetPluginInfo (SMU, 1)) .. ".lua")
 ]]>
 </script>
 <!--  movement handling  -->

@@ -6,7 +6,7 @@ function on_plugin_start()
 	require "serialize" 
 	require "var"
 	require "pairsbykeys"
-    win = "medina_map"..GetPluginID() -- define window name
+    win = "medina_map"..MED -- define window name
     medina_get_variables()
     medina_get_regex()
     medina_get_trigs()
@@ -19,7 +19,10 @@ function on_plugin_start()
 end
 -- load variables
 function medina_get_variables() 
-	colours_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
+	MDT = "a4f2436e923441ce4ba7ab6b" -- mdt plugin
+	colours_database =  GetPluginInfo(MED , 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
+	fonts_database   =  GetPluginInfo(MED , 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_fonts.db"
+	FIXED_TITLE_HEIGHT = 16
     defualt_window_width, defualt_window_height = 300, 300
     window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
@@ -42,7 +45,7 @@ function medina_get_variables()
     med.commands = {move = {count = 0}, look = {count = 0}}
     med.is_in_medina = false
     -- check if mdt plugin is installed and grab
-    MDT = "a4f2436e923441ce4ba7ab6b" -- mdt plugin
+    
 end
 -- save variables
 function OnPluginSaveState () 

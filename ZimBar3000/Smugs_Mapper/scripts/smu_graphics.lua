@@ -38,16 +38,16 @@ function smugs_draw_base(dim, col) -- dimensions, colours
         col.window_background, 0) 
     WindowCircleOp( -- title bar
         win.."base", miniwin.circle_rectangle, 
-        0, 0, dim.window.x, dim.font.title * 1.1,
+        0, 0, dim.window.x, dim.font.titlebar_text * 1.1,
         col.titlebar_border, miniwin.pen_solid, 1,
         col.titlebar_fill, 0)
     local title = "Smugs Cave"
-    local text_width = WindowTextWidth(win.."base", "title", title)
+    local text_width = WindowTextWidth(win.."base", "titlebar_text", title)
     local x1 = (dim.window.x - text_width) / 2
     local y1 = coordinates.title_text.y1 
     local x2 = x1 + text_width
-    local y2 = y1 + dim.font.title
-    WindowText(win.."base", "title", title, x1, y1, x2, y2, col.titlebar_text)
+    local y2 = y1 + dim.font.titlebar_text
+    WindowText(win.."base", "titlebar_text", title, x1, y1, x2, y2, col.titlebar_text)
     for room, coor in pairs(coordinates.rooms) do
         smugs_draw_room_exits(room, coor, col, win.."base") -- draw exits
         smugs_draw_room(room, coor, col, win.."base") -- draw room
@@ -57,7 +57,7 @@ end
 function smugs_draw_room_letter(room, coor, col) -- room, coordinates, colours
     if room ~= 'entrance' then
         local letter_colour = smu.rooms[room].visited and col.room_text_visited or col.room_text_unvisited
-        WindowText (win.."overlay", "larger", room,
+        WindowText (win.."overlay", "room_character", room,
             coor.letter.x1, coor.letter.y1, 0, 0,
             letter_colour, 
             false)

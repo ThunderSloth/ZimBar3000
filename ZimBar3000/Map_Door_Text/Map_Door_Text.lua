@@ -23,7 +23,7 @@ local funcs = {
 	
 	'regex',	  -- compile regular expressions
 	
-	'gmcp',       -- gmcp initiation and events, plus olugin cross communication
+	'gmcp',       -- gmcp initiation and events, plus cross-plugin communication
 	
 	'triggers',   -- xml injections
 	
@@ -49,7 +49,7 @@ local funcs = {
 	
 }
 for _, f in ipairs(funcs) do
-	dofile (GetPluginInfo (GetPluginID (), 20) .. "scripts\\mdt_" .. (f) .. ".lua")
+	dofile (MDT_PATH .. "scripts\\mdt_" .. (f) .. ".lua")
 end
 --------------------------------------------------------------------------------
 --   START EXECUTION HERE

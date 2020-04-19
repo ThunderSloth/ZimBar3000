@@ -12,7 +12,9 @@ local funcs = {
 
 	'initialize', -- load variables, plugin callbacks
 	
-	'setup',      -- create windows, calculate dimensions/coordinates, resize windows, load fonts/images
+	'setup',      -- create windows, calculate dimensions/coordinates, resize windows, load images
+	
+	'fonts',      -- load fonts 
 	
 	'resets',     -- generating/resetting metatable data/timers
 	
@@ -20,7 +22,7 @@ local funcs = {
 	
 	'regex',	  -- compile regular expressions
 	
-	'gmcp',       -- gmcp initiation and events
+	'gmcp',       -- gmcp initiation and events, plus cross-plugin communication
 	
 	'triggers',   -- construct room triggers, do xml injections
 	
@@ -54,7 +56,7 @@ local funcs = {
 	
 }
 for _, f in ipairs(funcs) do
-	dofile (GetPluginInfo (GetPluginID (), 20) .. "scripts\\med_" .. (f) .. ".lua")
+	dofile (MED_PATH .. "scripts\\med_" .. (f) .. ".lua")
 end
 --------------------------------------------------------------------------------
 --   START EXECUTION HERE

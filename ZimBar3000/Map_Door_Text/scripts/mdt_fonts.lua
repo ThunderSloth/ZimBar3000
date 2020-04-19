@@ -101,6 +101,7 @@ function mdt_select_custom_font(font_id, fonts, i)
 		fdb = sqlite3.open(fonts_database)
 		fdb:exec([[UPDATE fonts SET custom = ']]..new_font..[[' WHERE name = ']]..font_id..[[';]])
 		fdb:close()
+		BroadcastPlugin(727, "update fonts")
 		mdt_window_setup(window_width, window_height)
 		if not (mdt.sequence[1] and mdt.special_areas[mdt.sequence[1]]) then
 			mdt_draw_map(mdt.rooms)
@@ -113,6 +114,7 @@ function mdt_restore_default_font(font_id)
 	fdb = sqlite3.open(fonts_database)
 	fdb:exec([[UPDATE fonts SET custom = NULL WHERE name = ']]..font_id..[[';]])
 	fdb:close()
+	BroadcastPlugin(727, "update fonts")
 	mdt_window_setup(window_width, window_height)
 	if not (mdt.sequence[1] and mdt.special_areas[mdt.sequence[1]]) then
 		mdt_draw_map(mdt.rooms)
@@ -124,6 +126,15 @@ function mdt_restore_every_default_font()
 	fdb = sqlite3.open(fonts_database)
 	fdb:exec([[UPDATE fonts SET custom = NULL;]])
 	fdb:close()
+	BroadcastPlugin(727, "update fonts")
+	mdt_window_setup(window_width, window_height)
+	if not (mdt.sequence[1] and mdt.special_areas[mdt.sequence[1]]) then
+		mdt_draw_map(mdt.rooms)
+		mdt_prepare_text(mdt.rooms)
+	end
+end
+
+function mdt_update_fonts(msg, id, name, text)
 	mdt_window_setup(window_width, window_height)
 	if not (mdt.sequence[1] and mdt.special_areas[mdt.sequence[1]]) then
 		mdt_draw_map(mdt.rooms)

@@ -6,7 +6,7 @@ function on_plugin_start()
     require "serialize"
     require "var"
     require "pairsbykeys"
-    win = "smugs_map"..GetPluginID() -- define window name
+    win = "smugs_map"..SMU -- define window name
     smugs_get_variables()
     smugs_get_windows()
     smugs_window_setup(window_width, window_height)
@@ -19,7 +19,10 @@ function on_plugin_start()
 end
 
 function smugs_get_variables()
-	colours_database =  GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
+	MDT = "a4f2436e923441ce4ba7ab6b" -- mdt plugin
+	colours_database =  GetPluginInfo(SMU, 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
+	fonts_database   =  GetPluginInfo(SMU, 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_fonts.db"
+	FIXED_TITLE_HEIGHT = 16
     defualt_window_width, defualt_window_height = 300, 300
     window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
@@ -31,7 +34,7 @@ function smugs_get_variables()
 	smu.sequence = {}
 	smu.players = {}
 	smu.is_in_smugs = false
-	MDT = "a4f2436e923441ce4ba7ab6b" -- mdt plugin
+
 end
 
 function OnPluginSaveState () -- save variables

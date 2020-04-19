@@ -41,3 +41,13 @@ function smugs_recieve_GMCP(text)
         end
     end
 end
+--------------------------------------------------------------------------------
+--   PLUGIN COMMUNICATION
+--------------------------------------------------------------------------------
+function OnPluginBroadcast(msg, id, name, text)
+	if msg == 173 then
+		smugs_update_colours(msg, id, name, text)
+	elseif msg == 727 then
+		smugs_update_fonts(msg, id, name, text)
+	end
+end

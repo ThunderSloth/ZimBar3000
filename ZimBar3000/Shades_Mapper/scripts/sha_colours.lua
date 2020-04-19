@@ -36,18 +36,22 @@ function shades_select_custom_colour(colour, colour_name, i)
 	end
 end
 
-function shades_restore_default_colour(colour, colour_name, i)
+function shades_restore_default_colour(colour_names)
 	cdb = sqlite3.open(colours_database)
-	cdb:exec("UPDATE "..colour_name.." SET custom = NULL"..(i and " WHERE id = "..tostring(i) or ""))
-	for c in cdb:nrows("SELECT preset FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
-		if i then
-			sha.colours[colour_name][i] = ColourNameToRGB(c.preset)
-		else
-			sha.colours[colour_name] = ColourNameToRGB(c.preset)
-		end
-	end	
+    for k, v in pairs(colour_names) do
+		colour_name, i = k:match("^(.*)(%d)$")
+		colour_name = colour_name or k
+		cdb:exec("UPDATE "..colour_name.." SET custom = NULL"..(i and " WHERE id = "..tostring(i) or "")..";")
+		for c in cdb:nrows("SELECT preset FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
+			if i then
+				sha.colours[colour_name][i] = ColourNameToRGB(c.preset)
+			else
+				sha.colours[colour_name] = ColourNameToRGB(c.preset)
+			end
+		end	
+	end
 	cdb:close()
-	BroadcastPlugin(173, colour_name..(i and tostring(i) or ""))
+	BroadcastPlugin(173, "all")
 	shades_draw_base(sha.dimensions, sha.colours)
 	shades_draw_overlay(sha.dimensions, sha.colours)
 	shades_print_map()
@@ -72,32 +76,30 @@ function shades_restore_every_default_colour()
 	shades_print_map()
 end
 
-function OnPluginBroadcast(msg, id, name, text)
-	if msg == 173 then
-		if text == "all" then
-			shades_get_colours()
-			shades_draw_base(sha.dimensions, sha.colours)
-			shades_draw_overlay(sha.dimensions, sha.colours)
-			if WindowInfo(win, 5) then
-				shades_print_map()				
-			end		
-		else
-			local colour_name, i = text:match("^(.-)(%d?)$")
-			if i then i = tonumber(i) end
-			cdb = sqlite3.open(colours_database)
-			for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
-				if i then
-					sha.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
-				else
-					sha.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
-				end
-			end	
-			cdb:close()
-			shades_draw_base(sha.dimensions, sha.colours)
-			shades_draw_overlay(sha.dimensions, sha.colours)
-			if WindowInfo(win, 5) then
-				shades_print_map()				
-			end							
-		end
+function shades_update_colours(msg, id, name, text)
+	if text == "all" then
+		shades_get_colours()
+		shades_draw_base(sha.dimensions, sha.colours)
+		shades_draw_overlay(sha.dimensions, sha.colours)
+		if WindowInfo(win, 5) then
+			shades_print_map()				
+		end		
+	else
+		local colour_name, i = text:match("^(.-)(%d?)$")
+		if i then i = tonumber(i) end
+		cdb = sqlite3.open(colours_database)
+		for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
+			if i then
+				sha.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
+			else
+				sha.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
+			end
+		end	
+		cdb:close()
+		shades_draw_base(sha.dimensions, sha.colours)
+		shades_draw_overlay(sha.dimensions, sha.colours)
+		if WindowInfo(win, 5) then
+			shades_print_map()				
+		end				
 	end
 end

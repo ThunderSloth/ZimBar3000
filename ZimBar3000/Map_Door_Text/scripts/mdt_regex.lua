@@ -4,7 +4,7 @@
 function mdt_get_regex()
 	local regex = {}
 	for _, v in ipairs({"titles", "xp"}) do
-		local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\")..v..".txt", 'r')
+		local f = io.open(MDT_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\")..v..".txt", 'r')
 		regex[v] = Trim(assert(f:read("*a"), "Can't locate "..v..".txt"))
 		f:close()	
 	end

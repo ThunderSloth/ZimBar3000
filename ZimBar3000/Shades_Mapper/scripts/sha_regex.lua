@@ -2,7 +2,7 @@
 --   REGULAR EXPRESSIONS
 --------------------------------------------------------------------------------
 function shades_get_regex()
-	local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."titles.txt", 'r')
+	local f = io.open(SHA_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."titles.txt", 'r')
 	local title_regex = Trim(assert(f:read("*a"), "Can't locate titles.txt"))
 	f:close()
 	regex = {

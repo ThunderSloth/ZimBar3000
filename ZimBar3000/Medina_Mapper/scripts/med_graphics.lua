@@ -39,16 +39,16 @@ function medina_draw_base(dim, col) -- dimensions, colours
         col.exit_line_entrance, miniwin.pen_dot, 1)
     WindowCircleOp( -- title bar
         win.."base", miniwin.circle_rectangle, 
-        0, 0, dim.window.x, dim.font.title * 1.1,
+        0, 0, dim.window.x, dim.font.titlebar_text * 1.1,
         col.titlebar_border, miniwin.pen_solid, 1,
         col.titlebar_fill, 0)
     local title = "Medina"
-    local text_width = WindowTextWidth(win.."base", "title", title)
+    local text_width = WindowTextWidth(win.."base", "titlebar_text", title)
     local x1 = (dim.window.x - text_width) / 2
     local y1 = coordinates.title_text.y1 
     local x2 = x1 + text_width
-    local y2 = y1 + dim.font.title
-    WindowText(win.."base", "title", title, x1, y1, x2, y2, col.titlebar_text)
+    local y2 = y1 + dim.font.titlebar_text
+    WindowText(win.."base", "titlebar_text", title, x1, y1, x2, y2, col.titlebar_text)
     for room, coor in pairs(coordinates.rooms) do
         medina_draw_room(room, coor, col, win.."base") -- draw room
         medina_draw_room_exits(room, coor, col, win.."base") -- draw exits
@@ -57,7 +57,7 @@ end
 -- draw room letter
 function medina_draw_room_letter(room, coor, col) -- room, coordinates, colours
     local letter_colour = med.rooms[room].visited and col.room_text_visited or col.room_text_unvisited
-    WindowText (win.."overlay", "larger", room,
+    WindowText (win.."overlay", "room_character", room,
         coor.letter.x1, coor.letter.y1, 0, 0,
         letter_colour, 
         false)
@@ -105,7 +105,7 @@ function medina_print_map()
             end
             for_text_length = for_text_length.."]"
             table.insert(exit_text, {colour = col.exit_text_bracket, text = "]"})
-            return WindowTextWidth(win, "larger", for_text_length), exit_text
+            return WindowTextWidth(win, "room_character", for_text_length), exit_text
         end
         local directions = {n = true, ne = true, e = true, se = true, s = true, sw = true, w = true, nw = true}
         for dir, _ in pairs(directions) do WindowDeleteHotspot(win, dir) end
@@ -124,9 +124,9 @@ function medina_print_map()
             local text_width, exit_text = get_exit_text_info(unsolved_exits, med.colours, absolute_current)
             local x1 = (dim.window.x - text_width) / 2
             local y1 = coor.y1
-            local y2 = y1 + dim.font.larger
+            local y2 = y1 + dim.font.room_character
             for _, v in ipairs(exit_text) do
-                local x2 = x1 + WindowTextWidth(win, "larger", v.text)
+                local x2 = x1 + WindowTextWidth(win, "room_character", v.text)
                 if directions[v.text] then
                      WindowAddHotspot(win, v.text,  
                         x1, y1, x2, y2,
@@ -138,7 +138,7 @@ function medina_print_map()
                         "Look "..v.text,
                         miniwin.cursor_hand, 0)
                 end
-                x1 = x1 + WindowText(win, "larger", v.text, x1, y1, x2, y2, v.colour)
+                x1 = x1 + WindowText(win, "room_character", v.text, x1, y1, x2, y2, v.colour)
             end
         end
     end

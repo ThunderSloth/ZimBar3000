@@ -40,7 +40,7 @@ function smugs_get_triggers()
     
     local tracking = {"enter", "exit"} 
     for _, v in ipairs(tracking) do
-        local f = io.open(GetPluginInfo(GetPluginID (), 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\")..v..".txt", 'r')
+        local f = io.open(SMU_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\")..v..".txt", 'r')
 		local match_on = Trim(assert(f:read("*a"), "Can't locate "..v..".txt"))
 		AddTrigger("smugs_mob_"..v, match_on, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", "on_trigger_smugs_mob_track")
 		f:close()

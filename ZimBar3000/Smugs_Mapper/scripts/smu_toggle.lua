@@ -7,6 +7,7 @@ function smugs_enter()
         smu.commands, smu.sequence = {count = 0}, {}
         EnableGroup("smugs", true)
         DeleteTimer("smugs_unvisit")
+        DeleteTimer("smugs_depopulate")
     end
 end
 

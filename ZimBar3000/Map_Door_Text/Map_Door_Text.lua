@@ -13,7 +13,9 @@ local funcs = {
 
 	'initialize', -- load variables, plugin callbacks
 	
-	'setup',      -- create windows, calculate dimensions/coordinates, resize windows, load fonts/images
+	'setup',      -- create windows, calculate dimensions/coordinates, resize windows, load images
+	
+	'fonts',      -- load fonts
 	
 	'parse',      -- main map door text parsing function
 	

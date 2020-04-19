@@ -6,7 +6,7 @@ function mdt_get_hotspots(dim) -- dimensions
 		-- titlebar
 	    WindowAddHotspot(
 			win[i], "title"..tostring(i),
-			0, 0, dim.window[i].x, dim.font.title, 
+			0, 0, dim.window[i].x, dim.font.titlebar_text, 
 			"", "", "mousedown", "cancelmousedown", "mouseup", 
 			"Left-click to drag!", 1, 0)
 		-- add drag handler

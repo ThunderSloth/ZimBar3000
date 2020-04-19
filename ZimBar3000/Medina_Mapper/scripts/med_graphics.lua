@@ -13,10 +13,11 @@ end
 function medina_draw_room_exits(room, coor, col, mw) --room, coordinates, colours, miniwindow
     for norm, dir in pairs(med.rooms[room].normalized) do
         local border_colour = dir and col.exit_border or col.exit_border_unsolved
+        local fill_colour = dir and col.exit_fill or col.exit_fill_unsolved
         WindowCircleOp(mw, 2, -- draw exit
             coor.exit[norm].x1, coor.exit[norm].y1, coor.exit[norm].x2, coor.exit[norm].y2,            
             border_colour, 0, 1,
-            col.exit_fill, 0)
+            fill_colour, 0)
         if dir then WindowDrawImage(mw, dir, coor.exit[norm].x1 + 2, coor.exit[norm].y1 + 2, 0, 0, 1) end --if solved draw arrow
     end
 end
@@ -148,7 +149,7 @@ function medina_print_map()
             for _ , r in ipairs(room) do
                 WindowCircleOp(win, 2,
                     coor[r].room.outer.x1, coor[r].room.outer.y1, coor[r].room.outer.x2, coor[r].room.outer.y2,            
-                    col.window_background, 0, 0,
+                    med.colours.window_background, 0, 0,
                     colour1, fill_style)
                 WindowRectOp (win, 1, coor[r].room.outer.x1, coor[r].room.outer.y1, coor[r].room.outer.x2, coor[r].room.outer.y2, colour2)
             end
@@ -159,7 +160,7 @@ function medina_print_map()
             for _ , r in ipairs(room) do
                 WindowCircleOp(win, 2,
                     coor[r].room.inner.x1, coor[r].room.inner.y1, coor[r].room.inner.x2, coor[r].room.inner.y2,            
-                    col.window_background, 0, 0,
+                    med.colours.window_background, 0, 0,
                     colour, fill_style)
                 WindowRectOp (win, 1, coor[r].room.inner.x1, coor[r].room.inner.y1, coor[r].room.inner.x2, coor[r].room.inner.y2, colour)
             end

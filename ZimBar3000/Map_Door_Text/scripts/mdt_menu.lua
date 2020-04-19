@@ -47,7 +47,36 @@ function mdt_get_title_menu(mw)
 		end
 		menu = menu.."<|<|"
 	end
-	menu = menu.."<|>font size|"
+	local plugin_fonts = {
+		titlebar_text   = "Select font for titlebar:",
+		room_character  = "Select font for characters displayed inside of map rooms:",
+		text_window     = "Select font for mob text window:",
+	}
+	menu = menu.."<|>fonts|>defaults|restore all||"
+	table.insert(options, function()
+		mdt_restore_every_default_font()
+	end)
+	for k, v in pairs(plugin_fonts) do
+		menu = menu..k:gsub("_", " ").."|"
+		table.insert(options, function()
+			mdt_restore_default_font(k)
+		end)
+	end
+	menu = menu.."<|>custom|"
+	for k, v in pairs(plugin_fonts) do
+		menu = menu..k:gsub("_", " ").."|"
+		table.insert(options, function()
+			local t = {}
+			local title = "Custom Font Picker"
+			local fonts, t = {}, utils.getfontfamilies()
+			for k, _ in pairs(t) do
+				table.insert(fonts, k)
+			end
+			mdt_select_custom_font(k, fonts, utils.listbox(v, title, fonts))
+		end)
+		
+	end
+	menu = menu.."<|<|>font size|"
 	for i = 8, 20 do
 		menu = menu..(selected_font_size == i and "+" or "")..tostring(i).."|"
 		table.insert(options, function()

@@ -53,13 +53,13 @@ function mdt_titlebar(mw, dim, coor, col)
 	-- add window border also 
     WindowRectOp(win[mw], 1, 0, 0, dim.window[i].x, dim.window[i].y, col.window_border) 
 	WindowCircleOp (win[mw], 2, 
-		0, 0, dim.window[i].x, dim.font.title,
+		0, 0, dim.window[i].x, dim.font.titlebar_text,
 		col.titlebar_border, 0, 1, col.titlebar_fill, 0)
-	local w = WindowTextWidth(win[i], "title", mdt.title[i])
+	local w = WindowTextWidth(win[i], "titlebar_text", mdt.title[i])
 	local x1 = (dim.window[i].x - w) / 2
 	local min = 1
 	if x1 < min then x1 = min end
-	WindowText(win[mw], "title", mdt.title[i], 
+	WindowText(win[mw], "titlebar_text", mdt.title[i], 
 		x1, 0, 0, 0,
 		col.titlebar_text)      
 end
@@ -105,10 +105,10 @@ function mdt_draw_map(map_data)
 		WindowRectOp(mw, 2, x1, y1, x2, y2, colour)
 	end
 	local function draw_room_number(mw, dim, coor, colour, map_data, view, x, y, xp, underlined)
-		local font_id = "map"..tostring(view)
+		local font_id = "room_character"..tostring(view)
 		local w = WindowTextWidth(mw, font_id, xp)
 		local x1 = coor.rooms[view][y][x].outer.x1 + (dim.room[view].x - w) / 2
-		local y1 = coor.rooms[view][y][x].outer.y1 + (dim.room[view].y - dim.font.map[view]) / 2
+		local y1 = coor.rooms[view][y][x].outer.y1 + (dim.room[view].y - dim.font.room_character[view]) / 2
 		WindowText(mw, underlined and font_id.."underlined" or font_id, xp, x1, y1, 0, 0, colour, false)
 	end
 	local function draw_room_thyngs(mw, dim, coor, col, map_data, view, x, y, room_count, player_room)
@@ -348,8 +348,8 @@ function mdt_draw_text(styles)
 			return y1, y1 + h 
 		end
 		local font_size = selected_font_size
-		local font_id = "text"..tostring(font_size)
-		local h =  dim.font.text[font_size]
+		local font_id = "text_window"..tostring(font_size)
+		local h =  dim.font.text_window[font_size]
 		local y1 = dim.buffer[2].y + FIXED_TITLE_HEIGHT
 		local y2 = y1 + h
 		for _, t in ipairs(styles) do

@@ -62,6 +62,7 @@ end
 -------------------------------------------------------------------------------
 function mdt_special_area_text(special_text_styles, special_title)
 	assert(loadstring(special_text_styles))()
+	mdt.longest_path = ""
 	mdt.styles = text_styles
 	mdt.title[2] = special_title or mdt.title[2]
 	mdt_draw_text(mdt.styles)

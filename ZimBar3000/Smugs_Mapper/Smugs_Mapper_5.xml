@@ -56,7 +56,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    <trigger
    group="smugs"
    keep_evaluating="y"
-   match="^.* smugglers? (attacks you from behind\.  .*|moves? aggressively towards you!)$"
+   match="^(.* smugglers? (attacks you from behind\.  .*|moves? aggressively towards you!)|You prepare to attack .*)$"
    name="smugs_room_aggro"
    regexp="y"
    send_to="12"

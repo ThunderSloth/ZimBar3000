@@ -109,7 +109,7 @@ function mdt_window_setup(window_width, window_height) -- define window attribut
 			end
         end
 		mdt.coordinates = {rooms = {}, title_text = {},}
-        mdt.coordinates.title_text.y1 = ((dim.font.title * 1.1) - dim.font.title) / 2
+        mdt.coordinates.title_text.y1 = ((dim.font.titlebar_text * 1.1) - dim.font.titlebar_text) / 2
         local map_origin = {
 			x = (dim.map.x / 2) + dim.buffer[1].x,
 			y = (dim.map.y / 2) + dim.buffer[1].y + FIXED_TITLE_HEIGHT,}
@@ -132,100 +132,8 @@ function mdt_window_setup(window_width, window_height) -- define window attribut
 			WindowResize(win[k], dim.window[i].x, dim.window[i].y, miniwin.pos_center_all, 0, mdt.colours.window_transparency)
         end
     end
-
-	local function get_font(dim) -- dimensions
-		-- chose our fonts, pick backups if unavailable
-		local function choose_fonts()
-			local chosen_fonts = {false, false}
-			local f_tbl = utils.getfontfamilies() -- all possible fonts
-			local choice = { -- our choice for each font, with two backups
-				{"System", "Fixedsys", "Arial"},       -- title
-				{"Dina", "Arial", "Helvetica"},        -- others
-			}
-			 -- if our chosen font exists then pick it
-			for i, t in ipairs(choice) do
-				for ii, f in ipairs(t) do
-					if f_tbl[f] then
-						chosen_fonts[i] = f
-						break
-					end
-				end
-			end
-			-- if none of our chosen fonts are avaliable, pick the first one that is
-			for i, f in ipairs(chosen_fonts) do 
-				if not f then
-					for k in pairs(f_tbl) do
-						chosen_fonts[i] = k
-						break
-					end
-				end
-			end
-			assert(chosen_fonts[1] and chosen_fonts[2], "Fonts not loaded!")
-			return chosen_fonts
-		end
-		local fonts = choose_fonts()
-		-- determine font size based on font and max height
-		local function get_size(font_id, font_name, max_height)
-			local max_size, font_size = 200, 1
-			local font_height = 0
-			while (font_height <= max_height) and (font_size < max_size) do
-				-- load the font in order to determine its size size
-				WindowFont(win[1], font_id, font_name, font_size, false, false, true, false)
-				font_height = tonumber(WindowFontInfo(win[1], font_id, 1)) or font_height or 0
-				-- if it passes or maximums then we have found our size
-				if font_height > max_height or font_size > max_size then
-					-- use previous size
-					return (font_size - 1) > 1 and (font_size - 1) or 1
-				end
-				-- try the next size up
-				font_size = font_size + 1
-			end
-		end
-		-- load font and retun font height
-		local function load_font(font_id, font_name, font_size)
-			-- load fonts on each miniwindow
-			for k, mw in pairs(win) do
-				WindowFont(mw, font_id, font_name, font_size, false, false, false, false)
-				WindowFont(mw, font_id.."underlined", font_name, font_size, false, false, true, false)
-			end
-			return tonumber(WindowFontInfo(win[1], font_id, 1)) or font_height or 0
-		end
-		-- our sizes are all determine by entirely different methods
-		local font_methods = {
-			title = ( -- determined by fixed hight
-				function(font_id)
-					local font_name = fonts[1] 
-					local font_size   = get_size(font_id, font_name, FIXED_TITLE_HEIGHT)
-					local font_height = load_font(font_id, font_name, font_size)
-					mdt.dimensions.font[font_id] = font_height -- single value
-				end),
-			map = ( -- determined by room proportions, there will be a diffrent size for each possible vision limit
-				function(font_id)
-					mdt.dimensions.font[font_id] = {}
-					local font_name = fonts[2]
-					for i = 0, #dim.room do         
-						local font_size   = get_size(font_id..tostring(i), font_name, dim.room[i].y)
-						local font_height = load_font(font_id..tostring(i), font_name, font_size)
-						mdt.dimensions.font[font_id][i] = font_height -- store by vision limit
-					end
-				end),
-			text = ( -- preset sizes
-				function(font_id)
-					mdt.dimensions.font[font_id] = {}
-					local font_name = fonts[2]
-					for font_size = 8, 20 do 
-						local font_height = load_font(font_id..tostring(font_size), font_name, font_size)
-						mdt.dimensions.font[font_id][font_size] = font_height -- store by size
-					end
-				end),
-		}
-		mdt.dimensions.font = {}
-		for font_id, func in pairs(font_methods) do
-			func(font_id)
-		end
-	end
     mdt.dimensions = get_window_dimensions(window_width, window_height)
     resize_windows(mdt.dimensions)
-    get_font(mdt.dimensions)
+    mdt_get_font(mdt.dimensions)
     get_coordinates(mdt.dimensions)
 end

@@ -52,6 +52,7 @@ function smugs_get_font(dim)
 		end
 		for _, mw in ipairs({win.."base", win.."underlay", win.."overlay"}) do
 			assert(WindowFont(mw, c, f, s, false, false, false, false), tostring(mw).." "..tostring(c).." "..tostring(f).." "..tostring(s))
+			assert(WindowFont(mw, c.."underlined", f, s, false, false, true, false), tostring(mw).." "..tostring(c).." "..tostring(f).." "..tostring(s))
 			smu.dimensions.font[c] = h or 0
 		end
 	end

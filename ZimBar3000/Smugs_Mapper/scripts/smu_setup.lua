@@ -31,6 +31,9 @@ function smugs_window_setup(window_width, window_height) -- define window attrib
         smu.dimensions.exit = {
             x = (smu.dimensions.block.x - smu.dimensions.room.x) / 2, 
             y = (smu.dimensions.block.y - smu.dimensions.room.y) / 2}
+        smu.dimensions.down = {
+            x = smu.dimensions.room.x * .45, 
+            y = smu.dimensions.room.y * .45}
         return smu.dimensions
     end
 
@@ -65,6 +68,13 @@ function smugs_window_setup(window_width, window_height) -- define window attrib
                 end
                 smu.coordinates.rooms[k].exit[dir] = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
             end
+            
+            smu.coordinates.rooms[k].down = {}
+			local x1 = origin.x - dim.down.x/2
+			local y1 = origin.y + dim.room.y/2
+			local x2 = origin.x + dim.down.x/2
+			local y2 = y1 + dim.down.y
+			smu.coordinates.rooms[k].down = {x1 = x1, y1 = y1, x2 = x2, y2 = y2}
         end
 
         local function get_letter_coordinates(dim, k, v, origin)
@@ -100,16 +110,24 @@ function smugs_window_setup(window_width, window_height) -- define window attrib
     end
 
     local function resize_windows(dim) -- dimensions 
-        WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, smu.colours.window_transparency) -- for loading images
+        WindowResize(win.."copy_from", dim.down.x - 2, dim.down.y - 2, miniwin.pos_center_all, 0, smu.colours.window_transparency) -- for loading images
         WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, smu.colours.window_transparency) -- base: room structure, static objects and bmp images
         WindowResize(win, dim.window.x, dim.window.y, smu.colours.window_background) -- display window: only dynamic objects will be printed directly here
         WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, smu.colours.window_transparency) --overlay: room-letters
     end
 
+	-- load arrows for exit representation
+    local function get_images(dim) -- dimensions
+        local file_path = SMU_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\images\\")
+		check(WindowLoadImage(win.."copy_from", "down", file_path.."down.bmp"))
+		check(WindowDrawImage(win.."copy_from", "down", 0, 0, dim.down.x - 2, dim.down.y - 2, 2))
+		check(WindowImageFromWindow(win, "down", win.."copy_from"))
+    end
     local dimensions, colours = get_window_dimensions(window_width, window_height), smu.colours
     resize_windows(dimensions)
     smugs_get_font(dimensions)
     get_room_coordinates(dimensions)
+    get_images(dimensions)
     smugs_draw_base(dimensions, colours)
     smugs_draw_overlay(dimensions, colours)
 

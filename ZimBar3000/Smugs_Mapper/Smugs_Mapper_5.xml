@@ -64,6 +64,37 @@ dofile( SMU_PATH .. (GetPluginInfo (SMU, 1)) .. ".lua")
    sequence="100"
    script="on_trigger_smugs_room_aggro"
   ></trigger>
+ <!--  hidey-hole tracking  -->
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^(A dingy tunnel \[d\]|Some rocks have been moved aside to reveal a narrow hole leading down|You examine the ground carefully and notice some rocks that look like they have been moved recently.  Shifting them aside, you reveal a hole in the ground|.*  searches around carefully, and moves aside a couple of rocks in the corner to reveal a hole in the floor).$"
+   name="smugs_hidey_hole_here"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_hidey_hole_here"
+  ></trigger>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^Rock is all around you, though some of those rock formations do look a little odd; perhaps they are concealing something.$"
+   name="smugs_hidey_hole_find"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_hidey_hole_find"
+  ></trigger>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^It's a tunnel.  There is rock pretty much all around you.$"
+   name="smugs_hidey_hole_fail"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_hidey_hole_fail"
+  ></trigger>
 </triggers>
 <aliases>
  <!--  debug  -->

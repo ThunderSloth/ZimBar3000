@@ -8,6 +8,7 @@ function smugs_enter()
         EnableGroup("smugs", true)
         DeleteTimer("smugs_unvisit")
         DeleteTimer("smugs_depopulate")
+        DeleteTimer("smugs_fill_hole")
     end
 end
 
@@ -18,6 +19,7 @@ function smugs_exit()
         EnableGroup("smugs", false)
         check(AddTimer("smugs_unvisit", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "smugs_unvisit"))
         check(AddTimer("smugs_depopulate", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "smugs_depopulate"))
+        check(AddTimer("smugs_fill_hole", 0, 20, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "smugs_reset_hidey_hole"))
     end
 end
 

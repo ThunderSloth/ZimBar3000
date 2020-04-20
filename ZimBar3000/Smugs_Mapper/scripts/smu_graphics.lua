@@ -57,7 +57,12 @@ end
 function smugs_draw_room_letter(room, coor, col) -- room, coordinates, colours
     if room ~= 'entrance' then
         local letter_colour = smu.rooms[room].visited and col.room_text_visited or col.room_text_unvisited
-        WindowText (win.."overlay", "room_character", room,
+        WindowCircleOp(win.."overlay", 2, coor.room.outer.x1, coor.room.outer.y1, coor.room.outer.x2, coor.room.outer.y2,  col.window_transparency, 0, 0, col.window_transparency, 0)
+        local font_id = "room_character"
+        if smu.rooms[room].hole_room and not smu.rooms[room].searched then
+			font_id = font_id.."underlined"
+        end
+        WindowText(win.."overlay", font_id, room,
             coor.letter.x1, coor.letter.y1, 0, 0,
             letter_colour, 
             false)
@@ -74,6 +79,13 @@ function smugs_draw_overlay(dim, col) -- dimensions, colours
     for room, coor in pairs(coordinates.rooms) do
         smugs_draw_room_letter(room, coor, col)
     end
+end
+
+function smugs_draw_down_exit(room)
+	local coor = smu.coordinates.rooms[room].down
+	check(WindowDrawImage(win, "down", coor.x1 + 1, coor.y1 + 1, 0, 0, 1))
+	WindowRectOp(win, miniwin.rect_frame, 
+		coor.x1, coor.y1, coor.x2, coor.y2, smu.colours.exit_border)	
 end
 
 function smugs_print_map()
@@ -211,6 +223,9 @@ function smugs_print_map()
         draw_thyng(current_room, coordinates.rooms[current_room], col.room_inner_fill_you)
         if current_room and trajectory_room and not (current_room == trajectory_room and smu.rooms[current_room].aggro) then
 			draw_border(trajectory_room, coordinates.rooms[trajectory_room], col.room_border_trajectory)
+		end
+		if smu.hole then
+			smugs_draw_down_exit(smu.hole)
 		end
         get_text_styles(current_room, trajectory_room, fill_colours, col)
     end

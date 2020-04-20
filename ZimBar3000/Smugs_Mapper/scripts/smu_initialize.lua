@@ -29,6 +29,7 @@ function smugs_get_variables()
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
     assert(loadstring(GetVariable("smu") or ""))()
     if not smu then smu = {}; smugs_reset_rooms() end
+    smugs_reset_hidey_hole()
     smu.text_title = "Smugs"
 	smugs_get_colours()
 	smu.commands = {count = 0}

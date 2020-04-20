@@ -24,7 +24,7 @@ function smugs_get_hotspots(dim) -- dimensions
              "mousedown",
              "cancelmousedown", 
              "mouseup", 
-             '', -
+             '',
              1, 0)
     end
 end

@@ -241,7 +241,7 @@ function voyage_get_room_menu(room)
     end
     local deck = "ropes&nails&boards&unheld carpenter's hammers&buckets&towels&lemons"
     local weapons = "unheld steel-tipped harpoons&unheld fire axes&unheld arbalests&unheld arbalest bolts&bandages"
-    local boiler = "unheld control rods&toys&every shoe polish&every coal&bottles"
+    local boiler = "unheld control rods&toys&every shoe polish&every coal&brown bottles except klein bottles"
         menu = menu.."|^drop items:|all|deck|weapons|boiler|"
         for i, v in ipairs({[1] = deck.."&"..weapons.."&"..boiler, [2] = deck, [3] = weapons, [4] = boiler}) do
             table.insert(options, function()

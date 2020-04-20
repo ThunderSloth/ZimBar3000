@@ -83,6 +83,7 @@ function smugs_get_mobs(wildcards, sign)
 					end
 				end
 			elseif name == "captain" and v > 0 then
+				smugs_reset_hidey_hole()
 				for r, _ in pairs(smu.rooms) do
 					-- remove captain from elsewhere, as he is unique
 					smu.rooms[r].thyngs.mobs.captain = 0

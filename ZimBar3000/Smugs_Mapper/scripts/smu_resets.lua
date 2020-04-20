@@ -59,9 +59,13 @@ function smugs_reset_rooms()
             Z = {location = {x =5.5,y = 4,}, exits = {                             },},
             entrance = {location = {x=-100, y=-100}, exits = {se = "A"},},
             },
-        chambers = {I = true, T = true, N = true,},}
+        chambers = {I = true, T = true, N = true,},
+        }
+	local hole_rooms = {E = true, F = true, G = true, H = true, J = true, K = true, L = true, M = true, P = true, V = true}
      -- create inverse set of exits
+     -- add potential hidey hole rooms
     for k, v in pairs(smu.rooms) do
+		smu.rooms[k].hole_room = hole_rooms[k]
         smu.rooms[k].path = smu.rooms[k].path or {}
         for r, x in pairs(v.exits) do
             smu.rooms[k].path[x] = r
@@ -77,14 +81,7 @@ function smugs_reset_thyngs(room)
 	smu.rooms[room].aggro = false
 end
 
--- reset all mobs
-function smugs_depopulate()
-	for r, _ in pairs(smu.rooms) do
-		smugs_reset_thyngs(r)
-	end
-end
-
--- reset all
+-- reset all visited rooms
 function smugs_unvisit()
     for r, _ in pairs(smu.rooms) do
         smu.rooms[r].visited = false
@@ -94,6 +91,57 @@ function smugs_unvisit()
     end
 end
 
+-- reset all mobs
+function smugs_depopulate()
+	for r, _ in pairs(smu.rooms) do
+		smugs_reset_thyngs(r)
+	end
+end
+
+-- reset hidey-hole
+function smugs_reset_hidey_hole()
+	for r, v in pairs(smu.rooms) do
+		if v.hole_room then
+			smu.rooms[r].searched = false
+			if (tonumber(WindowInfo(win.."overlay", 3) or 0) > 0) and smu.coordinates then -- if overlay has been constructed,
+				smugs_draw_room_letter(r, smu.coordinates.rooms[r], smu.colours)
+			end
+		end
+	end
+	smu.hole = false
+end
+
+function smugs_search_every_hidey_hole()
+	for r, v in pairs(smu.rooms) do
+		if v.hole_room then
+			if not smu.rooms[r].searched then
+				smu.rooms[r].searched = true
+				smugs_draw_room_letter(r, smu.coordinates.rooms[r], smu.colours)
+			end
+		end
+	end
+end
+
+function on_trigger_smugs_hidey_hole_here(name, line, wildcards, styles)
+	local room = smu.sequence[1]
+	smu.hole = room
+	smugs_search_every_hidey_hole()
+	smugs_print_map()
+end
+
+function on_trigger_smugs_hidey_hole_find(name, line, wildcards, styles)
+	local room = smu.sequence[1]
+	smu.hole = room
+	smugs_search_every_hidey_hole()
+	smugs_print_map()
+end
+
+function on_trigger_smugs_hidey_hole_fail(name, line, wildcards, styles)
+	local room = smu.sequence[1]
+	smu.rooms[room].searched = true
+	smugs_draw_room_letter(room, smu.coordinates.rooms[room], smu.colours)
+	smugs_print_map()
+end
 
 
 

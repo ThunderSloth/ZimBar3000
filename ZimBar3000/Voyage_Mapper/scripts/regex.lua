@@ -3,6 +3,7 @@ function voyage_get_regex()
 	local title_regex = Trim(assert(f:read("*a"), "Can't locate titles.txt"))
 	f:close()
 	return {
+		players = rex.new("(\\\\u001b\\[4zmxp<(c )?(b_\\w+|b|u|(?<colour>.*?))mxp>)+(?<player>.*?)\\\\u001b\\[3z"),
         vision = rex.new("([Tt]he limit of your vision is .+? from here(?: and)?[,.]?)"),
         doors = rex.new("((?:[Aa] )?[Dd]oors?.*?of (?:[1-5]? ?(?:(?(?=starboard|port)(starboard|port)(aft|fore)?|(aft|fore)))|and|,|here| )+)"),
         exits = rex.new("((?:[Aa]n? (?:hard to see through )?)?[Ee]xits?.*?of (?:[1-5]? ?(?:(?(?=starboard|port)(starboard|port)(aft|fore)?|(aft|fore)))|(?:and|,|here| ))+)"),

@@ -40,6 +40,7 @@ function smugs_move_room(room)
     end
     smugs_set_follow_delay(smu.sequence[0], smu.commands[0])
     smugs_reset_thyngs(room)
+    if smu.hole == room then smugs_reset_hidey_hole() end
     smugs_print_map()
 end
 

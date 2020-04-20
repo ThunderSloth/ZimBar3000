@@ -43,9 +43,7 @@ MAP DOOR TEXT:
 )(?#
  MOB/PLAYER:
 )(?<THYNG>(?P>thyng))((?<DELIMINATOR>(?P>deliminator))|(?P>path))]]),
-		players = rex.new([[(?#
-PLAYER:		
-)(\\u001b\[4zMXP<(C )?(?<colour>.*?)MXP>)+(?<player>.*)\\u001b\[3z]]),
+		players = rex.new("(\\\\u001b\\[4zMXP<(C )?(B_\\w+|b|u|(?<colour>.*?))MXP>)+(?<player>.*?)\\\\u001b\\[3z"),
 		remainder = rex.new(
 [[^(?:(?:(an?|one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)|(eleven)|(twelve)|(thirteen)|(fourteen)|(fifteen)|(sixteen)|(seventeen)|(eighteen)|(nineteen)|(twenty)|(many)) )?(?#
  REMAINDER: 00

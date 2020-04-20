@@ -47,6 +47,6 @@ function mdt_get_triggers()
 		return xml:gsub('"%s*>',  '">\n' .. code)
 	end
 	
-	ImportXML ( get_xml_injection( ExportXML (0, "mdt_map_door_look") ) )
+	ImportXML( get_xml_injection( ExportXML (0, "mdt_map_door_look") ) )
 	
 end

@@ -6,6 +6,7 @@ function on_plugin_start()
     require "serialize"
     require "var"
 	require "pairsbykeys"
+	require "check"
     win = {"map" .. MDT, "text" .. MDT, map = "map_staging" .. MDT, text = "text_staging" .. MDT}
     mdt_get_variables()
     mdt_get_regex()

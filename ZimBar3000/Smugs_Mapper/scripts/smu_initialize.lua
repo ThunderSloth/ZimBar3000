@@ -6,6 +6,7 @@ function on_plugin_start()
     require "serialize"
     require "var"
     require "pairsbykeys"
+	require "check"
     win = "smugs_map"..SMU -- define window name
     smugs_get_variables()
     smugs_get_windows()

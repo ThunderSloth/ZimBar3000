@@ -16,8 +16,8 @@ function shades_exit()
         sha.is_in_shades = false
         sha.commands, sha.sequence = {count = 0}, {}
         EnableGroup("shades", false)
-        AddTimer("shades_unvisit", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "shades_unvisit")
-        AddTimer("shades_depopulate", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "shades_depopulate")
+        check(AddTimer("shades_unvisit", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "shades_unvisit"))
+        check(AddTimer("shades_depopulate", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "shades_depopulate"))
     end
     WindowShow(win, false)
 end

@@ -6,6 +6,7 @@ function on_plugin_start()
     require "serialize"
     require "var"	
     require "pairsbykeys"
+	require "check"
     win = "shades_map"..SHA -- define window name
     shades_get_variables()
     shades_get_windows()

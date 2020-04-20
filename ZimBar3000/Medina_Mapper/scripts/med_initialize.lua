@@ -6,6 +6,7 @@ function on_plugin_start()
 	require "serialize" 
 	require "var"
 	require "pairsbykeys"
+    require "check"
     win = "medina_map"..MED -- define window name
     medina_get_variables()
     medina_get_regex()

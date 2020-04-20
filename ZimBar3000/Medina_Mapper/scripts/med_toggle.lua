@@ -18,8 +18,8 @@ function medina_exit()
         local previous_room = med.sequence[1] or false
         med.sequence = {}; med.sequence[0] = previous_room
         EnableGroup("medina", false)
-        AddTimer("medina_unvisit", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "medina_unvisit")
-        AddTimer("medina_depopulate", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "medina_depopulate")
+        check(AddTimer("medina_unvisit", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "medina_unvisit"))
+        check(AddTimer("medina_depopulate", 0, 3, 0, "", timer_flag.Enabled + timer_flag.Replace + timer_flag.Temporary + timer_flag.OneShot, "medina_depopulate"))
     end
     WindowShow(win, false)
 end

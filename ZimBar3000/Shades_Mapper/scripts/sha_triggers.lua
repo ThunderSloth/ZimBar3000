@@ -176,7 +176,7 @@ function shades_get_trigs()
 
     for _, v in pairs(triggers) do
         if v.match then
-            AddTrigger(v.name, v.match, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", v.script)
+            check(AddTrigger(v.name, v.match, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", v.script))
             SetTriggerOption (v.name, "group", v.group)
             SetTriggerOption (v.name, "multi_line", v.multi_line)
             if v.multi_line == 'y' then
@@ -193,7 +193,7 @@ function shades_get_trigs()
     for _, v in ipairs(tracking) do
         local f = io.open(SHA_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\")..v..".txt", 'r')
 		local match_on = Trim(assert(f:read("*a"), "Can't locate "..v..".txt"))
-		AddTrigger("shades_mob_"..v, match_on, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", "on_trigger_shades_mob_track")
+		check(AddTrigger("shades_mob_"..v, match_on, "", trigger_flag.KeepEvaluating + trigger_flag.IgnoreCase + trigger_flag.RegularExpression, custom_colour.NoChange, 0, "", "on_trigger_shades_mob_track"))
 		f:close()
 		SetTriggerOption ("shades_mob_"..v, "group", "shades")
 		SetTriggerOption ("shades_mob_"..v, "send_to", 12)

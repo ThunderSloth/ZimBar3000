@@ -6,7 +6,7 @@
    author="Zimbus"
    id="a4f2436e923441ce4ba7ab6b"
    language="Lua"
-   purpose="graphically display gmpc map door text"
+   purpose="graphically display gmcp map door text"
    save_state="y"
    date_written="2016-01-20 19:39:10"
    date_modified="2020-03-30"
@@ -81,6 +81,26 @@ dofile( MDT_PATH .. (GetPluginInfo (MDT, 1)) .. ".lua")
    ignore_case="y"
    sequence="100"
    script="on_alias_mdt_debug_gmpc"
+  ></alias>
+  <alias
+   enabled="y"
+   group="mdt_always_enabled"
+   name="mdt_help"
+   match="^mdt h(elp)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_mdt_help"
+  ></alias>
+  <alias
+   enabled="y"
+   group="mdt_always_enabled"
+   name="mdt_config"
+   match="^mdt config$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_mdt_configure"
   ></alias>
 </aliases>
 </muclient>	

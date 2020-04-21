@@ -2,5 +2,7 @@
 --   HELP
 --------------------------------------------------------------------------------
 function on_alias_medina_help()
-	print("help not yet added")
+	local f = io.open(MED_PATH.."help.txt", 'r')
+	ColourNote("whitesmoke", "", f:read("*a"))
+	f:close()
 end

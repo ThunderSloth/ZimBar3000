@@ -2,7 +2,7 @@
 <!DOCTYPE muclient>
 <muclient>
 <plugin
-   name="Shades_Mapper_5"
+   name="Shades_Mapper"
    author="Zimbus"
    id="fa2bff8d7d84f6e3f887d411"
    language="Lua"
@@ -97,6 +97,36 @@ dofile( SHA_PATH .. (GetPluginInfo (SHA, 1)) .. ".lua")
    ignore_case="y"
    sequence="100"
    script="on_alias_shades_stop"
+  ></alias>
+  <alias
+   group="shades_always_enable"
+   enabled="y"
+   name="shades_help"
+   match="^sha(des)? h(elp)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_shades_help"
+  ></alias>
+  <alias
+   group="shades_always_enable"
+   enabled="y"
+   name="shades_reset"
+   match="^sha(des)? r(eset|s)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_shades_reset"
+  ></alias>
+  <alias
+   group="shades_always_enable"
+   enabled="y"
+   name="shades_config"
+   match="^sha(des)? config$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_shades_configure"
   ></alias>
 </aliases>
 </muclient>

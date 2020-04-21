@@ -4,18 +4,21 @@
 function smugs_get_title_menu()
     local options = {}
     local menu = "!^Smugs Mapper v"..GetPluginInfo (SMU, 19)
-    menu = menu.."||Help||Configure||>Options|>Colours|"
+    menu = menu.."||Help||Configure||Reset||>Options|>Colours|"
     table.insert(options, function()
         on_alias_smugs_help()
     end)
     table.insert(options, function()
         on_alias_smugs_configure()
     end)
+    table.insert(options, function()
+        on_alias_smugs_reset()
+    end)
     menu = menu.."restore all||"
     table.insert(options, function()
         smugs_restore_every_default_colour()
     end)    
-    menu = menu.."defualts|"
+    menu = menu.."defaults|"
     table.insert(options, function()
 		local colours = {}
 		for k, v in pairsByKeys(smu.colours) do

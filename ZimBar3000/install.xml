@@ -1,0 +1,81 @@
+
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="ZimBar_Installer"
+   author="Zimbus"
+   id="a1f748fc2114b307b9ea3731"
+   language="Lua"
+   purpose="installs mdt, medina, shades and smugs mappers"
+   save_state="y"
+   date_written="2020-04-20 12:00:00"
+   requires="5.06"
+   version="1"
+   >
+</plugin>
+<script>
+<![CDATA[
+FILE_PATH = GetPluginInfo (GetPluginID (), 20)
+plugs = {
+	["a4f2436e923441ce4ba7ab6b"] = "Map_Door_Text\\Map_Door_Text.xml",
+	["fa3bff8d7d84e7e3f947d414"] = "Medina_Mapper\\Medina_Mapper.xml",
+	["fa2bff8d7d84f6e3f887d411"] = "Shades_Mapper\\Shades_Mapper.xml",
+	["fa2bff8d7c84f6e3f847d411"] = "Smugs_Mapper\\Smugs_Mapper.xml",
+}
+
+function on_alias_zimbar_config()
+	dofile(FILE_PATH.."\\shared\\zconfig.lua")
+end
+
+function on_alias_zimbar_install()
+	for k, v in pairs(plugs) do
+		local plugin = v:match("^(.-)\\")
+		if IsPluginInstalled(k) then
+			if not ReloadPlugin(k) == 0 then
+				ColourNote("red", "", "WARNING: Unable to reinstalled plugin "..plugin.." ("..k..")")
+			end
+		else		
+			if not LoadPlugin(FILE_PATH..v) == 0 then
+				ColourNote("red", "", "WARNING: Unable to install plugin "..plugin.." ("..k..")")		
+			end
+		end
+	end
+	ColourNote("gray", "", "\n * Thank you for installing the ZimBar3000 mapper-pack! *")
+	ColourTell("gray", "", "Please run: ")
+	Hyperlink ("zimbar config", "zimbar config", "Run ZimBar3000 Configuration", "orange", "", 0)
+	ColourTell("gray", "", ". ")
+	ColourTell("gray", "", "Help: ")
+	Hyperlink ("mdt help", "mdt", "Map Door Text Mapper Help", "orange", "", 0);ColourTell("gray", "", ", ")
+	Hyperlink ("medina help", "medina", "Medina Mapper Help", "orange", "", 0);ColourTell("gray", "", ", ")
+	Hyperlink ("shades help", "shades", "Shades Mapper Help", "orange", "", 0);ColourTell("gray", "", ", ")
+	Hyperlink ("smugs help", "smugs", "Smugs Mapper Help", "orange", "", 0);ColourNote("gray", "", ".\n")
+end
+
+on_alias_zimbar_install()
+
+]]>
+</script>
+<aliases>
+ <alias
+   enabled="y"
+   group="zimbar_install"
+   name="zimbar_config"
+   match="^zimbar config$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_zimbar_config"
+  ></alias>
+  <alias
+   enabled="y"
+   group="zimbar_install"
+   name="zimbar_install"
+   match="^zim(bar)? i(nstall)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_zimbar_install"
+  ></alias>
+ </aliases>
+</muclient>

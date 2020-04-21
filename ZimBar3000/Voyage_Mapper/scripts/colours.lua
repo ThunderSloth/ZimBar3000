@@ -31,7 +31,7 @@ function voyage_get_colours()
             border =     "white",
             background = "black",},
         hull = {
-            defualt =    "gray",
+            default =    "gray",
             fade =       "white",
             damage =     "red",
             ice =        "cyan",

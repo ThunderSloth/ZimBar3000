@@ -1,0 +1,34 @@
+--------------------------------------------------
+--  HELP-FILE FOR: SMUGS MAPPER v5.0 BY ZIMBUS  --
+--------------------------------------------------
+Available Commands:
+
+* smugs help                 -- this help-file
+
+* smugs config               -- run configuration
+
+* smugs reset                -- reset map
+                             
+Reading The Map:
+
+* yellow square              -- you
+
+* yellow room border         -- your trajectory
+
+* player-colour square       -- other players
+
+* green square               -- mobs; dark to light depending on xp sum
+
+* pink square                -- smuggler captain
+
+* red room border            -- mob aggro
+
+* red room fill              -- captain chamber
+
+* blue-ish room letter       -- unvisited room
+
+* gray room letter           -- visited room
+
+* underlined room letter     -- unsearched, potential hidey-hole room
+
+* down arrow                 -- discovered hidey-hole entrance

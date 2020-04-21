@@ -2,7 +2,7 @@
 <!DOCTYPE muclient>
 <muclient>
 <plugin
-   name="Medina_Mapper_5"
+   name="Medina_Mapper"
    author="Zimbus"
    id="fa3bff8d7d84e7e3f947d414"
    language="Lua"
@@ -187,6 +187,26 @@ dofile( MED_PATH .. (GetPluginInfo (MED, 1)) .. ".lua")
    ignore_case="y"
    sequence="100"
    script="on_alias_medina_sync"
+  ></alias>
+  <alias
+   enabled="y"
+   group="medina_commands"
+   name="medina_help"
+   match="^med(ina)? h(elp)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_help"
+  ></alias>
+   <alias
+   enabled="y"
+   group="medina_commands"
+   name="medina_config"
+   match="^med(ina)? config$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_medina_configure"
   ></alias>
 </aliases>
 </muclient>		

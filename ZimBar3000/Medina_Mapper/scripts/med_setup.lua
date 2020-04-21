@@ -106,7 +106,7 @@ function medina_window_setup(window_width, window_height)
 	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	--   DIMENSIONS
 	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	-- resize windows to saved or defualt size
+	-- resize windows to saved or default size
     local function resize_windows(dim) -- dimensions
         WindowResize(win.."copy_from", dim.exit.x - 4, dim.exit.y - 4, miniwin.pos_center_all, 0, med.colours.window_transparency) -- for loading images
         WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, med.colours.window_transparency) -- base: room structure, static objects and bmp images

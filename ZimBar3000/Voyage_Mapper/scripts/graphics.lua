@@ -357,13 +357,13 @@ function voyage_print_map(look_room)
         local function draw_boat(coor, dim, col, left, top, right, bottom)
 			-- draw ice, seaweed and damage on hull
             local function draw_sea_hull(coor, col)
-                local percentage, colour = 0, col.hull.defualt
+                local percentage, colour = 0, col.hull.default
                 if voy.hull.seaweed > 0 then
                     percentage = voy.hull.seaweed
-                    colour = voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.seaweed, percentage)
+                    colour = voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.seaweed, percentage)
                 elseif voy.hull.ice > 0 then
                     percentage = voy.hull.ice
-                    colour = voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.ice, percentage)
+                    colour = voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.ice, percentage)
                 end
                 if percentage > 0 then
                     WindowLine (win.."sea_room", coor.hull.x1, coor.hull.y1, coor.hull.x3, coor.hull.y3, colour, 0, 2)
@@ -398,7 +398,7 @@ function voyage_print_map(look_room)
             local w = dim.sea.block.x + 1
             local h = dim.sea.block.y + 1
             local percentage = voy.hull.condition
-            local outline = voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.damage, percentage)
+            local outline = voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.damage, percentage)
             WindowCircleOp(win.."sea_room", 2, -- background water
                 0, 0, w, h,            
                 col.sea.water, miniwin.pen_null, 0,
@@ -613,8 +613,8 @@ function voyage_draw_underlay(dim, col)
     voyage_draw_part(coor, col, win.."underlay")
     voyage_draw_stage(coor, col, win.."underlay")
     local percentage = voy.hull.condition
-    voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.damage, percentage), win.."underlay")
-    local colour = col.hull.defualt
+    voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.damage, percentage), win.."underlay")
+    local colour = col.hull.default
     if voy.hull.ice > 0 then
         colour = voyage_fade_RGB(col.hull.fade, col.hull.seaweed, voy.hull.ice)
     elseif voy.hull.seaweed > 0 then

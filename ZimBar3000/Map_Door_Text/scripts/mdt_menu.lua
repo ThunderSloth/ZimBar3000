@@ -14,8 +14,8 @@ function mdt_get_title_menu(mw)
     menu = menu.."restore all||"
     table.insert(options, function()
         mdt_restore_every_default_colour()
-    end)    
-    menu = menu.."defualts|"
+    end)
+    menu = menu.."defaults|"
     table.insert(options, function()
 		local colours = {}
 		for k, v in pairsByKeys(mdt.colours) do

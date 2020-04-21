@@ -2,7 +2,7 @@
 <!DOCTYPE muclient>
 <muclient>
 <plugin
-   name="Smugs_Mapper_5"
+   name="Smugs_Mapper"
    author="Zimbus"
    id="fa2bff8d7c84f6e3f847d411"
    language="Lua"
@@ -97,6 +97,36 @@ dofile( SMU_PATH .. (GetPluginInfo (SMU, 1)) .. ".lua")
   ></trigger>
 </triggers>
 <aliases>
+   <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_help"
+   match="^smu(gs?)? h(elp)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_help"
+  ></alias>
+  <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_reset"
+   match="^smu(gs?)? r(eset|s)?"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_reset"
+  ></alias>
+   <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_config"
+   match="^smu(gs?)? config?"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_configure"
+  ></alias>
  <!--  debug  -->
    <alias
    group="smugs_always_enabled"

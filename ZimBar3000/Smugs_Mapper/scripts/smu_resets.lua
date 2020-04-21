@@ -111,6 +111,13 @@ function smugs_reset_hidey_hole()
 	smu.hole = false
 end
 
+function on_alias_smugs_reset()
+	smugs_reset_hidey_hole()
+	smugs_depopulate()
+	smugs_unvisit()
+	smugs_print_map()
+end
+
 function smugs_search_every_hidey_hole()
 	for r, v in pairs(smu.rooms) do
 		if v.hole_room then

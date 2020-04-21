@@ -22,8 +22,8 @@ end
 --   VARIABLES
 --------------------------------------------------------------------------------
 function voyage_get_variables()
-    defualt_window_width, defualt_window_height = 300, 300
-    window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
+    default_window_width, default_window_height = 300, 300
+    window_width, window_height = tonumber(GetVariable("window_width") or default_window_width), tonumber(GetVariable("window_height") or default_window_height)
     window_pos_x, window_pos_y  = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
 	voyage_get_held()
     assert(loadstring(GetVariable("held") or "")) ()

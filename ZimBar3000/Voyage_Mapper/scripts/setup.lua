@@ -752,7 +752,7 @@ function voyage_window_setup(window_width, window_height, colours)
                     local col = voy.colours
                     local coor = voy.coordinates.sea.boat
                     local percentage = voy.hull.condition
-                    local outline = col.hull.defualt
+                    local outline = col.hull.default
                     WindowCircleOp(mw, 2, -- turnwheel
                         coor.turnwheel.x1, coor.turnwheel.y1, coor.turnwheel.x2, coor.turnwheel.y2,           
                         col.sea.boat[1], miniwin.pen_solid, 1,

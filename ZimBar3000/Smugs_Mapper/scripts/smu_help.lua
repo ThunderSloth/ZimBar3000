@@ -2,6 +2,8 @@
 --   HELP
 --------------------------------------------------------------------------------
 function on_alias_smugs_help()
-	print("help not yet added")
+	local f = io.open(SMU_PATH.."help.txt", 'r')
+	ColourNote("whitesmoke", "", f:read("*a"))
+	f:close()
 end
 

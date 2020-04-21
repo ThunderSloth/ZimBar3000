@@ -136,14 +136,14 @@ function on_trigger_voyage_hull_condition(name, line, wildcards, styles)
     for i, v in ipairs(condition) do
         if line:match(v) then
             percentage = (i - 1) * 20
-            voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.defualt or col.fade, col.damage, percentage), win.."underlay")
+            voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.default or col.fade, col.damage, percentage), win.."underlay")
             break
         end
     end
     voy.hull.condition = percentage
     percentage = 0
     local seaweed = {"thin covering of glowing dire seaweed", "few strands of glowing dire seaweed", "thick mass of glowing dire seaweed", "colossal amount of glowing dire seaweed"}
-    local colour = col.defualt
+    local colour = col.default
     for i, v in ipairs(seaweed) do
         if line:match(v) then
             percentage = i * 25
@@ -170,7 +170,7 @@ end
 function on_trigger_voyage_group_update(name, line, wildcards, styles)
     line = string.lower(line)
     local update = false
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     if voy.re.hull_report:match(line) then
         voy.hull.condition = 0
         voyage_draw_hull_lower(voy.coordinates, col, win.."underlay")
@@ -188,7 +188,7 @@ end
 
 -- hull: condition
 function on_trigger_voyage_hull_fix(name, line, wildcards, styles)
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     voy.hull.condition = 0
     voyage_draw_hull_lower(voy.coordinates, col, win.."underlay")
     voyage_print_map()
@@ -227,7 +227,7 @@ end
 
 -- hull: seaweed
 function on_trigger_voyage_seaweed_fix(name, line, wildcards, styles)
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     voy.hull.seaweed, voy.hull.ice = 0, 0
     voyage_draw_hull_upper(voy.coordinates, col, win.."underlay")
     voyage_print_map()
@@ -253,7 +253,7 @@ end
 
 -- hull: ice
 function on_trigger_voyage_ice_fix(name, line, wildcards, styles)
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     voy.hull.ice, voy.hull.seaweed = 0, 0
     voyage_draw_hull_upper(voy.coordinates, col, win.."underlay")
     voyage_print_map()

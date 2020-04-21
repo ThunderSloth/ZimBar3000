@@ -108,23 +108,24 @@ function run_mud_config()
 
     function on_trigger_zoption_removed(name, line, wildcards, styles)
         if #zconfig == 0 then
-            print("\nYou are already configured!")
+            ColourNote("gray", "", "\nYou are already configured!")
         else
-            AddTrigger("zconfig_added", '^[>]?\\w+ alias "zconfig"', "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_zconfig_added")
+            AddTrigger("zconfig_added", '^.?\\w+ alias "zconfig"', "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_zconfig_added")
             Send("alias zconfig "..zconfig.."unalias zconfig")
         end
     end
     
     function on_trigger_zconfig_added(name, line, wildcards, styles)
-        AddTrigger("zconfig_removed", '^[>]?Successfully unaliased "zconfig":.*$', "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_zconfig_removed")
+        AddTrigger("zconfig_removed", '^.?Successfully unaliased "zconfig":.*$', "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_zconfig_removed")
         Send("zconfig")
     end    
     
     function on_trigger_zconfig_removed(name, line, wildcards, styles)
 		if was_player_colour_altered then
-			Note("Your 'playername' colour option must be set.\nIt has been changed to: cyan. You may change it to any colour you'd like.\nIt is also reccomended that you set 'groupmate' and 'playerkiller' too, although not required.")
+			ColourTell("gray", "", "Playername colour must be set. It has been changed to: ")
+			ColourTell("black", "cyan", "cyan.");ColourNote("gray", "", "\nYou may change it to any colour you'd like.\n")
 		end
-		Note("Configuration complete!") 
+		ColourNote("gray", "", "Configuration complete!") 
     end
     
     mud_options = {
@@ -164,20 +165,20 @@ function run_mud_config()
     zoption, zconfig = "", ""
      for k1, t in pairs(mud_options) do
         for k2, v in pairs(t) do
-            local m = "^[>]?\\s+"..k2.."\\s+= (?<option>\\w+) .*$"
+            local m = "^.?\\s+"..k2.."\\s+= (?<option>\\S+) .*$"
             local name = (k1.."_"..k2):gsub(" ", "_")
             AddTrigger(name, m, "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_option")
         end
         zoption = zoption..k1..";"
     end
     
-    AddTrigger("playername", "^[>]?Colour playername\\s+= [[](?<p_colour>\\w+)[]].*", "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_playername")
+    AddTrigger("playername", "^.?Colour playername\\s+= [[](?<p_colour>\\w+)[]].*", "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_playername")
 
-    AddTrigger("zoption_removed", '^[>]?Successfully unaliased "zoption":.*$', "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_zoption_removed")
+    AddTrigger("zoption_removed", '^.?Successfully unaliased "zoption":.*$', "", trigger_flag.Enabled + trigger_flag.Temporary + trigger_flag.RegularExpression + trigger_flag.OneShot + trigger_flag.KeepEvaluating + trigger_flag.Replace, -1, 0, "", "on_trigger_zoption_removed")
         
     Send("alias zoption "..zoption.."options colour playername;".."unalias zoption");Send("zoption")
     
 end
-Note("Running configuration:")
+ColourNote("gray", "", "Running configuration:")
 run_mush_config()
 run_mud_config()

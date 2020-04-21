@@ -1,0 +1,32 @@
+---------------------------------------------------
+--  HELP-FILE FOR: MAP DOOR TEXT v4.0 BY ZIMBUS  --
+---------------------------------------------------
+Available Commands:
+
+* mdt help                   -- this help-file
+
+* mdt config                 -- run configuration
+
+* mdt gmcp                   -- print gmcp text
+                             
+Reading The Map:
+
+* yellow square              -- you
+
+* yellow room border         -- your trajectory
+
+* player-colour square       -- other players
+
+* room letter                -- player room
+
+* green square               -- mobs; dark to light depending on xp sum
+
+* room number                -- relative mob xp sum
+
+* underlined room number     -- immobile mob
+
+* red room border            -- mob aggro
+
+* orange border              -- priest
+
+* purple border              -- money

@@ -70,3 +70,9 @@ function shades_depopulate()
 	end
 end
 
+function on_alias_shades_reset()
+    shades_unvisit()
+    shades_depopulate()
+    shades_print_map()
+end
+

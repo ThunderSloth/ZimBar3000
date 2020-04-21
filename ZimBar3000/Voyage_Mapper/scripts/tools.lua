@@ -38,7 +38,7 @@ function voyage_hold_tool(hand, new_tool)
     if held.L ~= "" and held.L == held.R and hand == "R" then
         hand = "L" 
         -- in the situation of holding duplicates in each hand it is easier to switch to left hand
-        -- due to a lack of info in the mud's wording and the fact that left is defualt when unspecified
+        -- due to a lack of info in the mud's wording and the fact that left is default when unspecified
     end
     local old_tool = held[hand]
     local other_hand = hand == "L" and "R" or "L"

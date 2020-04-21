@@ -23,18 +23,22 @@ end
 function medina_get_title_menu()
     local options = {}
     local menu = "!^Medina Mapper v"..GetPluginInfo (MED, 19)
-    menu = menu.."||Help||Configure||>Options|>Colours|"
+    menu = menu.."||Help||Configure||Reset||>Options|>Colours|"
     table.insert(options, function()
         on_alias_medina_help()
     end)
     table.insert(options, function()
         on_alias_medina_configure()
     end)
+    table.insert(options, function()
+		medina_reset_rooms()
+		medina_print_map()
+    end) 
     menu = menu.."restore all||"
     table.insert(options, function()
         medina_restore_every_default_colour()
     end)    
-    menu = menu.."defualts|"
+    menu = menu.."defaults|"
     table.insert(options, function()
 		local colours = {}
 		for k, v in pairsByKeys(med.colours) do

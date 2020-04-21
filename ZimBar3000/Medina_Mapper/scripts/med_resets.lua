@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 --   RESET FUNCTIONS
 --------------------------------------------------------------------------------
--- defualt metadata
+-- default metadata
 function medina_reset_rooms()
     med.rooms = {
         A = {exit_rooms = {B = "e", E = "se",D = "s"},                             location = {x = 1, y = 1}}, -- nw exit room

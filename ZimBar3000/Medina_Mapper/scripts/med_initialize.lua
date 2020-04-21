@@ -24,8 +24,8 @@ function medina_get_variables()
 	colours_database =  GetPluginInfo(MED , 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_colours.db"
 	fonts_database   =  GetPluginInfo(MED , 20):gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."_fonts.db"
 	FIXED_TITLE_HEIGHT = 16
-    defualt_window_width, defualt_window_height = 300, 300
-    window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
+    default_window_width, default_window_height = 300, 300
+    window_width, window_height = tonumber(GetVariable("window_width") or default_window_width), tonumber(GetVariable("window_height") or default_window_height)
     window_pos_x, window_pos_y = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
     arrow_set = GetVariable("arrow_set") or "default"
     assert(loadstring(GetVariable("med") or ""))()

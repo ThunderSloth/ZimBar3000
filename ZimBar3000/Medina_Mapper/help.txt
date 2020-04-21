@@ -1,0 +1,48 @@
+---------------------------------------------------
+--  HELP-FILE FOR: MEDINA MAPPER v5.0 BY ZIMBUS  --
+---------------------------------------------------
+Available Commands:
+
+* medina help                -- this help-file
+
+* medina config              -- run configuration
+
+* medina reset (room <room>) -- reset entire map or specific room
+                             
+* medina sync                -- accept map-data from another player
+                             
+* medina sync <player>       -- send map-data to another player
+                             
+Reading The Map:
+
+* yellow square              -- you
+
+* fuzzy yellow squares       -- you with location uncertainty
+
+* yellow room border         -- your trajectory
+
+* player-colour square       -- other players
+
+* green square               -- mobs; dark to light depending on xp sum
+
+* pink square                -- triad boss
+
+* red room border            -- unsolved room
+
+* red exit border            -- unsolved exit
+ 
+* exit arrow                 -- solved exit; non-normalized command
+
+* blue-ish room letter       -- unvisited room
+
+* gray room letter           -- visited room
+
+* blue-ish border            -- herding path
+
+* white room background      -- look/scry room
+ 
+* fuzzy white background     -- look/scry with location uncertainty
+
+* red exit text              -- unsolved exit, in room
+
+* gray exit text             -- unsolved, yet already looked exit

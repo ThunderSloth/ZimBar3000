@@ -4,18 +4,21 @@
 function shades_get_title_menu()
     local options = {}
     local menu = "!^Shades Mapper v"..GetPluginInfo (SHA, 19)
-    menu = menu.."||Help||Configure||>Options|>Colours|"
+    menu = menu.."||Help||Configure||reset||>Options|>Colours|"
     table.insert(options, function()
         on_alias_shades_help()
     end)
     table.insert(options, function()
         on_alias_shades_configure()
     end)
+    table.insert(options, function()
+        on_alias_shades_reset()
+    end)
     menu = menu.."restore all||"
     table.insert(options, function()
         shades_restore_every_default_colour()
     end)    
-    menu = menu.."defualts|"
+    menu = menu.."defaults|"
     table.insert(options, function()
 		local colours = {}
 		for k, v in pairsByKeys(sha.colours) do

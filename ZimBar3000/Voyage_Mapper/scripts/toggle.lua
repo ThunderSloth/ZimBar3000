@@ -4,8 +4,8 @@
 function voyage_enter()
     if not(voy.is_in_voyage) then
         local function reset_map(coor, dim, col, mw)
-            voyage_draw_hull_upper(coor, col.hull.defualt, mw)
-            voyage_draw_hull_lower(coor, col.hull.defualt, mw)
+            voyage_draw_hull_upper(coor, col.hull.default, mw)
+            voyage_draw_hull_lower(coor, col.hull.default, mw)
             voyage_draw_part(coor, col, mw)
             voyage_draw_stage(coor, col, mw)
             voyage_draw_guages(dim, col)

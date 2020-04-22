@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="Shades_Mapper"
+   author="Zimbus"
+   id="fa2bff8d7d84f6e3f887d411"
+   language="Lua"
+   purpose="graphically map shades and normalize directions"
+   save_state="y"
+   date_written="2020-03-22 12:00:00"
+   requires="3.00"
+   version="5.06"
+   >
+</plugin>
+<script>
+<![CDATA[
+SHA = GetPluginID (); SHA_PATH = GetPluginInfo (SHA, 20)
+dofile( SHA_PATH .. (GetPluginInfo (SHA, 1)) .. ".lua")
+]]>
+</script>
+<triggers>
+<!--  brief room descriptions  -->
+  <trigger
+   group="shades"
+   keep_evaluating="y"
+   lines_to_match="2"
+   multi_line="y"
+   match="^Somewhere in the Shades \[.*(?<exits>\d)\D*\]\.(\n(?<thyngs>.*) here\.)?\Z"
+   name="shades_brief"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_shades_brief"
+  ></trigger>
+  <trigger
+   group="shades"
+   keep_evaluating="y"
+   lines_to_match="2"
+   multi_line="y"
+   match="^The maze entrance \[.*\]\.(\n(?<thyngs>.*) here\.)?\Z"
+   name="shades_brief_entrance"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_shades_brief_entrance"
+  ></trigger>
+<!--  stop handling  -->
+  <trigger
+   group="shades"
+   keep_evaluating="y"
+   match="^Removed queue.$"
+   name="shades_remove_queue"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_shades_remove_queue"
+  ></trigger>
+<!--  command fail  -->   
+  <trigger
+   group="shades"
+   keep_evaluating="y"
+   match="^(That doesn't work.|What\?|Try something else.)$"
+   name="shades_command_fail"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_shades_command_fail"
+  ></trigger>
+<!--  you follow  -->
+  <trigger
+   group="shades"
+   keep_evaluating="y"
+   match="^You follow .* (?<direction>[1-8]).$"
+   name="shades_you_follow"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_shades_you_follow"
+  ></trigger>
+</triggers>
+<aliases>
+  <alias
+   group="shades"
+   name="shades_move_room"
+   match="^(?<direction>n|ne|e|se|s|sw|w|nw|north|northeast|east|southeast|south|southwest|west|northwest|look|l|[1-8])$"
+   regexp="y"
+   ignore_case="y"
+   sequence="101"
+   script="on_alias_shades_move_room"
+ ></alias>
+  <alias
+   group="shades"
+   name="shades_stop"
+   match="^stop$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_shades_stop"
+  ></alias>
+  <alias
+   group="shades_always_enable"
+   enabled="y"
+   name="shades_help"
+   match="^sha(des)? h(elp)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_shades_help"
+  ></alias>
+  <alias
+   group="shades_always_enable"
+   enabled="y"
+   name="shades_reset"
+   match="^sha(des)? r(eset|s)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_shades_reset"
+  ></alias>
+  <alias
+   group="shades_always_enable"
+   enabled="y"
+   name="shades_config"
+   match="^sha(des)? config$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_shades_configure"
+  ></alias>
+</aliases>
+</muclient>

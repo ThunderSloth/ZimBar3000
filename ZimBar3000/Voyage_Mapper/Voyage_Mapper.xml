@@ -9,7 +9,7 @@
    purpose="interactive graphical map of the ss unsinkable"
    save_state="y"
    date_written="2020-03-22 12:00:00"
-   requires="3.00"
+   requires="5.06"
    version="1.0"
    >
 </plugin>
@@ -86,7 +86,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(?<players>.*) ((?<board>climbs? aboard from the sea)|(?<overboard>jumps? in from above with a splash)|(arrives?|swaggers? in nautically|floats? in|tumbles? in) from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(above|below)))).$"
+   match="^(?<players>.*) ((?<board>climbs? aboard from the sea)|(?<overboard>jumps? in from above with a splash)|shuffles? in|(arrives?|swaggers? in nautically|floats? in|tumbles? in) from ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(above|below)))).$"
    name="voyage_player_enter"
    regexp="y"
    sequence="100"
@@ -95,7 +95,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(?<players>.*) ((?<board>climbs? aboard the ship)|(?<overboard>climbs? over the railing and jumps? into the sea with a splash)|(leaves?|swaggers? out nautically|floats?|is thrown off (his|her|its) feet (out to|towards)) ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(up|down)))).$"
+   match="^(?<players>.*) ((?<board>climbs? aboard the ship)|(?<overboard>climbs? over the railing and jumps? into the sea with a splash)|(leaves?|swaggers? out nautically|shuffles? away|floats?|is thrown off (his|her|its) feet (out to|towards)) ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<lateral>(up|down)))).$"
    name="voyage_player_leave"
    regexp="y"
    sequence="100"
@@ -198,7 +198,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(The hull groans alarmingly.  .*|The groaning and snapping of timber strained beyond limit resonates through the ship.  The hull has been breached!)$"
+   match="^(You hear the distinctive sound of an angry giant turtle bellowing, followed by the rather less distinctive sound of a giant bite being taken out of the ship.|A heavy thump comes from the front hull, the ship shaking violently from the collision.|The hull groans alarmingly.  .*|The groaning and snapping of timber strained beyond limit resonates through the ship.  The hull has been breached!)$"
    name="voyage_hull_damaged"
    regexp="y"
    sequence="100"
@@ -208,7 +208,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(\w+ manages? to hack off all the remaining dire seaweed from the hull|There\'s no dire seaweed (left )?on the hull(, so you decide not to do any cutting after all| right now)|You see some dire seaweed drifting off into the sea, complaining seaweedily.  Looks like it didn\'t like the cold).$"
+   match="^(\w+ manages? to hack off all the remaining dire seaweed from the hull|Looking like it recognises the shipwright's hammer somehow, all of the remaining dire seaweed detaches from the hull and flees into the ocean.|There\'s no dire seaweed (left )?on the hull(, so you decide not to do any cutting after all| right now)|You see some dire seaweed drifting off into the sea, complaining seaweedily.  Looks like it didn\'t like the cold).$"
    name="voyage_seaweed_fix"
    regexp="y"
    sequence="100"
@@ -217,7 +217,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^\w+ manages? to hack off some of the dire seaweed from the hull.$"
+   match="^(\w+ manages? to hack off some of the dire seaweed from the hull|Looking like it recognises the shipwright's hammer somehow, some of the dire seaweed detaches from the hull and flees into the ocean).$"
    name="voyage_seaweed_fix_partial"
    regexp="y"
    sequence="100"
@@ -342,7 +342,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    name="voyage_stage_change_kraken"
    regexp="y"
    sequence="100"
-   script="on_trigger_voyage_stage_change"
+   script="on_trigger_voyage_kraken_crest"
   ></trigger>
   <trigger
    group="voyage"
@@ -388,7 +388,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    name="voyage_stage_change_serpent"
    regexp="y"
    sequence="100"
-   script="on_trigger_voyage_stage_change"
+   script="on_trigger_voyage_serpent_crest"
   ></trigger>
   <trigger
    group="voyage"
@@ -450,11 +450,20 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(The .* the weather calms.|With that last blow, the (kraken|sea serpent) .*|The grinding of scales .* It sounds like victory.)$"
+   match="^The .* the weather calms.$"
    name="voyage_stage_change_calm"
    regexp="y"
    sequence="100"
    script="on_trigger_voyage_stage_change"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^(With that last blow, the (kraken|sea serpent) .*|(The grinding of scales|The faint popping sounds of suction cups) .* It sounds like victory.)$"
+   name="voyage_stage_change_kill_monster"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_kill_monster"
   ></trigger>
 <!-- Wind -->
   <trigger
@@ -631,6 +640,15 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    regexp="y"
    sequence="100"
    script="on_trigger_voyage_junk_find"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^You connect the large water tank up to the MK I Boiling Engine's intake valve, wait until the water fully drains into the MK I Boiling Engine, then disconnect it again.$"
+   name="voyage_boiler_fill"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_boiler_fill"
   ></trigger>
 <!-- Dragons -->
   <trigger
@@ -997,11 +1015,47 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^(The powerful headwind causes the ship to drift off course |The ship shudders around you as it turns (?<sharply>(sharply )?))to (?<direction>port|starboard).$"
+   match="^(The impact knocks the ship slightly off course |The powerful headwind causes the ship to drift off course |The ship shudders around you as it turns (?<sharply>(sharply )?))to (?<direction>port|starboard).$"
    name="voyage_boat_turn"
    regexp="y"
    sequence="100"
    script="on_trigger_voyage_boat_turn"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   enabled="y"
+   match="^((Gazeing up at the stars|Squinting up at the sun), you determine|A small brass case with a glass top, containing a freely\-rotating octiron needle that always points to the Hub.  From the compass, you can see) that the ship is heading (?<direction>.*?)( and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?)?\.$"
+   name="voyage_set_direction"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_set_direction"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The charts mostly depict the Circle Sea, which is the sea you're currently traversing.  They seem to indicate that the route from .*? to .*? is pretty much directly (?<direction>.*) in a straight line and that you're (?<miles_y>.*?) miles? (?<rim_or_hub>rimwards|hubwards)( and (?<miles_x>.*?) miles? (?<turn_or_wid>turnwise|widdershins))? of .*?$"
+   name="voyage_charts"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_charts"
+  ></trigger>
+   <trigger
+   group="voyage"
+   keep_evaluating="y"
+    match="^The ship abruptly starts spinning in circles.  After a few rounds, it manages to escape the whirlpool\, heading in a different direction from before.$"
+   name="voyage_whirlpool"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_voyage_whirlpool"
+  ></trigger>
+  <trigger
+   group="voyage"
+   keep_evaluating="y"
+    match="^Caught in a strong backwards current, the ship shudders intensely as it zooms back a few miles.$"
+   name="voyage_backwards_current"
+   regexp="y"
+   sequence="100"
   ></trigger>
 </triggers>
 <!-- Movement Commands -->
@@ -1064,6 +1118,16 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   ></alias>
   <alias
    group="voyage_always_enabled"
+   name="voyage_help"
+   match="^voyage help$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_help"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
    name="voyage_add_tool"
    match="^voyage add tool ?= ?(?<tool>.*)$"
    regexp="y"
@@ -1075,7 +1139,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <alias
    group="voyage_always_enabled"
    name="voyage_add_container"
-   match="^voyage add container ?= ?(?<container>.*)$"
+   match="^voyage add container ?= ?(?<container>[A-Za-z']*)$"
    regexp="y"
    ignore_case="y"
    sequence="100"
@@ -1090,6 +1154,36 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    ignore_case="y"
    sequence="100"
    script="on_alias_voyage_print_xp"
+   enabled="y"
+  ></alias>
+   <alias
+   group="voyage_always_enabled"
+   name="voyage_group_debug_xp"
+   match="^voyage debug xp"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_depug_xp"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_group_debug_held"
+   match="^voyage debug held"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_debug_held"
+   enabled="y"
+  ></alias>
+  <alias
+   group="voyage_always_enabled"
+   name="voyage_group_reset_held"
+   match="^voyage reset held"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_voyage_reset_held"
    enabled="y"
   ></alias>
 </aliases>

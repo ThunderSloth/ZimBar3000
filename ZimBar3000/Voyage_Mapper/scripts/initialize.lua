@@ -4,6 +4,7 @@
 function on_plugin_start()
     require "tprint"
     require "serialize"
+    require "words_to_numbers"
     win = "voyage_map"..GetPluginID() -- define window name
     voyage_get_variables()
     voyage_get_windows(voy.colours)
@@ -21,20 +22,10 @@ end
 --   VARIABLES
 --------------------------------------------------------------------------------
 function voyage_get_variables()
-    defualt_window_width, defualt_window_height = 300, 300
-    window_width, window_height = tonumber(GetVariable("window_width") or defualt_window_width), tonumber(GetVariable("window_height") or defualt_window_height)
+    default_window_width, default_window_height = 300, 300
+    window_width, window_height = tonumber(GetVariable("window_width") or default_window_width), tonumber(GetVariable("window_height") or default_window_height)
     window_pos_x, window_pos_y  = tonumber(GetVariable("window_pos_x")), tonumber(GetVariable("window_pos_y"))
-    held = {
-		L = "", R = "",                                  -- contents or left/right hands
-		tools = {},                                      -- saved tools
-		containers = {"inventory", "scabbard", "floor"}, -- saved containers
-		amo = {                                          -- amo types and respective containers
-			["arbalest bolt"]        = "inventory", 
-			["fire axe"]             = "floor", 
-			["steel-tipped harpoon"] = "floor"}, 
-		reload = {L = "", R = ""},                       -- amo/weapon preference                  
-		seaweed = "",                                    -- weedwacker preference
-		ice = ""}                                        -- icebreaker preference
+	voyage_get_held()
     assert(loadstring(GetVariable("held") or "")) ()
     voyage_reset_xp() -- time/xp table
     voy = {
@@ -105,6 +96,20 @@ function voyage_get_variables()
     end
     voy.re = voyage_get_regex()
     voyage_reset_metatable()
+end
+
+function voyage_get_held()
+    held = {
+		L = "", R = "",                                  -- contents or left/right hands
+		tools = {},                                      -- saved tools
+		containers = {"inventory", "scabbard", "floor"}, -- saved containers
+		amo = {                                          -- amo types and respective containers
+			["arbalest bolt"]        = "inventory", 
+			["fire axe"]             = "floor", 
+			["steel-tipped harpoon"] = "floor"}, 
+		reload = {L = "", R = ""},                       -- amo/weapon preference                  
+		seaweed = "",                                    -- weedwacker preference
+		ice = ""}                                        -- icebreaker preference
 end
 --------------------------------------------------------------------------------
 --   RESETS
@@ -212,17 +217,8 @@ function voyage_reset_metatable()
     voy.sequence     = {}                     -- room trajectory
     voy.sequence[1]  = 7                      -- current room
     voy.is_in_voyage = false                  -- are you on the ship?
+    voy.is_night     = false                  -- is it night?
     held.L, held.R   = "", ""                 -- held items
-end
-
-function voyage_reset_xp()
-    xp_t = {crates = 0, group = 0}
-    for i = 0, 4 do
-        xp_t[i] = {time = false, xp = false}  -- xp at end of each stage
-    end
-    xp_t[0].time = os.time()                  -- starting xp
-    xp_t.current = false
-    xp_t.need_final = false
 end
 --------------------------------------------------------------------------------
 --   PLUGIN CALLBACKS

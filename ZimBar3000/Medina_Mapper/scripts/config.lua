@@ -1,2 +1,0 @@
--- copy config from voyage mapper
--- note that brief mode and map bottom are also supported configurations

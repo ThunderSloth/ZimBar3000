@@ -182,7 +182,17 @@ function voyage_get_steering_hotspots(dim)
         "cancelmousedown", 
         "mouseup", 
         "Unhold Wheel",  
-        miniwin.cursor_hand, 0)  
+        miniwin.cursor_hand, 0)
+    coor = voy.coordinates.sea.map[2][3]
+    WindowAddHotspot(win, "overboard",
+        coor.x1, coor.y1, coor.x2, coor.y2,
+        "mouseover", 
+        "cancelmouseover", 
+        "mousedown",
+        "cancelmousedown", 
+        "mouseup", 
+        "Jump Overboard and Back!",  
+        miniwin.cursor_hand, 0)     
     coor = voy.coordinates.sea.map[3][3]
     WindowAddHotspot(win, "hull",
         coor.x1, coor.y1, coor.x2, coor.y2 - (coor.y2 - coor.y1) / 2,
@@ -394,9 +404,17 @@ function mouseup(flags, id)
     elseif id == "x" then
         Send("unhold wheel")
         on_trigger_voyage_steering_off()
-    elseif id == "hull" then
-        Send("look overboard")
-    elseif id == "speed" then
-        Send("look")
+    elseif id == "hull" or id == "speed" or id == "overboard" then
+		if flags == 32 then
+			voyage_get_sea_menu()
+		elseif id == "hull" then
+			Send("look overboard")
+		elseif id == "speed" then
+			Send("look")
+		elseif id == "overboard" then
+			Send("overboard")
+			Send("board")
+			Send("hold wheel")
+		end
     end
 end

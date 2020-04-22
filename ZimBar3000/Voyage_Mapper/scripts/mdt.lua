@@ -41,11 +41,13 @@ function voyage_parse_written_map(mdt, re) -- text, regex
     --eliminate false deliminaters
     mdt = string.lower(word_to_int(mdt:gsub("black and white","black white")))
     --determine players
-    for c, p in mdt:gmatch("\\u001b[[]4zmxp[<]c (\#[0-9a-f]+)mxp[>]([a-z' ]-)\\u001b[[]3z", "%0") do
-        if not voy.players[p] then
-            voy.players[p] = c
-        end
-    end
+    re.players:gmatch(mdt, function (_, t)
+		if not voy.players[t.player] then
+			if t.player and t.colour then
+				voy.players[t.player] = ColourNameToRGB(t.colour)~= -1 and ColourNameToRGB(t.colour) or ColourNameToRGB("orange")
+			end
+		end
+    end)
     --simplify
     mdt = mdt:gsub(" and ", ", "):gsub("\\u001b", ""):gsub("[[][3-4]z", ""):gsub("room.writtenmap .", ""):gsub('[\\]n["]', ""):gsub("starboard aft", "starboardaft"):gsub("starboard fore", "starboardfore"):gsub("port aft", "portaft"):gsub("port fore", "portfore")
 	-- parse vision

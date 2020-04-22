@@ -17,7 +17,7 @@ function voyage_get_windows(col) -- colours
     WindowCreate(win.."sea_frame", 0, 0, 0, 0, miniwin.pos_center_all, 0, col.window.transparent) -- sea map frame
     WindowCreate(win.."sea_map",   0, 0, 0, 0, miniwin.pos_center_all, 0, col.window.transparent) -- sea map
     WindowCreate(win.."sea_room",  0, 0, 0, 0, miniwin.pos_center_all, 0, col.window.background ) -- sea map room (individual room construction)
-    WindowSetZOrder(win, 200)
+    WindowSetZOrder(win, 205)
 end
 --------------------------------------------------------------------------------
 --   WINDOW SETUP
@@ -606,11 +606,7 @@ function voyage_window_setup(window_width, window_height, colours)
         WindowResize(win.."sea_frame", dim.window.x, dim.window.y, col.window.transparent)
         WindowResize(win.."sea_map",   dim.window.x, dim.window.y, col.window.transparent)
         WindowResize(win.."sea_room",  dim.sea.block.x, dim.sea.block.y, col.window.background)
-        WindowCircleOp( -- clear vertical text on resize
-                win.."held", miniwin.circle_rectangle, 
-                0, 0, dim.window.x, dim.window.y,
-                col.window.transparent, miniwin.pen_solid, 1,
-                col.window.transparent, 0)
+        voyage_reset_held(dim, col)
     end
 	--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	--   LOAD FONTS
@@ -756,7 +752,7 @@ function voyage_window_setup(window_width, window_height, colours)
                     local col = voy.colours
                     local coor = voy.coordinates.sea.boat
                     local percentage = voy.hull.condition
-                    local outline = col.hull.defualt
+                    local outline = col.hull.default
                     WindowCircleOp(mw, 2, -- turnwheel
                         coor.turnwheel.x1, coor.turnwheel.y1, coor.turnwheel.x2, coor.turnwheel.y2,           
                         col.sea.boat[1], miniwin.pen_solid, 1,

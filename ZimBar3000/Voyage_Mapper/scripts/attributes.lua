@@ -3,16 +3,15 @@
 --------------------------------------------------------------------------------
 function on_trigger_voyage_complete_part(name, line, wildcards, styles)
     local legs = {first = 1, second = 2, third = 3, fourth = 4}
+    local finished_part = voy.part
     voy.part = (legs[wildcards.leg] or 0) + 1
-    xp_t[voy.part - 1].time = os.time()
+    voyage_complete_xp_range(finished_part)
     voyage_draw_part(voy.coordinates, voy.colours, win.."underlay")
     voyage_print_map()
 end
 
 function on_trigger_voyage_complete_voyage(name, line, wildcards, styles)
-    local num = {one = 1, two = 2, three = 3, four = 4, five = 5, six = 6, seven = 7, eight = 8}
-    xp_t.crates = num[wildcards.crates] or 0
-    xp_t.group  = num[wildcards.group ] or 0
+    voyage_update_completion_stats(wildcards)
 end
 --------------------------------------------------------------------------------
 --   STAGE
@@ -23,6 +22,21 @@ function on_trigger_voyage_stage_change(name, line, wildcards, styles)
     voyage_draw_stage(voy.coordinates, voy.colours, win.."underlay")
     voy.kraken, voy.serpent = false, false
     voyage_print_map()
+end
+
+function on_trigger_voyage_serpent_crest(name, line, wildcards, styles)
+	xp_t[4].name = "Serpent"
+	on_trigger_voyage_stage_change("voyage_stage_change_serpent", line, wildcards, styles)
+end
+
+function on_trigger_voyage_kraken_crest(name, line, wildcards, styles)
+	xp_t[4].name = "Kerpent"
+	on_trigger_voyage_stage_change("voyage_stage_change_kraken", line, wildcards, styles)
+end
+
+function on_trigger_voyage_kill_monster(name, line, wildcards, styles)
+	voyage_complete_xp_range("Fight")
+	on_trigger_voyage_stage_change("voyage_stage_change_calm", line, wildcards, styles)
 end
 --------------------------------------------------------------------------------
 --   ICE (ROOM)
@@ -122,14 +136,14 @@ function on_trigger_voyage_hull_condition(name, line, wildcards, styles)
     for i, v in ipairs(condition) do
         if line:match(v) then
             percentage = (i - 1) * 20
-            voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.defualt or col.fade, col.damage, percentage), win.."underlay")
+            voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.default or col.fade, col.damage, percentage), win.."underlay")
             break
         end
     end
     voy.hull.condition = percentage
     percentage = 0
     local seaweed = {"thin covering of glowing dire seaweed", "few strands of glowing dire seaweed", "thick mass of glowing dire seaweed", "colossal amount of glowing dire seaweed"}
-    local colour = col.defualt
+    local colour = col.default
     for i, v in ipairs(seaweed) do
         if line:match(v) then
             percentage = i * 25
@@ -156,7 +170,7 @@ end
 function on_trigger_voyage_group_update(name, line, wildcards, styles)
     line = string.lower(line)
     local update = false
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     if voy.re.hull_report:match(line) then
         voy.hull.condition = 0
         voyage_draw_hull_lower(voy.coordinates, col, win.."underlay")
@@ -174,7 +188,7 @@ end
 
 -- hull: condition
 function on_trigger_voyage_hull_fix(name, line, wildcards, styles)
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     voy.hull.condition = 0
     voyage_draw_hull_lower(voy.coordinates, col, win.."underlay")
     voyage_print_map()
@@ -189,11 +203,19 @@ function on_trigger_voyage_hull_fix_partial(name, line, wildcards, styles)
 end
 
 function on_trigger_voyage_hull_hit(name, line, wildcards, styles)
-    local hits = {"creaking a little more than before", "taking quite a beating", "breaks with an distant snap", "last legs", "breached"}
+    local hits = {
+		["creaking a little more than before"] = 1, 
+		["giant turtle bellowing"] = 1,
+		["shaking violently from the collision"] = 1,
+		["taking quite a beating"] = 2, 
+		["breaks with an distant snap"] = 3, 
+		["last legs"] = 4, 
+		["breached"] = 5,
+	}
     local col = voy.colours.hull
     local percentage = voy.hull.condition
-    for i, v in ipairs(hits) do
-        if line:match(v) then
+    for k, i in pairs(hits) do
+        if line:match(k) then
                 percentage = ((i + 1) * 20) < 100 and (i + 1) * 20 or 100
             break
         end
@@ -205,7 +227,7 @@ end
 
 -- hull: seaweed
 function on_trigger_voyage_seaweed_fix(name, line, wildcards, styles)
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     voy.hull.seaweed, voy.hull.ice = 0, 0
     voyage_draw_hull_upper(voy.coordinates, col, win.."underlay")
     voyage_print_map()
@@ -231,7 +253,7 @@ end
 
 -- hull: ice
 function on_trigger_voyage_ice_fix(name, line, wildcards, styles)
-    local col = voy.colours.hull.defualt
+    local col = voy.colours.hull.default
     voy.hull.ice, voy.hull.seaweed = 0, 0
     voyage_draw_hull_upper(voy.coordinates, col, win.."underlay")
     voyage_print_map()

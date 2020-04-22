@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="Smugs_Mapper"
+   author="Zimbus"
+   id="fa2bff8d7c84f6e3f847d411"
+   language="Lua"
+   purpose="graphically map smugs"
+   save_state="y"
+   date_written="2020-03-22 12:00:00"
+   requires="3.00"
+   version="5"
+   >
+</plugin>
+<script>
+<![CDATA[
+SMU = GetPluginID (); SMU_PATH = GetPluginInfo (SMU, 20)
+dofile( SMU_PATH .. (GetPluginInfo (SMU, 1)) .. ".lua")
+]]>
+</script>
+<!--  movement handling  -->
+<triggers>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^Removed queue\.$"
+   name="smugs_remove_queue"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_remove_queue"
+  ></trigger>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^You follow .* (?<direction>north|northeast|east|southeast|south|southwest|west|northwest)\.$"
+   name="smugs_you_follow"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_you_follow"
+  ></trigger>
+<!--  mob tracking  -->
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   lines_to_match="2"
+   multi_line="y"
+   match="^(There are no obvious exits|There is one obvious exit: down|A (dingy tunnel|small chamber) \[(none|d)\])\.\n(?<thyngs>.* here\.)\Z"
+   name="smugs_mob_here"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_mob_track"
+  ></trigger>
+   <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^(.* smugglers? (attacks you from behind\.  .*|moves? aggressively towards you!)|You prepare to attack .*)$"
+   name="smugs_room_aggro"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_room_aggro"
+  ></trigger>
+ <!--  hidey-hole tracking  -->
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^(A dingy tunnel \[d\]|Some rocks have been moved aside to reveal a narrow hole leading down|You examine the ground carefully and notice some rocks that look like they have been moved recently.  Shifting them aside, you reveal a hole in the ground|.*  searches around carefully, and moves aside a couple of rocks in the corner to reveal a hole in the floor).$"
+   name="smugs_hidey_hole_here"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_hidey_hole_here"
+  ></trigger>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^Rock is all around you, though some of those rock formations do look a little odd; perhaps they are concealing something.$"
+   name="smugs_hidey_hole_find"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_hidey_hole_find"
+  ></trigger>
+  <trigger
+   group="smugs"
+   keep_evaluating="y"
+   match="^It's a tunnel.  There is rock pretty much all around you.$"
+   name="smugs_hidey_hole_fail"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="on_trigger_smugs_hidey_hole_fail"
+  ></trigger>
+</triggers>
+<aliases>
+   <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_help"
+   match="^smu(gs?)? h(elp)?$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_help"
+  ></alias>
+  <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_reset"
+   match="^smu(gs?)? r(eset|s)?"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_reset"
+  ></alias>
+   <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_config"
+   match="^smu(gs?)? config?"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_configure"
+  ></alias>
+ <!--  debug  -->
+   <alias
+   group="smugs_always_enabled"
+   enabled="y"
+   name="smugs_debug_table"
+   match="^smugs debug table$"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+   script="on_alias_smugs_debug_table"
+  ></alias>
+</aliases>
+</muclient>

@@ -207,6 +207,14 @@ function on_alias_voyage_drag_toggle(name, line, wildcards)
         voy.drag = {object = object, on = true}
     end
 end
+-- automaticly toggle drag off when we fill boiler
+function on_trigger_voyage_boiler_fill(name, line, wildcards, styles)
+	local col = voy.colours.notes
+	if voy.drag.on then
+        ColourNote(col.text, col.background, 'Drag: off')
+        voy.drag = {object = "tank", on = false}		
+	end
+end
 --------------------------------------------------------------------------------
 --   PLAYER/DRAGON TRACKING
 --------------------------------------------------------------------------------

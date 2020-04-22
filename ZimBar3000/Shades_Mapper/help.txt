@@ -1,0 +1,28 @@
+---------------------------------------------------
+--  HELP-FILE FOR: SHADES MAPPER v5.0 BY ZIMBUS  --
+---------------------------------------------------
+Available Commands:
+
+* shades help                -- this help-file
+
+* shades config              -- run configuration
+
+* shades reset               -- reset map
+                                                   
+Reading The Map:
+
+* yellow square              -- you
+
+* yellow room border         -- your trajectory
+
+* player-colour square       -- other players
+
+* green square               -- mobs; dark to light depending on xp sum
+
+* blue-ish room letter       -- unvisited room
+
+* gray room letter           -- visited room
+
+* exit numbers               -- non-normalized exit commands
+
+* white arrow                -- warp-hole exit

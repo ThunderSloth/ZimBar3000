@@ -357,13 +357,13 @@ function voyage_print_map(look_room)
         local function draw_boat(coor, dim, col, left, top, right, bottom)
 			-- draw ice, seaweed and damage on hull
             local function draw_sea_hull(coor, col)
-                local percentage, colour = 0, col.hull.defualt
+                local percentage, colour = 0, col.hull.default
                 if voy.hull.seaweed > 0 then
                     percentage = voy.hull.seaweed
-                    colour = voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.seaweed, percentage)
+                    colour = voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.seaweed, percentage)
                 elseif voy.hull.ice > 0 then
                     percentage = voy.hull.ice
-                    colour = voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.ice, percentage)
+                    colour = voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.ice, percentage)
                 end
                 if percentage > 0 then
                     WindowLine (win.."sea_room", coor.hull.x1, coor.hull.y1, coor.hull.x3, coor.hull.y3, colour, 0, 2)
@@ -398,7 +398,7 @@ function voyage_print_map(look_room)
             local w = dim.sea.block.x + 1
             local h = dim.sea.block.y + 1
             local percentage = voy.hull.condition
-            local outline = voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.damage, percentage)
+            local outline = voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.damage, percentage)
             WindowCircleOp(win.."sea_room", 2, -- background water
                 0, 0, w, h,            
                 col.sea.water, miniwin.pen_null, 0,
@@ -462,11 +462,17 @@ function voyage_print_map(look_room)
         local function draw_frame(coor, col)
             local directions = {'H', 'WH', 'W', 'WR', 'R', 'TR', 'T', 'TH'}
             local count = 0
-            while directions[1] ~= voy.heading do
-                table.insert(directions, directions[1])
-                table.remove(directions, 1)
-                count = count + 1
-                if count > #directions then break end
+            if voy.heading == "?" then
+				for i, v in ipairs(directions) do
+					directions[i] = "?"
+				end
+            else
+				while directions[1] ~= voy.heading do
+					table.insert(directions, directions[1])
+					table.remove(directions, 1)
+					count = count + 1
+					if count > #directions then break end
+				end
             end
             for i = -2, 2, 1 do
                 coor = voy.coordinates.direction[i]
@@ -607,14 +613,22 @@ function voyage_draw_underlay(dim, col)
     voyage_draw_part(coor, col, win.."underlay")
     voyage_draw_stage(coor, col, win.."underlay")
     local percentage = voy.hull.condition
-    voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.hull.defualt or col.hull.fade, col.hull.damage, percentage), win.."underlay")
-    local colour = col.hull.defualt
+    voyage_draw_hull_lower(voy.coordinates, voyage_fade_RGB(percentage == 0 and col.hull.default or col.hull.fade, col.hull.damage, percentage), win.."underlay")
+    local colour = col.hull.default
     if voy.hull.ice > 0 then
         colour = voyage_fade_RGB(col.hull.fade, col.hull.seaweed, voy.hull.ice)
     elseif voy.hull.seaweed > 0 then
         colour = voyage_fade_RGB(col.hull.fade, col.hull.seaweed, voy.hull.seaweed)
     end
     voyage_draw_hull_upper(voy.coordinates, colour, win.."underlay")
+end
+
+function voyage_reset_held(dim, col)
+	WindowCircleOp( -- clear vertical text on resize
+		win.."held", miniwin.circle_rectangle, 
+		0, 0, dim.window.x, dim.window.y,
+		col.window.transparent, miniwin.pen_solid, 1,
+		col.window.transparent, 0)
 end
 --------------------------------------------------------------------------------
 --   ROOMS / EXITS / DOORS
@@ -866,7 +880,7 @@ function voyage_draw_xp()
             return math.floor(num * mult + 0.5) / mult
         end
         local function get_rate()
-            local delta_xp = (xp_t.current and xp_t[0].xp and xp_t.current - xp_t[0].xp) or 0 
+            local delta_xp = (xp_t.current_xp and xp_t[0].xp and xp_t.current_xp - xp_t[0].xp) or 0 
             local delta_t = (os.time() - xp_t[0].time)
             local rate = delta_t == 0 and 0 or (delta_xp * 60^2) / (delta_t * 1000)
             return tostring(string.format("%.2f", round(rate, 1))).."k"

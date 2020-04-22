@@ -3,9 +3,13 @@
 --------------------------------------------------------------------------------
 function on_alias_voyage_add_tool(name, line, wildcards, styles)
     local tool = string.lower(wildcards.tool)
-    if not held.tools[tool] then
-        held.tools[tool] = "inventory"
-        ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Tool: '"..tool.."' has been added.")
+    if tool ~= "" then
+		if not held.tools[tool] then
+			held.tools[tool] = "inventory"
+			ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Tool: '"..tool.."' has been added.")
+		end
+    else
+		ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Can not add blank tool!")
     end
 end
 
@@ -18,9 +22,13 @@ function on_alias_voyage_add_container(name, line, wildcards, styles)
             break
         end
     end
-    if not is_already_added then
-        table.insert(held.containers, container)
-        ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Container: '"..container.."' has been added.")
+    if container ~= "" then
+		if not is_already_added then
+			table.insert(held.containers, container)
+			ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Container: '"..container.."' has been added.")
+		end
+	else
+		ColourNote(voy.colours.notes.text, voy.colours.notes.background, "Can not add blank container!")
     end
 end
 --------------------------------------------------------------------------------
@@ -30,7 +38,7 @@ function voyage_hold_tool(hand, new_tool)
     if held.L ~= "" and held.L == held.R and hand == "R" then
         hand = "L" 
         -- in the situation of holding duplicates in each hand it is easier to switch to left hand
-        -- due to a lack of info in the mud's wording and the fact that left is defualt when unspecified
+        -- due to a lack of info in the mud's wording and the fact that left is default when unspecified
     end
     local old_tool = held[hand]
     local other_hand = hand == "L" and "R" or "L"
@@ -264,6 +272,15 @@ function on_trigger_voyage_tools_sheathe(name, line, wildcards, styles)
         voyage_draw_held("R")
     end
     voyage_print_map()
+end
+
+
+function on_alias_voyage_debug_held()
+	tprint(held)
+end
+
+function on_alias_voyage_reset_held()
+	voyage_get_held()
 end
 
 

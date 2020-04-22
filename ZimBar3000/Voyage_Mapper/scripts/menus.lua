@@ -241,7 +241,7 @@ function voyage_get_room_menu(room)
     end
     local deck = "ropes&nails&boards&unheld carpenter's hammers&buckets&towels&lemons"
     local weapons = "unheld steel-tipped harpoons&unheld fire axes&unheld arbalests&unheld arbalest bolts&bandages"
-    local boiler = "unheld control rods&toys&every shoe polish&every coal&bottles"
+    local boiler = "unheld control rods&toys&every shoe polish&every coal&brown bottles except klein bottle"
         menu = menu.."|^drop items:|all|deck|weapons|boiler|"
         for i, v in ipairs({[1] = deck.."&"..weapons.."&"..boiler, [2] = deck, [3] = weapons, [4] = boiler}) do
             table.insert(options, function()
@@ -269,14 +269,14 @@ function voyage_get_room_menu(room)
                 ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: "tank"')
             end
         end)
-        menu = menu..(voy.drag.on and voy.drag.object:match("cargo") and "+" or "").."drag cargo|"
+        menu = menu..(voy.drag.on and voy.drag.object:match("crate") and "+" or "").."drag crate|"
         table.insert(options, function()
-            if voy.drag.on and voy.drag.object:match("cargo") then
+            if voy.drag.on and voy.drag.object:match("crate") then
                 voy.drag.on = false
                 ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: off')
             else
-                voy.drag = {object = "cargo", on = true}
-                ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: "cargo"')
+                voy.drag = {object = "crate", on = true}
+                ColourNote(voy.colours.notes.text, voy.colours.notes.background, 'Drag: "crate"')
             end
         end)
     end
@@ -514,6 +514,86 @@ function voyage_get_compass_menu(id)
             voyage_print_map()
         end)
     end
+    menu = string.gsub(menu, "%W%l", string.upper):sub(2);menu = "!"..menu
+    result = string.lower(WindowMenu(win, 
+        WindowInfo(win, 14), --x
+        WindowInfo(win, 15), --y
+        menu))
+    if result ~= "" then
+        options[tonumber(result)]()
+    end
+end
+--------------------------------------------------------------------------------
+--   SEA (STEERING-MODE)
+--------------------------------------------------------------------------------
+function voyage_get_sea_menu()
+    local options = {}
+    local menu = "!look overboard|"..(voy.is_night and "^" or "").."look sun|"..(voy.is_night and "" or "^").."look stars|"
+ 	table.insert(options, function()
+		Send("look overboard")
+	end)
+ 	table.insert(options, function()
+		Send("look "..(voy.is_night and "stars" or "sun"))
+	end)      
+    menu = menu.."look here||"
+ 	table.insert(options, function()
+		Send("look")
+	end) 
+    menu = menu.."OB and resume||"
+ 	table.insert(options, function()
+		local commands = {"overboard", "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)      
+    menu = menu.."repair hull||"
+	table.insert(options, function()
+		local commands = {"overboard", "repair hull with boards and nails", "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)   
+    menu = menu.."cut seaweed|"  
+	table.insert(options, function()
+		local seaweed_tool = held.seaweed == "" and "knife" or held.seaweed
+		local commands = {"overboard", "cut seaweed with held "..seaweed_tool, "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)       
+    menu = menu.."break ice||"
+	table.insert(options, function()
+		local ice_tool = held.ice == "" and "knife" or held.ice
+		local commands = {"overboard", "break ice with held "..ice_tool, "board", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."look compass|"
+	table.insert(options, function()
+		local commands = {"sw", "e", "look compass", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."look charts|"
+	table.insert(options, function()
+		local commands = {"sw", "e", "look charts", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."look both||"
+	table.insert(options, function()
+		local commands = {"sw", "e", "look compass", "look charts", "e", "nw", "hold wheel", "look sea"}
+		for i, v in ipairs(commands) do
+			Execute(v)
+		end
+	end)
+	menu = menu.."report stage|"
+	table.insert(options, function()
+		Send("group say "..voy.stage.."!")
+	end)
     menu = string.gsub(menu, "%W%l", string.upper):sub(2);menu = "!"..menu
     result = string.lower(WindowMenu(win, 
         WindowInfo(win, 14), --x

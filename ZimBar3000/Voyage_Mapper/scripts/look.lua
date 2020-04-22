@@ -160,13 +160,16 @@ function voyage_update_stage(room, monster, weather)
     end
     if tonumber(room) then
         if (room <= 10 or room == 21 or room == 23) and room ~= 3 then
+			voy.is_night = weather:match("night") and true or false
             if monster:match("coiled around the ship") then --serpent
                 if voy.stage ~= "Serpent" then
                     voy.stage = "Serpent"; voyage_draw_stage(voy.coordinates, voy.colours, win.."underlay"); reset_highlights()
+                    xp_t[4].name = "Serpent"
                 end
             elseif monster:match("tentacles wrapped around the ship") then --kraken
                 if voy.stage ~= "Kraken" then
                     voy.stage = "Kraken"; voyage_draw_stage(voy.coordinates, voy.colours, win.."underlay"); reset_highlights()
+                    xp_t[4].name = "Kraken"
                 end
             else
                 if weather:match("clear sky") then --calm

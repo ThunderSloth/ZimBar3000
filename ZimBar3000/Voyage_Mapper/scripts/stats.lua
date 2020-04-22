@@ -12,12 +12,51 @@ end
 --------------------------------------------------------------------------------
 --   XP
 --------------------------------------------------------------------------------
+function voyage_reset_xp()
+    xp_t = {current_xp = false, current_range = 1, is_need_final_xp = 0, crates = 0, group = 0 }
+    -- xp at at different stages/parts
+    local xp_ranges = {"", "Search", "Part 1", "Part 2", "Fight", "Part 3", "Part 4"}
+    for i = 0, 6 do
+        xp_t[i] = {time = false, xp = false, name = xp_ranges[i + 1]}  
+    end									 
+    xp_t[0].time = os.time()                  -- starting xp
+end
+
 function voyage_update_xp(xp)
-    xp_t.current = xp
-    if xp_t[voy.part - 1] and not xp_t[voy.part - 1].xp then
-        xp_t[voy.part - 1].xp = xp
-    end
+	-- xp ranges tracked are as follows:
+    -- start - searching - part 1 - part 2 - fight - part 3 - part 4 - finish
+	-- technically part three starts at the end of two,  but we will treat the
+	-- end of the fight as the beginning of three, because it will provide
+	-- more meaningful data
+    xp_t.current_xp = xp
+	if xp_t.is_need_final_xp then
+		xp_t[xp_t.is_need_final_xp].xp = xp
+		xp_t.is_need_final_xp = false
+	end
+	xp_t[xp_t.current_range].xp = xp
     voyage_draw_xp()
+end
+
+function voyage_complete_xp_range(range)
+	local xp_ranges = {Search = 1, [1] = 2, [2] = 3, Fight = 4, [3] = 5, [4]= 6}
+	xp_t[xp_ranges[range]].time = os.time()
+	xp_t.is_need_final_xp = xp_ranges[range]
+	xp_t.current_range = xp_ranges[range] + 1
+end
+
+
+function voyage_update_completion_stats(wildcards)
+    local num = {one = 1, two = 2, three = 3, four = 4, five = 5, six = 6, seven = 7, eight = 8}
+    xp_t.crates = num[wildcards.crates] or 0
+    xp_t.group  = num[wildcards.group ] or 0
+end
+
+function voyage_update_completion_xp(xp)
+	if xp_t.is_need_final_xp == #xp_t then
+		xp_t[#xp_t].xp = xp
+		xp_t.is_need_final_xp = false
+		on_alias_voyage_print_xp()
+	end
 end
 --------------------------------------------------------------------------------
 --   GENERATE REPORT
@@ -28,14 +67,13 @@ function on_alias_voyage_print_xp(name, line, wildcards)
         return math.floor(num * mult + 0.5) / mult
     end
     local function format_time(t)
-        return string.format("%.2d:%.2d", t/60%60, t%60)
+        if t >= 60^3 then
+        return  string.format("%.2d:%.2d:%.2d", t/(60*60), t/60%60, t%60)
+        else
+          return string.format("%.2d:%.2d", t/60%60, t%60)
+        end
     end
     local function format_line(part, xp, time, rate)
-        if part == 'total' then
-            part = "Total : "
-        else
-            part = "Part "..tostring(part)..": "
-        end
         xp = tostring(xp).." xp"
         time = " in "..format_time(time)
         rate = " ("..tostring(rate).." kxp/h)"
@@ -46,7 +84,7 @@ function on_alias_voyage_print_xp(name, line, wildcards)
     local printed = false
     for i, v in ipairs(xp_t) do
         if xp_t[i - 1].xp and v.xp and xp_t[i - 1].time and v.time then
-            local part = tostring(i)
+            local part = xp_t[i].name..": "
             local xp = v.xp - xp_t[i - 1].xp
             local time = v.time - xp_t[i - 1].time
             local rate = time == 0 and 0 or round(((xp * 60^2) / (time * 1000)), 2)
@@ -58,11 +96,11 @@ function on_alias_voyage_print_xp(name, line, wildcards)
     if printed then
         table.insert(summary, "")
     end
-    if xp_t[0].xp and xp_t[0].time and (xp_t[4].xp or xp_t.current) then
-        local xp = (xp_t[4].xp or xp_t.current) - xp_t[0].xp
-        local time = (xp_t[4].time or os.time()) - xp_t[0].time
+    if xp_t[0].xp and xp_t[0].time and (xp_t[6].xp or xp_t.current_xp) then
+        local xp = (xp_t[6].xp or xp_t.current_xp) - xp_t[0].xp
+        local time = (xp_t[6].time or os.time()) - xp_t[0].time
         local rate = time == 0 and 0 or round(((xp * 60^2) / (time * 1000)), 2)
-        local line = format_line('total', xp, time, rate)
+        local line = format_line('Total : ', xp, time, rate)
         table.insert(summary, line)
         if xp_t.crates ~= 0 then
             table.insert(summary, "Crates: "..tostring(xp_t.crates).."/8")
@@ -89,4 +127,8 @@ function on_alias_voyage_print_xp(name, line, wildcards)
             end
         end
     end
+end
+
+function on_alias_voyage_depug_xp(name, line, wildcards)
+	tprint(xp_t)
 end

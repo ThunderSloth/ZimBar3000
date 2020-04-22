@@ -186,7 +186,11 @@ function voyage_get_triggers(col)
 
         voyage_hull_damaged = {col.notes.background, col.hull.hull},
         voyage_hull_fix_partial = {col.hull.hull, col.notes.partial},
-        voyage_hull_fix = {col.hull.hull, col.notes.background},}
+        voyage_hull_fix = {col.hull.hull, col.notes.background},
+        -- whirlpool
+        voyage_whirlpool = {col.notes.background, col.sea.whirlpool},
+        -- crrents
+        voyage_backwards_current = {col.notes.background, col.sea.current},}
 
     for k, v in pairs(triggers) do
         SetTriggerOption(k, "custom_colour", 17)

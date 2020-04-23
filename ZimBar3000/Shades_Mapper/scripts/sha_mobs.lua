@@ -87,9 +87,9 @@ function shades_set_follow_delay(previous_room, direction)
 		local rooms = ""
 		local trolls, fighters, muggers = 0, 0, 0
 		for _, r in ipairs(previous_room) do
-			trolls = sha.rooms[r].thyngs.mobs.trolls 
+			trolls   = sha.rooms[r].thyngs.mobs.trolls 
 			fighters = sha.rooms[r].thyngs.mobs.fighters 
-			muggers = sha.rooms[r].thyngs.mobs.muggers 
+			muggers  = sha.rooms[r].thyngs.mobs.muggers 
 			if trolls + fighters + muggers > 0 then
 				rooms = rooms..r			
 			end
@@ -119,8 +119,8 @@ function shades_follow_delay(name)
 		rooms:gsub(".", function(start_room)
 			local end_room = sha.rooms[start_room].exits[direction]
 			local is_player = false
-			for k, _ in pairs(sha.rooms[start_room].thyngs.players) do
-				if r then 
+			for k in pairs(sha.rooms[start_room].thyngs.players) do
+				if k then 
 					is_player = true
 				end -- only if players are not present in the room
 			end

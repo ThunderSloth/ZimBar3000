@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<!-- Written by Zimbus (v2), modified to use GMCP data by Reva (v3+)-->
+<!-- Now using GMCP data for all spots except cocoons as that does not have GMCP data. -->
+<!-- Reva (v3.4) fixed captain and multiple spots simultaneously for boss+medina and captain+smugglers -->
+<!-- Zimbus (v5.0) complete refactor -->
+<muclient>
+  <plugin
+   name="Spot_Timers"
+   author="Zimbus"
+   id="e342832ee4b09606bbc2df3d"
+   language="Lua"
+   purpose="display hotspot timers in sidebar miniwindow"
+   save_state="y"
+   date_written="2016-01-20 19:39:10"
+   date_modified="2020-03-30"
+   requires="4.71"
+   version="5.0"
+   >
+  </plugin>
+<!--  Script  -->
+<script>
+<![CDATA[
+SPT = GetPluginID (); SPT_PATH = GetPluginInfo(SPT, 20)
+dofile(SPT_PATH.."Spot_Timers.lua")
+]]>
+</script>
+<!--  Timers  -->
+<timers>
+ <timer 
+  name="tic" 
+  enabled="y" 
+  minute="0" 
+  second="1.00" 
+  offset_second="0.00"    
+  script="spot_timer_tic"
+ ></timer>
+</timers>
+<!--  Triggers  -->
+<triggers>
+  <trigger
+   keep_evaluating="y"
+   enabled="y"
+   match="^.* (kill|deals the death blow to) (?<mob>.*)$"
+   name="spots_kill"
+   regexp="y"
+   sequence="100"
+   script="on_trigger_spots_kill"
+  ></trigger>
+ </triggers>
+ <!--  Aliases  -->
+</muclient>	

@@ -159,6 +159,9 @@ function shades_window_setup(window_width, window_height) -- define window attri
         WindowResize(win.."base", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, sha.colours.window_transparency) -- base: room structure, static objects and bmp images
         WindowResize(win, dim.window.x, dim.window.y, sha.colours.window_background) -- display window: only dynamic objects will be printed directly here
         WindowResize(win.."overlay", dim.window.x, dim.window.y, miniwin.pos_center_all, 0, sha.colours.window_transparency) --overlay: room-letters
+		window_pos_x = WindowInfo(win, 10)
+		window_pos_y = WindowInfo(win, 11)
+		WindowPosition(win, window_pos_x, window_pos_y, 0, 2)
     end
     
     local dimensions, colours = get_window_dimensions(window_width, window_height), sha.colours

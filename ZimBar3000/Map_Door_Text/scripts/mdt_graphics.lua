@@ -366,7 +366,7 @@ function mdt_draw_text(styles)
 					end
 					local id = t[0] or false
 					if mdt.locations[id] then
-						-- save locations so we can used them to highlight ghost
+						-- save locations so we can use them to highlight ghost
 						mdt.locations[id].text = {
 							x1 = x1,
 							y1 = y1,

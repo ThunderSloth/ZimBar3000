@@ -66,6 +66,27 @@ on_plugin_start()
 
 medina_print_map()
 
+--[[
+med.rooms.Q.normalized = {
+  e="n",
+  w="se",
+  n="ne"
+}
+med.rooms.Q.exits = {
+	n = {
+		exits = false,
+		room="R"
+	},
+	se = {
+		exits = false,
+		room="P"
+	},
+	ne = {
+		exits = false,
+		room="N"
+	}
+}
+medina_print_map()]]
 --tprint(med.rooms)
 --tprint(med.exit_counts)
 --tprint(med.colours)

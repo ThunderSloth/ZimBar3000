@@ -153,17 +153,19 @@ end
 function medina_verify_room(possible_start, start_exits, direction, possible_end, presumed_end, end_exits)
     local function to_set(t1) local t2 = {}; for _, v in ipairs(t1) do t2[v] = true end; return t2 end
     local function to_list(t1) local t2 = {}; for k, _ in pairs(t1) do table.insert(t2, k) end; return t2 end
-    start_room, end_room, presumed_end, possible_start = {}, {}, to_set(presumed_end), to_set(possible_start)
-    
+    start_room, end_room, presumed_end, possible_start = {}, {}, to_set(presumed_end), to_set(possible_start)   
     for _, v in ipairs(possible_end) do
         if presumed_end[v] then
             table.insert(end_room, v) -- overlap between possible and presumed
         end
     end
+    --print("possible_start");tprint(possible_start or {})
+    --print("possible_end");tprint(possible_end or {})
+    --print("presumed_end");tprint(presumed_end or {})
     local exit_change = false
     if #end_room == 0 then
         end_room = possible_end
-        exit_change = true  -- if no overlap, start exits have changed
+        exit_change = true  -- if no overlap, start exits have changed     
     end
     for _, v in ipairs(end_room) do
         for k, _ in pairs(med.rooms[v].exit_rooms) do
@@ -198,6 +200,16 @@ function medina_verify_room(possible_start, start_exits, direction, possible_end
                med.rooms[absolute_start].exits[direction].exits[dir] = true
             end
         end
+        -- attempt to narrow uncertainty by tossing any possible end rooms 
+        -- that are not adjacent, typically all of the possible end exits we recieve
+        -- are already all adjacent, but certain edge cases dealing with rooms H and N
+        -- (same room desc.) cause us to have to re-check this
+        for i, v in ipairs(possible_end) do
+			if not med.rooms[absolute_start].exit_rooms[v] then
+				table.remove(possible_end, i)
+			end
+        end
+        absolute_end = #end_room == 1 and end_room[1] or false
         -- attempt to narrow uncertainty based on exit-lists
         if not(absolute_end) and med.rooms[absolute_start].exits and end_exits and direction then
             local function get_count(t) local c = 0; for _, _2 in pairs(t) do c = c + 1 end return c end

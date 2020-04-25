@@ -259,6 +259,11 @@ function dragrelease(flags, hotspot_id) end
 
 -- called when the resize drag widget is moved
 function ResizeMoveCallback()
+	local auto_pos = WindowInfo(win, 7)
+	if auto_pos ~= 0 then 
+	   Repaint()
+	   WindowPosition(win, WindowInfo(win, 10), WindowInfo(win, 11), 0, 2)
+	end
     local min = 300
     local start_x, start_y = WindowInfo(win, 10), WindowInfo(win, 11)
     local drag_x,   drag_y = WindowInfo(win, 17), WindowInfo(win, 18)

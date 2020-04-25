@@ -833,6 +833,7 @@ function voyage_draw_part(coor, col, mw)
 end
 
 function voyage_draw_stage(coor, col, mw)
+	voy.lightning = false
     if voy.stage == "Serpent" and not voy.sea then
 		voyage_get_hotspot_monster(coor, "serpent")
     else

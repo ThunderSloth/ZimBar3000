@@ -17,8 +17,10 @@ function voyage_update_objects(room, text, is_subtract)
         ["wooden board"] = "boards",
         ["carpenter's hammer"] = "hammers",
         ["fire bucket"] = "buckets",
+        ["large bucket"] = "buckets",
         ["old linen towel"] = "towels",
         ["juicy lemon"] = "lemons",
+        ["large lemon"] = "lemons",
 		-- boiler
         ["large water tank"] = "tanks",
         ["control rod"] = "rods",
@@ -84,4 +86,14 @@ end
 function voyage_object_tank_out(name, line, wildcards, styles)
     voyage_update_objects(voy.sequence[1], "a large water tank", true)
     voyage_print_map()
+end
+-- recliam
+function voyage_object_reclaim(name, line, wildcards, styles)
+	local room = voy.sequence[1]
+	if room then
+		for k, v in pairs(voy.rooms[room].objects) do
+			voy.rooms[room].objects[k] = 0
+		end
+	end
+	voyage_print_map()
 end

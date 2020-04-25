@@ -47,4 +47,4 @@ HIGH XP: 5
 )(?<xp1ouse_ice_>m)(ouse|ice)|(?#
  ZERO XP: 0
 * '' --> s
-)(?<xp0_s_>(?<=(cloud))|(?<=(fruitbat))|horseman .*?|(?<=(truffle pig))s?))(?<hiding> [(]hiding[)])?$
+)(?<xp0_s_>(?<=(cloud))|(?<=(fruitbat))|horseman .*?|(?<=(truffle pig)))s?)(?<hiding> [(]hiding[)])?$

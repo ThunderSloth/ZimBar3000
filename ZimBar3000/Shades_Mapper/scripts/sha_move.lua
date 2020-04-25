@@ -24,7 +24,7 @@ function shades_move_room(room)
     end
     shades_set_follow_delay(previous_room, sha.commands[0])
     sha.scry_room = false
-    shades_reset_thyngs(room)
+    shades_reset_thyngs(current_room)
     shades_construct_seq()
     shades_print_map()
 end

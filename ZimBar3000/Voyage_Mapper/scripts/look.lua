@@ -20,7 +20,9 @@ function on_trigger_voyage_room(name, line, wildcards, styles)
                     for _, v in ipairs(exit_types) do
                         if voy.rooms[room][v] then
                             for _2, r in pairs(voy.rooms[room][v]) do
-                                voy.rooms[r].fire = 0
+								if voy.rooms[r].visable then
+									voy.rooms[r].fire = 0
+                                end
                             end
                         end
                     end
@@ -224,7 +226,8 @@ function voyage_look_thyngs(room, text)
     local circled = circle and get_dragons(circle) or {}
     local is_update_guages = false
     thyngs = ","..thyngs:gsub("on to the ship's wheel", "here"):gsub("for food", "here"):gsub("at attention", "here"):gsub("around curiously", "here"):gsub("in the small red circle", "here"):gsub("sprawled in a heap", "iing here"):gsub("knocked out here", "iing here"):gsub("[oi]n the %w+ here", "here"):gsub(" %w+ %w+ing here[.]?", ""):gsub(" and ", ", "):gsub(", ",",")
-    for thyng in string.gmatch(thyngs, '[^,]+') do
+    for thyng in string.gmatch(thyngs, '[^,]+') do	
+		thyng = Trim(thyng)
         if voy.players[thyng] then
             for r, v in ipairs(voy.rooms) do
                 if voy.rooms[r].players[thyng] then

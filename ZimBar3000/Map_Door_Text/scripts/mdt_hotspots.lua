@@ -54,6 +54,16 @@ function dragrelease(flags, hotspot_id) end
 -- called when the resize drag widget is moved
 function resizemove(flags, hotspot_id)
 	local mw = tonumber(hotspot_id:match("(%d)$"))
+    local auto_pos = WindowInfo(win[mw], 7)
+    if auto_pos ~= 0 then 
+		-- workaround to weirdness with intitial resize, if window has not
+		-- yet been moved with drag-handler. Basically, auto positioning is calculated 
+		-- each time the screen is redrawn so we have to force a redraw to know
+		-- it's coordinates and then manually position the window to where it already is 
+		-- in order to remove it from auto-positioning mode
+		Repaint() 
+		WindowPosition(win[mw], WindowInfo(win[mw], 10), WindowInfo(win[mw], 11), 0, 2)
+	end
     local min = {100, 100}
     local start_x, start_y = WindowInfo(win[mw], 10), WindowInfo(win[mw], 11)
     local drag_x,   drag_y = WindowInfo(win[mw], 17), WindowInfo(win[mw], 18)

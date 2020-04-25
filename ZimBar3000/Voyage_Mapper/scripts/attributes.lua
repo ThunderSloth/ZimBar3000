@@ -115,13 +115,14 @@ function on_trigger_voyage_fire_shrink(name, line, wildcards, styles)
 end
 
 function on_trigger_voyage_fire_adjacent(name, line, wildcards, styles)
-    local directions = {["fore"] = "n", ["starboard fore"] = "ne", ["starboard"] = "e", ["starboard aft"] = "se", ["aft"] = "s", ["port aft"] = "sw", ["port"] = "w", ["port fore"] = "nw",}
-    local dir = wildcards.nautical
+    local directions = {["fore"] = "n", ["starboard fore"] = "ne", ["starboard"] = "e", ["starboard aft"] = "se", ["aft"] = "s", ["port aft"] = "sw", ["port"] = "w", ["port fore"] = "nw", above = "up", below = "down"}
+    local dir = wildcards.nautical ~= "" and wildcards.nautical or wildcards.vertical
     local current_room = voy.sequence[1]
-    local fire_room = voy.rooms[current_room].exits[directions[dir]] or voy.rooms[current_room].doors[directions[dir]] or false
+    local fire_room = voy.rooms[current_room].exits[directions[dir]] or voy.rooms[current_room].doors[directions[dir]] or voy.rooms[current_room].up[directions[dir]] or voy.rooms[current_room].down[directions[dir]] or false
     if fire_room then
         voy.rooms[fire_room].fire = voy.rooms[fire_room].fire == 0 and 3 or voy.rooms[fire_room].fire
     end
+    --print("FIRE!!!!!!", dir)
     voyage_update_fire()
     voyage_print_map()
 end
@@ -418,6 +419,8 @@ function voyage_mast_down(name, line, wildcards, styles)
     local room = voy.sequence[1]
     if room == 6 then
         voy.rooms[room].smashed = true
+		voy.rooms[room].objects.boards = voy.rooms[room].objects.boards + 20
+		voyage_print_map()
     end
 end
   
@@ -425,5 +428,7 @@ function voyage_shelf_down(name, line, wildcards, styles)
     local room = voy.sequence[1]
     if room == 13 or room == 16 or room == 19 then
         voy.rooms[room].smashed = true
+		voy.rooms[room].objects.boards = voy.rooms[room].objects.boards + 20
+		voyage_print_map()
     end
 end

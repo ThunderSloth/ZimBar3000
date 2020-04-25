@@ -535,7 +535,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^To (?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore))), ([Aa] (bolt|spear) of )?[Ll]ightning (strikes|pierces|arcs)( down from (above|the clouds) to( strike)?)? the (?<location>(deck|mast))(,? (accompanied by thunder|with the thunderous sound of, well, thunder|its thunderous report booming across the sea)).$"
+   match="^To (?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore))|(?<vertical>(above|below))), ([Aa] (bolt|spear) of )?[Ll]ightning (strikes|pierces|arcs)( down from (above|the clouds) to( strike)?)? the (?<location>(deck|mast))(,? (accompanied by thunder|with the thunderous sound of, well, thunder|its thunderous report booming across the sea)).$"
    name="voyage_lightning_hit"
    regexp="y"
    sequence="100"
@@ -580,7 +580,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <trigger
    group="voyage"
    keep_evaluating="y"
-   match="^((Fiery|Scorching) heat (rushes|blasts) in from|Long shadows dance as (flickering|red\-orange) firelight from|The distinctive (snapping and popping|crackling) of a wood fire comes from) (?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))( (casts light on|illuminates) the room)?.$"
+   match="^((Fiery|Scorching) heat (rushes|blasts) in from|Long shadows dance as (flickering|red\-orange) firelight from|The distinctive (snapping and popping|crackling) of a wood fire comes from) ((?<nautical>(?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))|(?<vertical>(above|below)))"
    name="voyage_fire_adjacent"
    regexp="y"
    sequence="100"
@@ -888,6 +888,15 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
    sequence="100"
    script="voyage_object_tank_out"
   ></trigger>
+   <trigger
+   group="voyage"
+   keep_evaluating="y"
+   match="^The piles of junk tumble over each other with a crash, reclaiming"
+   name="voyage_object_reclaim"
+   regexp="y"
+   sequence="100"
+   script="voyage_object_reclaim"
+  ></trigger> 
 <!-- Mast and Shelves -->
   <trigger
    group="voyage"

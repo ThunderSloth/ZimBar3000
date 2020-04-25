@@ -68,7 +68,7 @@ dofile( SMU_PATH .. (GetPluginInfo (SMU, 1)) .. ".lua")
   <trigger
    group="smugs"
    keep_evaluating="y"
-   match="^(A dingy tunnel \[d\]|Some rocks have been moved aside to reveal a narrow hole leading down|You examine the ground carefully and notice some rocks that look like they have been moved recently.  Shifting them aside, you reveal a hole in the ground|.*  searches around carefully, and moves aside a couple of rocks in the corner to reveal a hole in the floor).$"
+   match="^(A dingy tunnel \[d\]|Some rocks have been moved aside to reveal a narrow hole leading down|You examine the ground carefully and notice some rocks that look like they have been moved recently.  Shifting them aside, you reveal a hole in the ground|.* searches around carefully, and moves aside a couple of rocks in the corner to reveal a hole in the floor).$"
    name="smugs_hidey_hole_here"
    regexp="y"
    send_to="12"

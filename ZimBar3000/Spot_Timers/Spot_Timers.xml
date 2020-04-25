@@ -47,6 +47,46 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    sequence="100"
    script="on_trigger_spots_kill"
   ></trigger>
+  <trigger
+   ignore_case="y"
+   enabled="n"
+   keep_evaluating="y"
+   match="^(.*the Triad boss.* moves? aggressively towards you!|.*the Triad boss.*(standing|fighting) here)"
+   name="spots_enter_boss"
+   regexp="y"
+   script="on_trigger_spots_enter_sub_spot"
+   sequence="100"
+  ></trigger>
+  <trigger
+   ignore_case="y"
+   enabled="n"
+   keep_evaluating="y"
+   match="^(?!(.* (tells|asks)|\[.+\] \w+|\(\w+\) \w+)).*the smuggler captain.*"
+   name="spots_enter_captain"
+   regexp="y"
+   script="on_trigger_spots_enter_sub_spot"
+   sequence="100"
+  ></trigger>
+  <trigger
+   ignore_case="y"
+   enabled="n"
+   keep_evaluating="y"
+   match="^(You bury|.* buries) (?<mobs>.*) deep within the (ground|earth)\.$"
+   name="spots_shades_bury"
+   regexp="y"
+   script="on_trigger_spots_shades_bury"
+   sequence="100"
+  ></trigger>
  </triggers>
  <!--  Aliases  -->
+ <aliases> 
+  <alias
+   match="^spots ta?ble?( (?<spot>.*))?$"
+   enabled="y"
+   regexp="y"
+   script="on_alias_spots_table"
+   sequence="100"
+  >
+  </alias>
+ </aliases>
 </muclient>	

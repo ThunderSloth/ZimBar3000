@@ -36,7 +36,7 @@ function on_trigger_shades_brief_entrance(name, line, wildcards, styles)
 end
 
 function on_trigger_shades_brief(name, line, wildcards, styles)
-	local r= {{}, {}, {}, {"A", "B", "F", "O", "P", "Q"}, {"C", "L"}, {"H"}, {"D", "E", "K", "M", "N"}, {"I", "J"},}
+	local r = {{}, {}, {}, {"A", "B", "F", "O", "P", "Q"}, {"C", "L"}, {"H"}, {"D", "E", "K", "M", "N"}, {"I", "J"},}
 	local room = r[tonumber(wildcards.exits)]
     if wildcards.thyngs ~= '' then
 		on_trigger_shades_mob_track("here", line, {thyngs = wildcards.thyngs}, styles, sha.sequence[1])
@@ -199,7 +199,7 @@ function shades_get_trigs()
 		SetTriggerOption ("shades_mob_"..v, "send_to", 12)
     end
 
-	for i, v in ipairs({"shades_room_brief", "shades_mob_enter", "shades_mob_exit"}) do
+	for i, v in ipairs({"shades_brief", "shades_mob_enter", "shades_mob_exit"}) do
 		ImportXML ( get_xml_injection( ExportXML (0, v) ) )
     end
     

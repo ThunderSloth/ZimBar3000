@@ -53,12 +53,6 @@ function mdt_pos_window()
 			   WindowPosition(win[i], window_pos_x[i], window_pos_y[i], 0, 2)
 			end    
 		end
-    else
-        for i in ipairs(win) do
-			window_pos_x = {WindowInfo(win[1], 10), WindowInfo(win[2], 10)}
-			window_pos_y = {WindowInfo(win[1], 11), WindowInfo(win[2], 11)}
-			WindowPosition(win[i], window_pos_x[i], window_pos_y[i], 0, 2)
-        end
     end
 end
 -- map ids

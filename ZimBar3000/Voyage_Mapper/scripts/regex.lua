@@ -13,7 +13,7 @@ function voyage_get_regex()
         door_and_exit_paths = rex.new("((?(?=starboard|port)(starboard|port)(aft|fore)?|(aft|fore)))(?!.* of )"),
         hull_report = rex.new("^(?! needs? .*).* (repair|fixed|max).*$"),
         other_report = rex.new("^.*(got the|gone|no more|off|clear).*$"),
-        adjacent_fire = rex.new("^.* firelight can be seen to ((((?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))((, | and ))?)+).*$"),
+        adjacent_fire = rex.new("^.* firelight can be seen to ((?<nautical>(((?(?=starboard|port)(starboard|port)( aft| fore)?|(aft|fore)))((, | and ))?)+)|(?<vertical>(above|below))).*$"),
         sleeping = rex.new("^(?:.* (?:is|are) .*?(?:, | and ))?(.*) (?:is|are) (sleeping|knocked out) here.*$"),
         circle = rex.new("^(?:.* (?:is|are) .*?(?:, | and ))?(.*) (?:is|are) sitting in the small red circle.*$"),
         titles = rex.new(title_regex),

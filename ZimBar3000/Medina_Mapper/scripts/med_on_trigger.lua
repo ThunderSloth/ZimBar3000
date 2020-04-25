@@ -37,6 +37,7 @@ function on_trigger_medina_room(name, line, wildcards, styles)
 		if wildcards.thyngs ~= '' then
 			on_trigger_medina_mob_track("there", line, {thyngs = wildcards.thyngs}, styles, med.look_room)
 		else
+			--on_trigger_medina_dark_room(name, line, wildcards, styles)
 			medina_look_room(room, exits)
 		end
     elseif wildcards.scry ~= '' then

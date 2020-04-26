@@ -28,7 +28,7 @@ dofile(SPT_PATH.."Spot_Timers.lua")
 <!--  Timers  -->
 <timers>
  <timer 
-  name="tic" 
+  name="spot_tic" 
   enabled="y" 
   minute="0" 
   second="1.00" 
@@ -51,7 +51,7 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    ignore_case="y"
    enabled="n"
    keep_evaluating="y"
-   match="^(.*the Triad boss.* moves? aggressively towards you!|.*the Triad boss.*(standing|fighting) here)"
+   match="^(.* Triad boss.* moves? aggressively towards you!|.* Triad boss.*\w+ing here)"
    name="spots_enter_boss"
    regexp="y"
    script="on_trigger_spots_enter_sub_spot"
@@ -61,9 +61,9 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    ignore_case="y"
    enabled="n"
    keep_evaluating="y"
-   match="^(?!(.* (tells|asks)|\[.+\] \w+|\(\w+\) \w+)).*the smuggler captain.*"
+   match="^(.*the smuggler captain.* moves? aggressively towards you!|.*the smuggler captain.*\w+ing here|You notice \w+ smuggler captain|.* smuggler captain runs? out of)"
    name="spots_enter_captain"
-   regexp="y"
+   regexp="y" 
    script="on_trigger_spots_enter_sub_spot"
    sequence="100"
   ></trigger>

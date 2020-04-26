@@ -87,19 +87,21 @@ function shades_update_colours(msg, id, name, text)
 	else
 		local colour_name, i = text:match("^(.-)(%d?)$")
 		if i then i = tonumber(i) end
-		cdb = sqlite3.open(colours_database)
-		for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
-			if i then
-				sha.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
-			else
-				sha.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
-			end
+		if sha.colours[colour_name] then
+			cdb = sqlite3.open(colours_database)
+			for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
+				if i then
+					sha.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
+				else
+					sha.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
+				end
+			end	
+			cdb:close()
+			shades_draw_base(sha.dimensions, sha.colours)
+			shades_draw_overlay(sha.dimensions, sha.colours)
+			if WindowInfo(win, 5) then
+				shades_print_map()				
+			end		
 		end	
-		cdb:close()
-		shades_draw_base(sha.dimensions, sha.colours)
-		shades_draw_overlay(sha.dimensions, sha.colours)
-		if WindowInfo(win, 5) then
-			shades_print_map()				
-		end				
 	end
 end

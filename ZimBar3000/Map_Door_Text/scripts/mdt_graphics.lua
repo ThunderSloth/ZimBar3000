@@ -52,9 +52,13 @@ function mdt_titlebar(mw, dim, coor, col)
 	local i = clone[mw] or mw
 	-- add window border also 
     WindowRectOp(win[mw], 1, 0, 0, dim.window[i].x, dim.window[i].y, col.window_border) 
-	WindowCircleOp (win[mw], 2, 
-		0, 0, dim.window[i].x, dim.font.titlebar_text,
-		col.titlebar_border, 0, 1, col.titlebar_fill, 0)
+	WindowGradient (win[mw], 0, 0, dim.window[i].x, FIXED_TITLE_HEIGHT, 
+		col.titlebar_fill[1], 
+        col.titlebar_fill[2], 
+        miniwin.gradient_vertical)
+    WindowRectOp(win[mw], miniwin.rect_draw_edge, 0, 0, dim.window[i].x, FIXED_TITLE_HEIGHT,
+        miniwin.rect_edge_etched, 
+        miniwin.rect_edge_at_all)
 	local w = WindowTextWidth(win[i], "titlebar_text", mdt.title[i])
 	local x1 = (dim.window[i].x - w) / 2
 	local min = 1

@@ -35,7 +35,7 @@ function shades_get_font(dim)
 		return chosen_fonts
 	end
 	local fonts = choose_fonts()
-	for c, p in pairs({titlebar_text = FIXED_TITLE_HEIGHT, room_character = dim.room.y, exit_number = dim.exit.y}) do
+	for c, p in pairs({titlebar_text = FIXED_TITLE_HEIGHT - 2, room_character = dim.room.y, exit_number = dim.exit.y}) do
 		local max = 200
 		local h, s = 0, 1
 		local f = fonts[c]

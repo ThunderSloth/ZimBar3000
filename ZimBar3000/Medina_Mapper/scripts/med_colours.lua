@@ -87,19 +87,21 @@ function medina_update_colours(msg, id, name, text)
 	else
 		local colour_name, i = text:match("^(.-)(%d?)$")
 		if i then i = tonumber(i) end
-		cdb = sqlite3.open(colours_database)
-		for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
-			if i then
-				med.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
-			else
-				med.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
-			end
-		end	
-		cdb:close()
-		medina_draw_base(med.dimensions, med.colours)
-		medina_draw_overlay(med.dimensions, med.colours)
-		if WindowInfo(win, 5) then
-			medina_print_map()				
-		end				
+		if med.colours[colour_name] then
+			cdb = sqlite3.open(colours_database)
+			for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
+				if i then
+					med.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
+				else
+					med.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
+				end
+			end	
+			cdb:close()
+			medina_draw_base(med.dimensions, med.colours)
+			medina_draw_overlay(med.dimensions, med.colours)
+			if WindowInfo(win, 5) then
+				medina_print_map()				
+			end	
+		end			
 	end
 end

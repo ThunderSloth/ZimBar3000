@@ -63,7 +63,7 @@ function mdt_restore_every_default_colour()
 	local stmt = ""
 	cdb = sqlite3.open(colours_database)
 	local every_colour = {}
-	for t in cdb:nrows("SELECT colour_name FROM colours") do
+	for t in cdb:nrows("SELECT colour_name FROM colours;") do
 		table.insert(every_colour, t.colour_name)
 	end
 	for _, colour_name in ipairs(every_colour) do
@@ -89,19 +89,21 @@ function mdt_update_colours(msg, id, name, text)
 	else
 		local colour_name, i = text:match("^(.-)(%d?)$")
 		if i then i = tonumber(i) end
-		cdb = sqlite3.open(colours_database)
-		for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
-			if i then
-				mdt.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
-			else
-				mdt.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
+		if mdt.colours[colour_name] then
+			cdb = sqlite3.open(colours_database)
+			for c in cdb:nrows("SELECT * FROM "..colour_name..(i and " WHERE id = "..tostring(i) or "")) do
+				if i then
+					mdt.colours[colour_name][i] = c.custom or ColourNameToRGB(c.preset)
+				else
+					mdt.colours[colour_name] = c.custom or ColourNameToRGB(c.preset)
+				end
+			end	
+			cdb:close()
+			if not (mdt.sequence[1] and  mdt.special_areas[mdt.sequence[1]]) then
+				mdt_draw_map(mdt.rooms)
+				mdt_prepare_text(mdt.rooms)
 			end
 		end	
-		cdb:close()
-		if not (mdt.sequence[1] and  mdt.special_areas[mdt.sequence[1]]) then
-			mdt_draw_map(mdt.rooms)
-			mdt_prepare_text(mdt.rooms)
-		end			
 	end
 end
 

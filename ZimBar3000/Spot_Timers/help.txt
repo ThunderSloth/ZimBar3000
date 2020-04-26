@@ -1,0 +1,8 @@
+--------------------------------------------------
+--  HELP-FILE FOR: SPOT TIMERS v5.0 BY ZIMBUS   --
+--------------------------------------------------
+Available Commands:
+
+* spots help                 -- this help-file
+
+helpfile unfinished :P

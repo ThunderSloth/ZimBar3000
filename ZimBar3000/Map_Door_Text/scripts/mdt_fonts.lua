@@ -65,7 +65,7 @@ function mdt_get_font(dim) -- dimensions
 		titlebar_text = ( -- determined by fixed hight
 			function(font_id)
 				local font_name = fonts.titlebar_text 
-				local font_size   = get_size(font_id, font_name, FIXED_TITLE_HEIGHT)
+				local font_size   = get_size(font_id, font_name, FIXED_TITLE_HEIGHT - 2)
 				local font_height = load_font(font_id, font_name, font_size)
 				mdt.dimensions.font[font_id] = font_height -- single value
 			end),

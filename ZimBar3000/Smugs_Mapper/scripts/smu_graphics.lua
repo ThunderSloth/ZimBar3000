@@ -36,11 +36,13 @@ function smugs_draw_base(dim, col) -- dimensions, colours
         0, 0, dim.window.x, dim.window.y,
         col.window_border, miniwin.pen_solid, 1,
         col.window_background, 0) 
-    WindowCircleOp( -- title bar
-        win.."base", miniwin.circle_rectangle, 
-        0, 0, dim.window.x, dim.font.titlebar_text * 1.1,
-        col.titlebar_border, miniwin.pen_solid, 1,
-        col.titlebar_fill, 0)
+	WindowGradient (win.."base", 0, 0, dim.window.x, FIXED_TITLE_HEIGHT, -- titlebar
+		col.titlebar_fill[1], 
+        col.titlebar_fill[2], 
+        miniwin.gradient_vertical)
+    WindowRectOp(win.."base", miniwin.rect_draw_edge, 0, 0, dim.window.x, FIXED_TITLE_HEIGHT,
+        miniwin.rect_edge_etched, 
+        miniwin.rect_edge_at_all)
     local title = "Smugs Cave"
     local text_width = WindowTextWidth(win.."base", "titlebar_text", title)
     local x1 = (dim.window.x - text_width) / 2

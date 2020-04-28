@@ -41,7 +41,7 @@ dofile(SPT_PATH.."Spot_Timers.lua")
   <trigger
    keep_evaluating="y"
    enabled="y"
-   match="^.* (kill|deals the death blow to) (?<mob>.*)$"
+   match="^.* (?:kill|deals the death blow to) (?<mob>.*)$"
    name="spots_kill"
    regexp="y"
    sequence="100"
@@ -51,7 +51,7 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    ignore_case="y"
    enabled="n"
    keep_evaluating="y"
-   match="^(.* Triad boss.* moves? aggressively towards you!|.* Triad boss.*\w+ing here)"
+   match="^(?:.* Triad boss.* moves? aggressively towards you!|.* Triad boss.*\w+ing here)"
    name="spots_enter_boss"
    regexp="y"
    script="on_trigger_spots_enter_sub_spot"
@@ -61,7 +61,7 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    ignore_case="y"
    enabled="n"
    keep_evaluating="y"
-   match="^(.*the smuggler captain.* moves? aggressively towards you!|.*the smuggler captain.*\w+ing here|You notice \w+ smuggler captain|.* smuggler captain runs? out of)"
+   match="^(?:.*the smuggler captain.* moves? aggressively towards you!|.*the smuggler captain.*\w+ing here|You notice \w+ smuggler captain|.* smuggler captain runs? out of)"
    name="spots_enter_captain"
    regexp="y" 
    script="on_trigger_spots_enter_sub_spot"
@@ -71,10 +71,20 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    ignore_case="y"
    enabled="n"
    keep_evaluating="y"
-   match="^(You bury|.* buries) (?<mobs>.*) deep within the (ground|earth)\.$"
+   match="^(?:You bury|.* buries) (?<mobs>.*) deep within the (?:ground|earth)\.$"
    name="spots_shades_bury"
    regexp="y"
    script="on_trigger_spots_shades_bury"
+   sequence="100"
+  ></trigger>
+ <trigger
+   ignore_case="y"
+   enabled="y"
+   keep_evaluating="y"
+   match="^(?:\[(?:end of an|large) underground tunnel\]|(?:The end of an|A large) underground tunnel \[.*\]\.)$"
+   name="spots_coons_enter"
+   regexp="y"
+   script="on_trigger_spots_coons_enter"
    sequence="100"
   ></trigger>
  </triggers>

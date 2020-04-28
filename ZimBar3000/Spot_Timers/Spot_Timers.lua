@@ -12,7 +12,6 @@ function on_plugin_start()
     spots_get_variables()
     spots_get_windows()
     spots_window_setup(window_width, window_height)
-    spots_get_hotspots(spt.dimensions)
 end
 
 function spots_get_variables()
@@ -78,14 +77,15 @@ function spots_get_data()
 		end
 		spt.spots[spot].position = spt.spots[spot].id
 	end
+	-- remaining user options
 	for k, v in pairs(spt.spots) do
-		spt.spots[k].display_name = k
-		--spt.spots[k].display_name = spt.spots[k].display_name or k
-		--spt.spots[k].display_name = k:upper()
+		spt.spots[k].display_name = spt.spots[k].display_name or k
 	end
+	spt.notes = spt.notes or {on = false, order = {"enter", "exit", "kill", "report"}, enter = true, exit = true, kill = true, report = true}
 	spt.sort_mode = spt.sort_mode or {}
 	spt.sort_mode = {"static", "time", "colour", selected = spt.sort_mode.selected or 3}
-	spt.title = "Spot Timers"
+	spt.title = "Timers"
+	
 	spt.current_spot = spt.current_spot or {} -- use table so we can easily handle boss+medina, cap+smugs
 	-- last visited mousover and pinned are used to keep track of which stats to show
 	spt.last_visited = false
@@ -261,6 +261,7 @@ function spots_window_setup(window_width, window_height) -- define window attrib
     resize_windows (spt.dimensions)
     get_coordinates(spt.dimensions)
     spots_draw_base(spt.dimensions)
+    spots_get_hotspots(spt.dimensions)
 end
 --------------------------------------------------------------------------------
 --   COLOURS
@@ -453,8 +454,6 @@ function spots_get_font(dim)
 			if mw:match(SPT) then
 				WindowFont(mw, font_id, font_name, font_size, false, false, false, false)
 				WindowFont(mw, font_id.."strikethrough", font_name, font_size, false, false, false, true)
-				WindowFont(mw, font_id.."underlined", font_name, font_size, false, false, true, false)
-				WindowFont(mw, font_id.."strikethrough".."underlined", font_name, font_size, false, false, true, true)
 			end
 		end
         spt.dimensions.font[font_id] = WindowFontInfo(win, font_id, 1)
@@ -746,6 +745,7 @@ function spots_get_title_menu()
 			if v.is_hidden then 
 				spt.spots[k].is_hidden = false
 			else
+				WindowDeleteHotspot(win, k)
 				spt.spots[k].is_hidden = true
 				if spt.pinned == k then spt.pinned = false end
 				if spt.mouseover == k then spt.mouseover = false end
@@ -761,6 +761,17 @@ function spots_get_title_menu()
 			spt.sort_mode.selected = i
 			spots_print()
 		end)  
+    end
+    menu = menu.."<|>notes|"
+    menu = menu..(spt.notes.on and "+" or "").."enabled||^include:||"
+	table.insert(options, function()
+		spt.notes.on = not spt.notes.on
+	end)  
+    for i, v in ipairs(spt.notes.order) do
+    	table.insert(options, function()
+			spt.notes[v] = not spt.notes[v]
+		end)  
+		menu = menu..(spt.notes[v] and "+" or "")..v.."|"
     end
     menu = menu.."<|>colours|restore all||"
     table.insert(options, function()
@@ -924,6 +935,9 @@ function spots_recieve_GMCP(text)
 				spt.spots[k].time_exited = os.time() -- just in case, reload mid-spot
 			end
 			spt.spots[k].final_xp = xp
+			if spt.notes.report then
+				spots_report_stats("from_GMCP", 0, {spot = k})
+			end
 		end
 		spt.need_final_xp = {}
     elseif text:match("^room.info .*") then
@@ -968,17 +982,25 @@ function spots_enter(spot_name)
 		spt.spots[spot_name].final_xp = spt.current_xp
 		spt.spots[spot_name].time_exited = false
 	end
-	print(string.upper("enter: "..spot_name))
+	if spt.notes.on and spt.notes.enter then
+		ColourNote(RGBColourToName(spt.colours.note_text), "", (spot_name..": enter"):upper())
+	end
 end
 
 function spots_leave(spot)
 	local function leave_spot(spot_name)
-		if spot_name == "medina" and spt.current_spot.boss then
-			leave_spot("boss")
-			EnableTrigger("spots_enter_boss", false)
-		elseif spot_name == "smugs" and spt.current_spot.captain then
-			leave_spot(captain)
-			EnableTrigger("spots_enter_captain", false)
+		if spot_name == "medina" then
+			if spt.current_spot.boss then
+				leave_spot("boss")
+				EnableTrigger("spots_enter_boss", false)
+			end
+			spt.last_visited = "medina"
+		elseif spot_name == "smugs" then
+			if spt.current_spot.captain then
+				leave_spot(captain)
+				EnableTrigger("spots_enter_captain", false)		
+			end
+			spt.last_visited = "smugs"
 		elseif spot_name == "shades" then
 			EnableTrigger("spots_shades_bury", false)
 		end	
@@ -995,7 +1017,9 @@ function spots_leave(spot)
 				spt.spots[spot_name].is_big_spawn = true
 			end
 		end
-		print(string.upper("leave: "..spot_name))
+		if spt.notes.on and spt.notes.exit then
+			ColourNote(RGBColourToName(spt.colours.note_text), "", (spot_name..": exit"):upper())
+		end
 	end
 	if type(spot) == "table" then
 		for k in pairs(spot) do
@@ -1013,6 +1037,9 @@ function on_trigger_spots_kill(name, line, wildcards, styles)
 		local s, e, t = regex.mob[k]:match(wildcards.mob)
 		if t then
 			spt.spots[k].kill_count = spt.spots[k].kill_count + 1
+			if spt.notes.on and spt.notes.kill then
+				ColourNote(RGBColourToName(spt.colours.note_text), "", (k..": kills: "..spt.spots[k].kill_count):upper())
+			end
 			if k == "boss" or k == "captain" then
 				spots_leave(k)
 			end
@@ -1041,12 +1068,22 @@ function on_trigger_spots_shades_bury(name, line, wildcards, styles)
 	wildcards.mobs:gsub("(%w+) corpse", function(c)
 		spt.spots.shades.kill_count = spt.spots.shades.kill_count + (numbers[c] or 0)
 	end)
+	if spt.notes.on and spt.notes.kill then
+		ColourNote(RGBColourToName(spt.colours.note_text), "", ("shades: kills: "..spt.spots.shades.kill_count):upper())
+	end
 	if spt.spots.shades.kill_count >= spt.spots.shades.kill_reset then
 		spt.spots.shades.time_killed = os.time()
 		spt.spots.shades.is_down = false
 		if spt.spots.shades.kill_count >= spt.spots.shades.kill_high then
 			spt.spots.shades.is_big_spawn = true
 		end
+	end
+end
+
+function on_trigger_spots_coons_enter(name, line, wildcards, styles)
+	if not spt.current_spot.coons then
+		spots_enter("coons")
+		spots_print()
 	end
 end
 --------------------------------------------------------------------------------
@@ -1076,23 +1113,6 @@ function spots_draw_base(dim)
 end
 
 function spots_print()
-	-- get our display time, this function returns miutes and seconds
-	-- seperatly so that we can ensure that the colon in the middle
-	-- always remains perfectly centered, even with non mono space fonts
-	local function get_time(spot_name, start_time, end_time)
-		if start_time then
-			local minutes, seconds = 0, 0
-			minutes = math.floor((end_time - start_time) / 60)
-			seconds = (end_time - start_time) - (minutes * 60)
-			if seconds < 10 then
-				seconds = "0"..tostring(seconds)
-			end
-			return tostring(minutes), tostring(seconds), start_time
-		else
-			return false, false, false
-		end
-	end
-	-- draw individual spot lines and print to main window
 	local function draw_spot(spot_name, v, col, dim, pos)
 		-- draw spot name
 		local function draw_name(spot_name, v, col, dim, mw)
@@ -1103,17 +1123,8 @@ function spots_print()
 			else
 				WindowCircleOp(mw, 2, 0, 0, dim.spot.x, dim.spot.y, bg_colour, 0, 0, bg_colour, 0)
 			end
-			-- use strikethrough if spot is down, underline if viewing stats, add exclimation point if there was an especially large spawn
-			local strikethrough = v.is_down and "strikethrough" or ""
-			local underlined = ""
-			if spt.pinned then
-				underlined = spt.pinned       == spot_name and "underlined" or ""
-			elseif spt.mouseover then
-				underlined = spt.mouseover    == spot_name and "underlined" or ""
-			else
-				underlined = spt.last_visited == spot_name and "underlined" or ""
-			end
-			local font_id = "spot_text"..strikethrough..underlined
+			-- use strikethrough if spot is down, add exclimation point if there was an especially large spawn
+			local font_id = "spot_text"..(v.is_down and "strikethrough" or "")
 			local display_name = v.display_name..(v.is_big_spawn and "!" or "")
 			local coor = spt.coordinates.spot_names[display_name]
 			WindowText(mw, font_id, display_name, coor.x1, coor.y1, 0, 0, text_colour)
@@ -1141,10 +1152,18 @@ function spots_print()
 		WindowCircleOp(mw, 2, 0, 0, dim.spot_line.x, dim.spot_line.y, col.window_background, 0, 1, col.window_background, 0)
 		draw_time (spot_name, v, col, dim, mw)
 		draw_name (spot_name, v, col, dim, mw)
-		-- add border if current spot
-		if spt.current_spot[spot_name] then
-			WindowRectOp(mw, 1, 0, 0, dim.spot_line.x, dim.spot_line.y, col.spot_border_current)
+		-- add border if the spots stats are currently being shown
+		local is_stat_spot = false
+		if spt.pinned then
+			is_stat_spot =       spt.pinned == spot_name   
+		elseif spt.mouseover then
+			is_stat_spot =    spt.mouseover == spot_name
+		elseif spt.last_visited then
+			is_stat_spot = spt.last_visited == spot_name  
 		end
+		if is_stat_spot then
+			WindowRectOp(mw, 1, 0, 0, dim.spot_line.x, dim.spot_line.y, col.spot_border_current)
+		end		
 		WindowImageFromWindow(win, spot_name, mw)
 		-- print to main window
 		local coor = spt.coordinates.spot_line[pos]
@@ -1158,15 +1177,7 @@ function spots_print()
 		local spot_name = spt.pinned or spt.mouseover or spt.last_visited
 		if spot_name and spt.spots[spot_name].time_entered then
 			local text_colour = col.stat_text
-			local kills_text = tostring(spt.spots[spot_name].kill_count).." / "..tostring(spt.spots[spot_name].kill_reset)
-			local time =  (spt.spots[spot_name].time_exited or os.time()) - spt.spots[spot_name].time_entered
-			local minutes, seconds = get_time(spot_name, spt.spots[spot_name].time_entered, spt.spots[spot_name].time_exited or os.time())
-			local time_text = minutes..":"..seconds
-			local xp = spt.spots[spot_name].initial_xp and (spt.spots[spot_name].final_xp - spt.spots[spot_name].initial_xp) or 0
-			local xp_text = commas(xp).." xp"
-			local hours = ((spt.spots[spot_name].time_exited or os.time()) - spt.spots[spot_name].time_entered) / 60 ^ 2
-			local rate = hours > 0 and xp / hours or 0
-			local rate_text = commas(math.floor(rate)).." xp/hr"
+			local rate_text, xp_text, kills_text, time_text = spots_get_stats(spot_name)
 			for i, v in ipairs({rate_text, xp_text, kills_text, time_text}) do
 				local w = WindowTextWidth(win, "spot_stats", v)
 				local x1 = (dim.stat_line.x - w) / 2
@@ -1237,7 +1248,7 @@ function spots_print()
 		end
 		-- grab colours, text display and info helpful to sorting
 		local text_colour, bg_colour, current_range, percentage = get_spot_colour(k, v, spt.colours)
-		local minutes, seconds, display_time = get_time(k, v.time_exited or v.time_killed or v.time_entered and os.time(), os.time())
+		local minutes, seconds, display_time = spots_get_time(k, v.time_exited or v.time_killed or v.time_entered and os.time(), os.time())
 		spt.spots[k].text_colour = text_colour
 		spt.spots[k].bg_colour = bg_colour
 		spt.spots[k].current_range = current_range
@@ -1311,6 +1322,53 @@ function spots_sort(t, sort_mode)
         end
     end
 end
+-- get our display time, this function returns miutes and seconds
+-- seperatly so that we can ensure that the colon in the middle
+-- always remains perfectly centered, even with non mono space fonts
+-- draw individual spot lines and print to main window
+function spots_get_time(spot_name, start_time, end_time)
+	if start_time then
+		local minutes, seconds = 0, 0
+		minutes = math.floor((end_time - start_time) / 60)
+		seconds = (end_time - start_time) - (minutes * 60)
+		if seconds < 10 then
+			seconds = "0"..tostring(seconds)
+		end
+		return tostring(minutes), tostring(seconds), start_time
+	else
+		return false, false, false
+	end
+end
+--------------------------------------------------------------------------------
+--   STATS
+--------------------------------------------------------------------------------
+function spots_get_stats(spot_name)
+	if spot_name and spt.spots[spot_name].time_entered then
+		local kills_text = tostring(spt.spots[spot_name].kill_count).." / "..tostring(spt.spots[spot_name].kill_reset)
+		local time =  (spt.spots[spot_name].time_exited or os.time()) - spt.spots[spot_name].time_entered
+		local minutes, seconds = spots_get_time(spot_name, spt.spots[spot_name].time_entered, spt.spots[spot_name].time_exited or os.time())
+		local time_text = minutes..":"..seconds
+		local xp = spt.spots[spot_name].initial_xp and (spt.spots[spot_name].final_xp - spt.spots[spot_name].initial_xp) or 0
+		local xp_text = commas(xp).." xp"
+		local hours = ((spt.spots[spot_name].time_exited or os.time()) - spt.spots[spot_name].time_entered) / 60 ^ 2
+		local rate = hours > 0 and xp / hours or 0
+		local rate_text = commas(math.floor(rate)).." xp/hr"
+		return rate_text, xp_text, kills_text, time_text
+	end
+end
+
+function spots_report_stats(name, line, wildcards)
+	spot_name = wildcards.spot
+	if spt.spots[spot_name] then
+		local d = " * "
+		local rate_text, xp_text, kills_text, time_text = spots_get_stats(spot_name)
+		local s = 
+			(spot_name..": spot report: kills: "..
+			spt.spots[spot_name].kill_count..d..
+			xp_text..d..time_text.." min"..d..rate_text):upper()
+		ColourNote(RGBColourToName(spt.colours.note_text), "", s)
+	end
+end
 --------------------------------------------------------------------------------
 --   DEBUGGING
 --------------------------------------------------------------------------------
@@ -1329,10 +1387,20 @@ end
 --------------------------------------------------------------------------------
 print("YOU ARE USING THE WRONG TIMERS, THIS VERSION HAS NOT BEEN FINISHED YET :)")
 on_plugin_start()
-local s = ""
+
+local t = {}
 for k, v in pairs(spt.spots) do
-	s = s..k..","
+	table.insert(t, k:upper())
+	table.insert(t, (v.time_entered and bit.tostring (os.time() - v.time_entered, 36) or ""))
+	table.insert(t, (v.time_killed  and bit.tostring (os.time() - v.time_killed , 36) or ""))
+	table.insert(t, (v.time_exited  and bit.tostring (os.time() - v.time_exited , 36) or ""))
 end
---print(s)
+local s
+for i, v in ipairs(t) do
+	local d = "-"
+	s = s and s..d..v or v
+end
+print(s)
+
 
 

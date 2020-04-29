@@ -3,6 +3,42 @@
 --------------------------------------------------
 Available Commands:
 
-* spots help                 -- this help-file
+* spots help                     -- this help-file
 
-helpfile unfinished :P
+* spots restore (<spot>)         -- set spot(s) to unvisited
+
+* spots reset <spot> (<minutes>) -- set time killed to minutes ago (or now)
+
+* spots revert (<spot>)          -- set spot(s) to time last killed
+
+* spots report (<spot>) (group)  -- print or group say spot(s) stat report
+
+* spots sync <player>            -- send timer data to another player
+
+Reading The Timers:
+
+* spot time				  -- time last exited
+
+* strikethrough name      -- not spawned last time visited
+
+* exclimation point       -- an especially large spawn
+
+* cyan spot name border   -- spot with shown stats (defaults to last visited)
+
+* spot name background    -- colour based on time last killed
+
+* spot time background	  -- colour based on time last exited
+
+* spot background colours -- based loosly off of a traffic light analogy:
+
+* black spot background   -- has not been visited in the past 2 hours
+
+* gray spot background    -- very recently visited; definitely not respawned
+
+* red spot background     -- stop! likely too soon to revisit; possibly respawned
+
+* green spot background   -- go! optimal time to revisit; likely respawned
+
+* yellow spot background  -- hurry up! past optimal time to revisit
+
+* white spot background   -- far past optimal time; data irrelevant now

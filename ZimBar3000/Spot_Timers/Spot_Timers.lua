@@ -96,29 +96,79 @@ function spots_get_data()
 end
 
 -- initial setting, identical to never visited
-function spots_restore(spot)
+function on_alias_spots_restore(name, line, wildcards)
+	local function restore(spot)
 	spt.spots[spot].kill_count   = 0
-	for _, v in ipairs({"time_entered", "time_exited", "time_killed", "initial_xp", "final_xp", "is_down", "is_big_spawn"}) do
-		spt.spots[spot][v] = false
+		for _, v in ipairs({"time_entered", "time_exited", "time_killed", "initial_xp", "final_xp", "is_down", "is_big_spawn"}) do
+			spt.spots[spot][v] = false
+		end	
 	end
+	local spot_name = wildcards.spot_name	
+	if spot_name == "" then
+		for k, v in pairs(spt.spots) do
+			restore(k)
+		end
+	elseif spot_name and spt.spots[spot_name] then
+		restore(spot_name)
+	end
+	if name:match("spots") then
+		spots_print()
+	end 
 end
 
-function spots_restore_all()
-	for k in pairs(spt.spots) do
-		spots_restore(k)
+-- revert spot to previous time killed 
+-- example: need to revisit shades to look for snatched weapon but 
+-- don't want it to reflect as down-spot on timers
+function on_alias_spots_revert(name, line, wildcards)
+	local function revert(spot)
+		if spt.spots[spot].time_killed then
+			spt.spots[spot].kill_count   = spt.spots[spot].kill_reset	
+			spt.spots[spot].initial_xp   = 0
+			spt.spots[spot].final_xp     = 0
+			spt.spots[spot].is_down      = false
+			spt.spots[spot].is_big_spawn = false	
+			spt.spots[spot].time_entered = spt.spots[spot].time_killed
+			spt.spots[spot].time_exited  = spt.spots[spot].time_killed
+		end	
 	end
+	local spot_name = wildcards.spot_name
+	if spot_name == "" then
+		for k, v in pairs(spt.spots) do
+			revert(k)
+		end	
+	elseif spot_name and spt.spots[spot_name] then
+		revert(spot_name)
+	end
+	if name:match("spots") then
+		spots_print()
+	end 
 end
 
 -- mimic killing a spot (scry somebody killing spot, arrive to empty spot as another group is leaving ect.)
-function spots_reset(spot)
-	spt.spots[spot].kill_count   = 0
-	spt.spots[spot].initial_xp   = 0
-	spt.spots[spot].final_xp     = 0
-	spt.spots[spot].is_down      = false
-	spt.spots[spot].is_big_spawn = false
-	spt.spots[spot].time_entered = os.time()
-	spt.spots[spot].time_exited  = os.time()
-	spt.spots[spot].time_killed  = os.time()
+function on_alias_spots_reset(name, line, wildcards)
+	local function reset(spot, time)
+		spt.spots[spot].kill_count   = spt.spots[spot].kill_reset
+		spt.spots[spot].initial_xp   = 0
+		spt.spots[spot].final_xp     = 0
+		spt.spots[spot].is_down      = false
+		spt.spots[spot].is_big_spawn = false
+		spt.spots[spot].time_entered = os.time() - time
+		spt.spots[spot].time_exited  = os.time() - time
+		spt.spots[spot].time_killed  = os.time() - time
+	end
+	local spot_name = wildcards.spot_name
+	local minutes = tonumber(wildcards.minutes) or 0
+	local time = minutes * 60
+	if spot_name == "" then
+		for k, v in pairs(spt.spots) do
+			reset(k, time)
+		end		
+	elseif spot_name and spt.spots[spot_name] then
+		reset(spot_name, time)
+	end
+	if name:match("spots") then
+		spots_print()
+	end 
 end
 --------------------------------------------------------------------------------
 --   MINIWINDOW SETUP
@@ -693,19 +743,23 @@ end
 
 function mouseup(flags, id)
 	if spt.spots[id] then
-		if spt.pinned ~= id then
-			spt.pinned = id
-		else		
-			spt.pinned = false
+		if flags == 16 then
+			if spt.pinned ~= id then
+				spt.pinned = id
+			else		
+				spt.pinned = false
+			end
+			spt.mouseover = false
+			spots_print()
+		elseif flags == 32 then
+			spots_get_spot_menu(id)
 		end
-		spt.mouseover = false
-		spots_print()
 	elseif id:match("title") and flags == 32 then
 		spots_get_title_menu()
     end
 end
 --------------------------------------------------------------------------------
---   TITLEBAR MENU
+--   MENUS
 --------------------------------------------------------------------------------
 function spots_get_title_menu()
     local options = {}
@@ -719,19 +773,12 @@ function spots_get_title_menu()
     table.insert(options, function()
         dofile(SPT_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."zconfig.lua")
     end)
-    menu = menu..">reset|restore all||"
+    menu = menu.."restore all||"
 	table.insert(options, function()
-		spots_restore_all()
+		on_alias_spots_restore("spot_menu", "", {spot_name = ""})
 		spots_print()
 	end)
-    for k, v in spots_sort(spt.spots, "static") do
-		menu = menu..(k:gsub("&", " + "):gsub("(%d)", " %1")).."|"
-		table.insert(options, function()
-			spots_reset(k)
-			spots_print()
-		end)
-    end   
-    menu = menu.."<||>options|>show|all||"
+    menu = menu..">options|>show|all||"
 	table.insert(options, function()
 		for k, v in pairs(spt.spots) do
 			spt.spots[k].is_hidden = false
@@ -742,17 +789,8 @@ function spots_get_title_menu()
     for k, v in spots_sort(spt.spots, "static") do
 		menu = menu..(v.is_hidden and "" or "+")..(k:gsub("&", " + "):gsub("(%d)", " %1")).."|"
 		table.insert(options, function()
-			if v.is_hidden then 
-				spt.spots[k].is_hidden = false
-			else
-				WindowDeleteHotspot(win, k)
-				spt.spots[k].is_hidden = true
-				if spt.pinned == k then spt.pinned = false end
-				if spt.mouseover == k then spt.mouseover = false end
-			end
-			spots_window_setup(window_width, window_height)
-			spots_print()
-		end)
+			on_alias_spots_show("titlebar_menu", "", {spot_name = k})
+		end)	
     end    
     menu = menu.."<|>sort|"
     for i, v in ipairs(spt.sort_mode) do
@@ -762,6 +800,70 @@ function spots_get_title_menu()
 			spots_print()
 		end)  
     end
+    menu = menu.."<|>names|default|"
+    table.insert(options, function()
+		for k, v in pairs(spt.spots) do
+			spt.spots[k].display_name = k
+		end
+		spots_window_setup(window_width, window_height)
+		spots_print()
+    end)    
+    menu = menu.."long||"
+    table.insert(options, function()
+		for k, v in pairs(spt.spots) do
+			spt.spots[k].display_name = v.name_long
+		end      
+		spots_window_setup(window_width, window_height)
+		spots_print()		  
+    end)  
+    menu = menu.."lowercase|"
+    table.insert(options, function()
+ 		for k, v in pairs(spt.spots) do
+			spt.spots[k].display_name = v.display_name:lower()
+		end    
+		spots_window_setup(window_width, window_height)
+		spots_print()		       
+    end)  
+    menu = menu.."titlecase|"
+    table.insert(options, function()
+   		for k, v in pairs(spt.spots) do
+			spt.spots[k].display_name = v.display_name:gsub("^(%w)", string.upper):gsub("(%W%w)", string.upper)
+		end  
+		spots_window_setup(window_width, window_height)
+		spots_print()		       
+    end)    
+    menu = menu.."upercase||"
+    table.insert(options, function()
+  		for k, v in pairs(spt.spots) do
+			spt.spots[k].display_name = v.display_name:upper()
+		end   
+		spots_window_setup(window_width, window_height)
+		spots_print()		       
+    end) 
+    menu = menu.."custom|"
+    table.insert(options, function()
+		local spots = {}
+		for k, v in pairs(spt.spots) do
+			spots[k] = k
+		end
+        local spot_name = utils.listbox("Choose spot to rename:", "Custom Spot Name Picker", spots)
+        if spot_name then
+			local response = utils.inputbox("Enter display name for "..spt.spots[spot_name].name_long..":", "Custom Spot Name", spot_name, "", 0, {
+				box_width = 220,
+				box_height = 125, 
+				prompt_width = 220,
+				prompt_height = 12,
+				reply_width = 220,
+				reply_height = 20,
+				max_length = 40,
+			   } )
+			if response then
+				spt.spots[spot_name].display_name = response
+				spots_window_setup(window_width, window_height)
+				spots_print()			
+			end       
+        end
+    end)   
     menu = menu.."<|>notes|"
     menu = menu..(spt.notes.on and "+" or "").."enabled||^include:||"
 	table.insert(options, function()
@@ -875,6 +977,75 @@ function spots_get_title_menu()
         options[tonumber(result)]()
     end
 end
+
+function spots_get_spot_menu(spot_name)
+	local options = {}
+	local menu = "!!^"..(spot_name:gsub("&", " + "):gsub("(%d)", " %1")).."||"
+	menu = menu.."reset|"
+	table.insert(options, function()
+		on_alias_spots_reset("spot_menu", "", {spot_name = spot_name})
+		spots_print()
+	end)	
+	menu = menu.."revert|"
+	table.insert(options, function()
+		on_alias_spots_revert("spot_menu", "", {spot_name = spot_name})
+		spots_print()
+	end)	
+	menu = menu.."restore||"
+	table.insert(options, function()
+		on_alias_spots_restore("spot_menu", "", {spot_name = spot_name})
+		spots_print()
+	end)	
+	menu = menu.."report stats||"
+	table.insert(options, function()
+		on_alias_spots_report_stats("from_spot", "", {spot_name = spot_name})
+	end)	
+	menu = menu.."display name|"
+	table.insert(options, function()
+		local response = utils.inputbox("Enter display name for "..spt.spots[spot_name].name_long..":", "Custom Spot Name", spot_name, "", 0, {
+			box_width = 220,
+			box_height = 125, 
+			prompt_width = 220,
+			prompt_height = 12,
+			reply_width = 220,
+			reply_height = 20,
+			max_length = 40,
+           } )
+        if response then
+			spt.spots[spot_name].display_name = response
+			spots_window_setup(window_width, window_height)
+			spots_print()			
+        end
+	end)	
+	menu = menu.."hide"
+	table.insert(options, function()
+		on_alias_spots_show("spot_menu", "", {spot_name = spot_name})
+	end)	
+	menu = (string.gsub(menu, "%W%l", string.upper):sub(2))
+	result = string.lower(WindowMenu(win, 
+      WindowInfo(win, 14), --x
+      WindowInfo(win, 15), --y
+      menu))
+    if result ~= "" then
+        options[tonumber(result)]()
+    end
+end
+--------------------------------------------------------------------------------
+--   OPTIONS
+--------------------------------------------------------------------------------
+function on_alias_spots_show(name, line, wildcards)
+	local spot_name = wildcards.spot_name
+	if spt.spots[spot_name].is_hidden then 
+		spt.spots[spot_name].is_hidden = false
+	else
+		WindowDeleteHotspot(win, spot_name)
+		spt.spots[spot_name].is_hidden = true
+		if spt.pinned == spot_name then spt.pinned = false end
+		if spt.mouseover == spot_name then spt.mouseover = false end
+	end
+	spots_window_setup(window_width, window_height)
+	spots_print()
+end
 --------------------------------------------------------------------------------
 --   PLUGIN COMMUNICATION
 --------------------------------------------------------------------------------
@@ -936,7 +1107,7 @@ function spots_recieve_GMCP(text)
 			end
 			spt.spots[k].final_xp = xp
 			if spt.notes.report then
-				spots_report_stats("from_GMCP", 0, {spot = k})
+				on_alias_spots_report_stats("from_GMCP", 0, {spot_name = k})
 			end
 		end
 		spt.need_final_xp = {}
@@ -1243,8 +1414,8 @@ function spots_print()
 	local dim = spt.dimensions
 	for k, v in pairs(spt.spots) do
 		-- restore spot after 2 hours, no real reason to keep counting
-		if v.time_entered and os.time() - v.time_entered > 2 * 60^2 then
-			spots_restore(k)
+		if v.time_exited and os.time() - v.time_exited > 2 * 60^2 then
+			on_alias_spots_restore("time limit exceeded", "", {spot_name = k})
 		end
 		-- grab colours, text display and info helpful to sorting
 		local text_colour, bg_colour, current_range, percentage = get_spot_colour(k, v, spt.colours)
@@ -1357,16 +1528,31 @@ function spots_get_stats(spot_name)
 	end
 end
 
-function spots_report_stats(name, line, wildcards)
-	spot_name = wildcards.spot
-	if spt.spots[spot_name] then
-		local d = " * "
-		local rate_text, xp_text, kills_text, time_text = spots_get_stats(spot_name)
-		local s = 
-			(spot_name..": spot report: kills: "..
-			spt.spots[spot_name].kill_count..d..
-			xp_text..d..time_text.." min"..d..rate_text):upper()
-		ColourNote(RGBColourToName(spt.colours.note_text), "", s)
+function on_alias_spots_report_stats(name, line, wildcards)
+	local function report(spot_name, is_group_report)
+		if spt.spots[spot_name].time_entered then
+			local d = " | "
+			local rate_text, xp_text, kills_text, time_text = spots_get_stats(spot_name)
+			local s = 
+				(spot_name..": "..(is_group_report and "" or "spot report: ").."kills: "..
+				spt.spots[spot_name].kill_count..d..
+				xp_text..d..time_text.." min"..d..rate_text):upper()
+			if is_group_report then
+				Send("group say "..s)
+			else
+				ColourNote(RGBColourToName(spt.colours.note_text), "", s)				
+			end
+		end
+	end
+	local spot_name = wildcards.spot_name
+	local is_group_report = wildcards.group or false
+	if is_group_report == "" then is_group_report = false end
+	if spot_name == "" then
+		for k, v in pairs(spt.spots) do
+			report(k, is_group_report)
+		end
+	elseif spt.spots[spot_name] and spt.spots[spot_name].time_entered then
+		report(spot_name, is_group_report)
 	end
 end
 --------------------------------------------------------------------------------

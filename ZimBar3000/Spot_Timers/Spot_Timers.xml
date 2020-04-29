@@ -94,9 +94,41 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    match="^spots ta?ble?( (?<spot>.*))?$"
    enabled="y"
    regexp="y"
+   name = "spots_table"
    script="on_alias_spots_table"
    sequence="100"
-  >
-  </alias>
+  ></alias>
+  <alias
+   match="^spots restore( (?<spot_name>.*))?$"
+   enabled="y"
+   regexp="y"
+   name="spots_restore"
+   script="on_alias_spots_restore"
+   sequence="100"
+  ></alias>
+  <alias
+   match="^spots reset( (?<spot_name>.*?))?( (?<minutes>\d+))?$"
+   enabled="y"
+   regexp="y"
+   name="spots_reset"
+   script="on_alias_spots_reset"
+   sequence="100"
+  ></alias>
+  <alias
+   match="^spots revert( (?<spot_name>.*))?$"
+   enabled="y"
+   regexp="y"
+   name="spots_revert"
+   script="on_alias_spots_revert"
+   sequence="100"
+  ></alias>
+  <alias
+   match="^spots report( (?<spot_name>(?!group).*?))?( (?<group>group))?$"
+   enabled="y"
+   regexp="y"
+   name="spots_report_stats"
+   script="on_alias_spots_report_stats"
+   sequence="100"
+  ></alias>
  </aliases>
 </muclient>	

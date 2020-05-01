@@ -1119,6 +1119,14 @@ function spots_enter(spot_name)
 	elseif spot_name == "shades" then
 		EnableTrigger("spots_shades_bury")
 	end	
+	if spt.notes.on and spt.notes.enter then
+		local time_since_exited = "-:--"
+		if spt.spots[spot_name].time_exited then
+			local minutes, seconds = spots_get_time(spot_name, spt.spots[spot_name].time_exited, os.time())
+			time_since_exited = minutes..":"..seconds
+		end
+		ColourNote(RGBColourToName(spt.colours.note_text), "", ("[spots] "..spot_name.." | enter: "..time_since_exited):upper())
+	end
 	spt.last_visited = spot_name
 	spt.current_spot[spot_name] = true
 	spt.need_final_xp[spot_name] = nil
@@ -1131,9 +1139,7 @@ function spots_enter(spot_name)
 		spt.spots[spot_name].final_xp = spt.current_xp
 		spt.spots[spot_name].time_exited = false
 	end
-	if spt.notes.on and spt.notes.enter then
-		ColourNote(RGBColourToName(spt.colours.note_text), "", (spot_name..": enter"):upper())
-	end
+
 end
 
 function spots_leave(spot)
@@ -1153,6 +1159,14 @@ function spots_leave(spot)
 		elseif spot_name == "shades" then
 			EnableTrigger("spots_shades_bury", false)
 		end	
+		if spt.notes.on and spt.notes.enter then
+			local time_since_entered = "-:--"
+			if spt.spots[spot_name].time_entered then
+				local minutes, seconds = spots_get_time(spot_name, spt.spots[spot_name].time_entered, os.time())
+				time_since_entered = minutes..":"..seconds
+			end
+			ColourNote(RGBColourToName(spt.colours.note_text), "", ("[spots] "..spot_name.." | exit: "..time_since_entered):upper())
+		end
 		spt.current_spot[spot_name] = nil
 		spt.spots[spot_name].time_exited = os.time()
 		spt.spots[spot_name].final_xp = spt.current_xp
@@ -1165,9 +1179,6 @@ function spots_leave(spot)
 			if spt.spots[spot_name].kill_count >= spt.spots[spot_name].kill_high then
 				spt.spots[spot_name].is_big_spawn = true
 			end
-		end
-		if spt.notes.on and spt.notes.exit then
-			ColourNote(RGBColourToName(spt.colours.note_text), "", (spot_name..": exit"):upper())
 		end
 	end
 	if type(spot) == "table" then
@@ -1187,7 +1198,7 @@ function on_trigger_spots_kill(name, line, wildcards, styles)
 		if t then
 			spt.spots[k].kill_count = spt.spots[k].kill_count + 1
 			if spt.notes.on and spt.notes.kill then
-				ColourNote(RGBColourToName(spt.colours.note_text), "", (k..": kills: "..spt.spots[k].kill_count):upper())
+				ColourNote(RGBColourToName(spt.colours.note_text), "", ("[spots] "..k.." | kills: "..spt.spots[k].kill_count):upper())
 			end
 			if k == "boss" or k == "captain" then
 				spots_leave(k)
@@ -1218,7 +1229,7 @@ function on_trigger_spots_shades_bury(name, line, wildcards, styles)
 		spt.spots.shades.kill_count = spt.spots.shades.kill_count + (numbers[c] or 0)
 	end)
 	if spt.notes.on and spt.notes.kill then
-		ColourNote(RGBColourToName(spt.colours.note_text), "", ("shades: kills: "..spt.spots.shades.kill_count):upper())
+		ColourNote(RGBColourToName(spt.colours.note_text), "", ("[spots] shades | kills: "..spt.spots.shades.kill_count):upper())
 	end
 	if spt.spots.shades.kill_count >= spt.spots.shades.kill_reset then
 		spt.spots.shades.time_killed = os.time()
@@ -1512,7 +1523,7 @@ function on_alias_spots_report_stats(name, line, wildcards)
 			local d = " | "
 			local rate_text, xp_text, kills_text, time_text = spots_get_stats(spot_name)
 			local s = 
-				(spot_name..": "..(is_group_report and "" or "spot report: ").."kills: "..
+				((is_group_report and spot_name.." | " or "[spots] "..spot_name.." | ").."kills: "..
 				spt.spots[spot_name].kill_count..d..
 				xp_text..d..time_text.." min"..d..rate_text):upper()
 			if is_group_report then

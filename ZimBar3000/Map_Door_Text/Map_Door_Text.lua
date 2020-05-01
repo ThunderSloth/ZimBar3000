@@ -58,3 +58,4 @@ end
 on_plugin_start()
 
 mdt_parse_map_door_text("")
+

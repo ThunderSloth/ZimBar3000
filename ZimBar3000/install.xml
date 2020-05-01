@@ -22,6 +22,7 @@ plugs = {
 	["fa3bff8d7d84e7e3f947d414"] = "Medina_Mapper\\Medina_Mapper.xml",
 	["fa2bff8d7d84f6e3f887d411"] = "Shades_Mapper\\Shades_Mapper.xml",
 	["fa2bff8d7c84f6e3f847d411"] = "Smugs_Mapper\\Smugs_Mapper.xml",
+	["e342832ee4b09606bbc2df3d"] = "Spot_Timers\\Spot_Timers.xml",
 }
 
 function on_alias_zimbar_config()
@@ -41,12 +42,13 @@ function on_alias_zimbar_install()
 			end
 		end
 	end
-	ColourNote("gray", "", "\n * Thank you for installing the ZimBar3000 mapper-pack! *")
+	ColourNote("gray", "", "\n * Thank you for installing the ZimBar3000 hunting-pack! *")
 	ColourTell("gray", "", "Please run: ")
-	Hyperlink ("zimbar config", "zimbar config", "Run ZimBar3000 Configuration", "orange", "", 0)
+	Hyperlink ("zimbar config", "config", "Run ZimBar3000 Configuration", "orange", "", 0)
 	ColourTell("gray", "", ". ")
 	ColourTell("gray", "", "Help: ")
 	Hyperlink ("mdt help", "mdt", "Map Door Text Mapper Help", "orange", "", 0);ColourTell("gray", "", ", ")
+	Hyperlink ("spots help", "spots", "Spot Timers Help", "orange", "", 0);ColourTell("gray", "", ", ")
 	Hyperlink ("medina help", "medina", "Medina Mapper Help", "orange", "", 0);ColourTell("gray", "", ", ")
 	Hyperlink ("shades help", "shades", "Shades Mapper Help", "orange", "", 0);ColourTell("gray", "", ", ")
 	Hyperlink ("smugs help", "smugs", "Smugs Mapper Help", "orange", "", 0);ColourNote("gray", "", ".\n")

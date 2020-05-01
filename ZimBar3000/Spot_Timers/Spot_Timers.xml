@@ -87,6 +87,16 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    script="on_trigger_spots_coons_enter"
    sequence="100"
   ></trigger>
+ <trigger
+   ignore_case="y"
+   enabled="y"
+   keep_evaluating="y"
+   match="^(?<player>.*) tells you: zSTv(?<version>[0-9.]+)\|(?<time>\d+)\|(?<spot_data>.*)$"
+   name="spots_sync"
+   regexp="y"
+   script="on_trigger_spots_sync"
+   sequence="100"
+  ></trigger>
  </triggers>
  <!--  Aliases  -->
  <aliases> 
@@ -123,11 +133,51 @@ dofile(SPT_PATH.."Spot_Timers.lua")
    sequence="100"
   ></alias>
   <alias
+   match="^spots rename (?<spot_name>.*?) (?<display_name>.*)$"
+   enabled="y"
+   regexp="y"
+   name="spots_rename"
+   script="on_alias_spots_rename"
+   sequence="100"
+  ></alias>
+  <alias
+   match="^spots show (?<spot_name>.*)$"
+   enabled="y"
+   regexp="y"
+   name="spots_show"
+   script="on_alias_spots_show"
+   sequence="100"
+  ></alias>
+  <alias
    match="^spots report( (?<spot_name>(?!group).*?))?( (?<group>group))?$"
    enabled="y"
    regexp="y"
    name="spots_report_stats"
    script="on_alias_spots_report_stats"
+   sequence="100"
+  ></alias>
+  <alias
+   match="^spots help$"
+   enabled="y"
+   regexp="y"
+   name="spots_help"
+   script="on_alias_spots_help"
+   sequence="100"
+  ></alias>
+   <alias
+   match="^spots config$"
+   enabled="y"
+   regexp="y"
+   name="spots_config"
+   script="on_alias_spots_config"
+   sequence="100"
+  ></alias>
+   <alias
+   match="^spots sync (?<player>\S+)$"
+   enabled="y"
+   regexp="y"
+   name="spots_sync"
+   script="on_alias_spots_sync"
    sequence="100"
   ></alias>
  </aliases>

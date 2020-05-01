@@ -1,23 +1,31 @@
 --------------------------------------------------
 --  HELP-FILE FOR: SPOT TIMERS v5.0 BY ZIMBUS   --
 --------------------------------------------------
+-- With thanks to Reva for supplying GMCP data!
+
 Available Commands:
 
-* spots help                     -- this help-file
+* spots help                    -- this help-file
 
-* spots restore (<spot>)         -- set spot(s) to unvisited
+* spots config                  -- run configuration
 
-* spots reset <spot> (<minutes>) -- set time killed to minutes ago (or now)
+* spots restore (<spot>)        -- set spot(s) to unvisited
 
-* spots revert (<spot>)          -- set spot(s) to time last killed
+* spots reset <spot> (<min>)    -- set time killed to minutes ago (or now)
 
-* spots report (<spot>) (group)  -- print or group say spot(s) stat report
+* spots revert (<spot>)         -- set spot(s) to time last killed
 
-* spots sync <player>            -- send timer data to another player
+* spots report (<spot>) (group) -- print or group say spot(s) stat report
+
+* spots rename <spot> <name>    -- change display name for spot
+
+* spots show <spot>             -- show/hide spot
+
+* spots sync <player>           -- send timer data to another player
 
 Reading The Timers:
 
-* spot time				  -- time last exited
+* spot time		  -- time last exited
 
 * strikethrough name      -- not spawned last time visited
 

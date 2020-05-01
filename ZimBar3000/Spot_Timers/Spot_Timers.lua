@@ -766,12 +766,10 @@ function spots_get_title_menu()
     local menu = "!^Spot Timers v"..GetPluginInfo (SPT, 19)
     menu = menu.."||help||configure||"
     table.insert(options, function()
-		local f = io.open(SPT_PATH.."help.txt", 'r')
-		ColourNote("whitesmoke", "", f:read("*a"))
-		f:close()
-    end)
+		on_alias_spots_help()
+	end)
     table.insert(options, function()
-        dofile(SPT_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."zconfig.lua")
+        on_alias_spots_config()
     end)
     menu = menu.."restore all||"
 	table.insert(options, function()
@@ -858,9 +856,7 @@ function spots_get_title_menu()
 				max_length = 40,
 			   } )
 			if response then
-				spt.spots[spot_name].display_name = response
-				spots_window_setup(window_width, window_height)
-				spots_print()			
+				on_alias_spots_rename("from_spot", "", {spot_name = spot_name, display_name = response})			
 			end       
         end
     end)   
@@ -1012,9 +1008,7 @@ function spots_get_spot_menu(spot_name)
 			max_length = 40,
            } )
         if response then
-			spt.spots[spot_name].display_name = response
-			spots_window_setup(window_width, window_height)
-			spots_print()			
+			on_alias_spots_rename("from_spot", "", {spot_name = spot_name, display_name = response})		
         end
 	end)	
 	menu = menu.."hide"
@@ -1029,22 +1023,6 @@ function spots_get_spot_menu(spot_name)
     if result ~= "" then
         options[tonumber(result)]()
     end
-end
---------------------------------------------------------------------------------
---   OPTIONS
---------------------------------------------------------------------------------
-function on_alias_spots_show(name, line, wildcards)
-	local spot_name = wildcards.spot_name
-	if spt.spots[spot_name].is_hidden then 
-		spt.spots[spot_name].is_hidden = false
-	else
-		WindowDeleteHotspot(win, spot_name)
-		spt.spots[spot_name].is_hidden = true
-		if spt.pinned == spot_name then spt.pinned = false end
-		if spt.mouseover == spot_name then spt.mouseover = false end
-	end
-	spots_window_setup(window_width, window_height)
-	spots_print()
 end
 --------------------------------------------------------------------------------
 --   PLUGIN COMMUNICATION
@@ -1556,6 +1534,127 @@ function on_alias_spots_report_stats(name, line, wildcards)
 	end
 end
 --------------------------------------------------------------------------------
+--   COMMANDS
+--------------------------------------------------------------------------------
+function on_alias_spots_help(name, line, wildcards)
+	local f = io.open(SPT_PATH.."help.txt", 'r')
+	ColourNote("whitesmoke", "", f:read("*a"))
+	f:close()
+end
+
+function on_alias_spots_config(name, line, wildcards)
+    dofile(SPT_PATH:gsub("\\([A-Za-z_]+)\\$", "\\shared\\").."zconfig.lua")
+end
+
+function on_alias_spots_rename(name, line, wildcards)
+	local spot_name = wildcards.spot_name
+	local display_name = wildcards.display_name
+	if spt.spots[spot_name] then
+		spt.spots[spot_name].display_name = display_name
+		spots_window_setup(window_width, window_height)
+		spots_print()	
+	end
+end
+
+function on_alias_spots_show(name, line, wildcards)
+	local spot_name = wildcards.spot_name
+	if spt.spots[spot_name].is_hidden then 
+		spt.spots[spot_name].is_hidden = false
+	else
+		WindowDeleteHotspot(win, spot_name)
+		spt.spots[spot_name].is_hidden = true
+		if spt.pinned == spot_name then spt.pinned = false end
+		if spt.mouseover == spot_name then spt.mouseover = false end
+	end
+	spots_window_setup(window_width, window_height)
+	spots_print()
+end
+--------------------------------------------------------------------------------
+--   SYNCING
+--------------------------------------------------------------------------------
+function on_alias_spots_sync(name, line, wildcards)
+	local time = os.time()
+	local sync = {}
+	for k, v in pairs(spt.spots) do
+		local spot_name = k:upper()
+		sync[spot_name] = {}
+		table.insert(sync[spot_name], v.time_entered and time - v.time_entered or "")
+		table.insert(sync[spot_name], v.time_killed  and time - v.time_killed  or "")
+		table.insert(sync[spot_name], v.time_exited  and time - v.time_exited  or "")
+		table.insert(sync[spot_name], v.initial_xp and v.final_xp and v.final_xp - v.initial_xp or 0)
+		table.insert(sync[spot_name], v.kill_count)
+	end
+	local s = " zSTv"..string.format ("%1.1f", GetPluginInfo (SPT, 19)).."|"..time.."|"
+	for k, t in pairs(sync) do
+		s = s..k.."["
+		for i, v in ipairs(t) do
+			s = s..v
+			if i ~= #t then
+				s = s.."|"
+			end
+		end
+		s = s.."]"
+	end
+	local player = wildcards.player
+	Send("tell "..player..s)
+end
+
+function on_trigger_spots_sync(name, line, wildcards, styles)
+	local time = tonumber(wildcards.time)
+	local spot_data = wildcards.spot_data
+	for spot_name, time_entered, time_killed, time_exited, xp_gain, kill_count in spot_data:gmatch("([A-Z&2]+)[[](%d*)|(%d*)|(%d*)|(%d*)|(%d*)[]]") do
+		spot_name = spot_name:lower()
+		if spt.spots[spot_name] then
+			local sync_time_entered = time_entered ~= "" and tonumber(time - time_entered) or false
+			local sync_time_killed  = time_killed  ~= "" and tonumber(time - time_killed ) or false
+			local sync_time_exited  = time_exited  ~= "" and tonumber(time - time_exited ) or false
+			local sync_xp_gain      = xp_gain      ~= "" and tonumber(xp_gain) or 0
+			local sync_kill_count   = kill_count   ~= "" and tonumber(kill_count) or 0
+			local old_time_entered  = spt.spots[spot_name].time_entered
+			local old_time_killed   = spt.spots[spot_name].time_killed
+			local old_time_exited   = spt.spots[spot_name].time_exited
+			if (sync_time_entered and not old_time_entered) or 
+				((sync_time_entered and old_time_entered) and 
+				(sync_time_entered > old_time_entered)) then
+				spt.spots[spot_name].time_entered = sync_time_entered
+				spt.spots[spot_name].time_exited  = sync_time_exited or sync_time_entered
+			end
+			if sync_time_killed and ((not old_time_killed) or (sync_time_killed > old_time_killed)) then
+				spt.spots[spot_name].time_killed = sync_time_killed
+				spt.spots[spot_name].initial_xp  = 0
+				spt.spots[spot_name].final_xp    = xp_gain
+			end
+			
+			local new_time_entered = spt.spots[spot_name].time_entered 
+			local new_time_killed  = spt.spots[spot_name].time_killed
+			local new_time_exited  = spt.spots[spot_name].time_exited
+			if (new_time_entered and new_time_killed and not new_time_exited) and
+				(new_time_entered <= new_time_killed) then
+				spt.spots[spot_name].time_exited = spt.spots[spot_name].time_killed
+				spt.spots[spot_name].kill_count = sync_kill_count
+			elseif (new_time_entered and new_time_killed and new_time_exited) and 
+				((new_time_entered <= new_time_killed) and (new_time_killed >= new_time_exited))then
+				spt.spots[spot_name].kill_count = sync_kill_count
+			end
+			if (new_time_entered and new_time_killed) and 
+				spt.spots[spot_name].kill_count >= spt.spots[spot_name].kill_reset then
+				spt.spots[spot_name].is_down = false
+				if spt.spots[spot_name].kill_count >= spt.spots[spot_name].kill_high then
+					spt.spots[spot_name].is_big_spawn = true
+				end
+			else
+				if new_time_entered then
+					spt.spots[spot_name].is_down = true
+				else
+					spt.spots[spot_name].is_down = false
+				end
+				spt.spots[spot_name].is_big_spawn = false
+			end
+		end
+	end
+	spots_print()
+end
+--------------------------------------------------------------------------------
 --   DEBUGGING
 --------------------------------------------------------------------------------
 function on_alias_spots_table(name, line, wildcards)
@@ -1571,22 +1670,6 @@ end
 --------------------------------------------------------------------------------
 --   START EXECUTION HERE
 --------------------------------------------------------------------------------
-print("YOU ARE USING THE WRONG TIMERS, THIS VERSION HAS NOT BEEN FINISHED YET :)")
 on_plugin_start()
-
-local t = {}
-for k, v in pairs(spt.spots) do
-	table.insert(t, k:upper())
-	table.insert(t, (v.time_entered and bit.tostring (os.time() - v.time_entered, 36) or ""))
-	table.insert(t, (v.time_killed  and bit.tostring (os.time() - v.time_killed , 36) or ""))
-	table.insert(t, (v.time_exited  and bit.tostring (os.time() - v.time_exited , 36) or ""))
-end
-local s
-for i, v in ipairs(t) do
-	local d = "-"
-	s = s and s..d..v or v
-end
-print(s)
-
 
 

@@ -106,6 +106,3 @@ function mdt_update_colours(msg, id, name, text)
 		end	
 	end
 end
-
-
-		

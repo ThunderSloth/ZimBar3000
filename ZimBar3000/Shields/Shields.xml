@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+  <plugin
+   name="Shields"
+   author="Zimbus"
+   id="f10defaf912ebd37fd516093"
+   language="Lua"
+   purpose="display group shields"
+   save_state="y"
+   date_written="2020-05-01 12:00:00"
+   date_modified="2020-05-01"
+   requires="4.71"
+   version="1.0"
+   >
+  </plugin>
+<!--  Script  -->
+<script>
+<![CDATA[
+SLD = GetPluginID (); SLD_PATH = GetPluginInfo(SPT, 20)
+dofile(SLD_PATH.."Shields.lua")
+]]>
+</script>
+<!--  Timers  -->
+<timers>
+
+</timers>
+<!--  Triggers  -->
+<triggers>
+
+ </triggers>
+ <!--  Aliases  -->
+ <aliases> 
+
+</muclient>	
+

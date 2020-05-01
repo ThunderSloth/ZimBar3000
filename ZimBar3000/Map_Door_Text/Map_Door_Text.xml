@@ -48,12 +48,12 @@ dofile( MDT_PATH .. (GetPluginInfo (MDT, 1)) .. ".lua")
    sequence="100"
    script="on_trigger_mdt_remove_queue"
   ></trigger>
-<!--  command fail  -->   
+<!--  command fail, regex partially by quow  -->   
   <trigger
    group="mdt"
    enabled="y"
    keep_evaluating="y"
-   match="^(That doesn't work.|What\?|Try something else.)$"
+   match="^(?>That doesn't work.|What\?|Try something else.|The door swings shut in your face\.|The (?>north |northeast |east |southeast |south |southwest |west |northwest |warehouse )?(?>door|gate) is locked\.|(?>Free Sitting Birds|Nella|Jonas|Master Brimstone|Will|Thella|Nostos|Philip LeGrande) intercepts you\.|Try as you might, the sheep block any further progress south\.|(?:\w+\b\W*?){1,4} blocks the exit and prevents you from leaving (?>northeast|southeast|southwest|northwest|north|east|south|west)\.|That exit is creator-only for the moment\.|You do your best to get through the turnstiles, but the crowds are simply too thick and you make no headway\.  Better come back later, maybe they'll be more accessible then\.|A magic force prevents you from going that way\.|The bridge troll bars your way\.|The bridge troll is blocking the entire road very effectively, and you just can't sneak past him\.|The (?>north |northeast |east |southeast |south |southwest |west |northwest )?door slams shut in your face\.|Some unseen force grabs hold of you and pushes you back\.|Some sort of invisible field stops you from going that way at this point in time\.|A wooden barrier prevents your progress in this direction\.|A giant grabs you as you try to leave!|Four bandits leap out from hiding!|The (ceremonial)? (guard|sentry) blocks your way.|One of the guard thieves stops you from entering\.|A terrible sense of foreboding comes over you as you try to go .+\.|You need to climb in order to travel .+? from here\.|You just crawled\.  Give your arms a break!|You can't go that way - a vine trellis is totally blocking the path\.)$"
    name="mdt_command_fail"
    regexp="y"
    send_to="12"

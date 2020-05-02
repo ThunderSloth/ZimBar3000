@@ -17,20 +17,500 @@
 <!--  Script  -->
 <script>
 <![CDATA[
-SLD = GetPluginID (); SLD_PATH = GetPluginInfo(SPT, 20)
+SLD = GetPluginID (); SLD_PATH = GetPluginInfo(SLD, 20)
 dofile(SLD_PATH.."Shields.lua")
 ]]>
 </script>
-<!--  Timers  -->
-<timers>
-
-</timers>
+ <triggers>
 <!--  Triggers  -->
-<triggers>
+<!-- Group shield triggers courtesy of Quow: https://quow.co.uk/ -->
 
- </triggers>
+  <!-- Player has joined your group -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?\[(?P<groupname>[^\]]+)\] (?P<player>[A-Za-z]+) ha(s|ve) joined the group\.$"
+   regexp="y"
+   sequence="10"
+   script="on_trigger_shields_group_update"
+   name="shields_group_join"
+   group="shields"
+  ></trigger>
+  <!--Player has left your group -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?\[(?P<groupname>[^\]]+)\] (?P<player>[A-Za-z]+) ha(s|ve) left the group\.$"
+   regexp="y"
+   omit_from_output="n"
+   sequence="10"
+   script="on_trigger_shields_group_update"
+   name="shields_group_leave"
+   group="shields"
+  ></trigger>
+  <!-- Start of Arcane line gathering for YOU -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?Arcane protection status:$"
+   regexp="y"
+   omit_from_output="n"
+   sequence="11"
+   script="on_trigger_shields_gather"
+   name="shields_gather_you"
+   group="shields"
+  ></trigger>
+  <!-- Start of Arcane line gathering for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?Arcane protection for (?P<player>[A-Za-z]+):-$"
+   regexp="y"
+   omit_from_output="n"
+   sequence="13"
+   script="on_trigger_shields_gather"
+   name="shields_gather_group"
+   group="shields"
+  ></trigger>
+  <!-- No shields at all for YOU -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?You do not have any arcane(?: or divine)? protection\.$"
+   regexp="y"
+   sequence="11"
+   script="on_trigger_shields_update"
+   name="shields1_nil_Y"
+   group="shields"
+  ></trigger>
+  </trigger>
+  <!-- No shields at all for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<player>(?:\w+\b\W*?){1,8}) has no arcane(?: or divine)? protection\.$"
+   regexp="y"
+   sequence="13"
+   script="on_trigger_shields_update"
+   name="shields1_nil_O"
+   group="shields"
+  ></trigger>
+  <!-- CCC Type 1 for YOU -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* Your skin (?>has been|has|is) (?>hardened to a rock-like form|hardened with numerous layers of a mineral-like substance|hardened with a chalk-like substance|covered with several layers of a chalk-like substance|covered with a thin layer of chalk|covered with a thick metal net|metal bands running all over it, forming a kind of net|covered with a thin metal net|covered with a thin, net-like metal coating|solidified into a rubberous form|made elastic with numerous layers of a rubber-like substance|treated with a latex-like substance|covered with several layers of a latex-like substance|covered with a thin layer of latex), although "
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_CCC_Y_A"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* Tiny threads of metal run criss-cross all over your skin, although "
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields2_CCC_Y_A"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?Your? (?>feel your skin become (?>rock hard|elastic as rubber)|skin (?>feels (?>even harder now|much more elastic now)|is now as (?>hard|elastic|thickly covered) as it can get))\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_CCC_Y_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?You feel your skin tingle as the metal powder fuses together into thin metal bands, forming a net-like shape\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields2_CCC_Y_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?Your skin feels itchy; large pieces flake off as you scratch it\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_CCC_Y_D"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?With a brief flash of magic, your (?>metallic|stony|elastic) skin falls away\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields2_CCC_Y_D"
+   group="shields"
+  ></trigger>
+  <!-- TPA for YOU -->
+  <trigger
+   enabled="y"
+   keep_evaluating="y"
+   match="^ \* You are surrounded by a (?P<colour>|dull red |bright red |wobbling orange |flickering yellow )magical impact shield\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_TPA_Y_A"
+   group="shields"
+   ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?With a noise that sounds like &quot;Plink!&quot;, everything around you flashes (?>yellow|red) for a moment\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_TPA_Y_U"
+   group="shields"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?There is a sudden white flash\.  Your magical shield has broken\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_TPA_Y_D"
+   group="shields"
+  ></trigger>
+  <!-- Bugs for YOU -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* You are surrounded by a (?>handful|cloud|small swarm|large swarm|vast swarm|plague) of"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_BUG_Y_A"
+   group="shields"
+   ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?>Buzzing drowsily, t|Buzzing loudly, t|Buzzing threateningly, t|Clicking and buzzing, t|Whirring gently, t|Rather clumsily, t|With a rasping noise, t|With a high-pitched whining noise, t|With a low, menacing buzzing, t|With a buzzing sound so loud and meaty it's almost like a dog growling, t|T)he (?>handful|cloud|small swarm|large swarm|vast swarm|plague) of (?>lacewings|stick insects|mayflies|praying mantids|butterflies|ladybirds|dragonflies|damselflies|moths|grasshoppers|winged termites|sandflies|mosquitoes|gnats|crickets|flying ants|locusts|horseflies|cicadas|bees|wasps|hornets|elephant beetles|assassin bugs) (?>flutters into a loosely-formed orbit around |forms a chaotic web of small white bodies around |starts to hover near |begins to circle |begins to circle around |begins to orbit |clusters haphazardly |begins to cluster around |begins to buzz erratically around |begins to buzz around |flutters into a chaotic formation around )you"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_BUG_Y_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?The (?>lacewings|stick insects|mayflies|praying mantids|butterflies|ladybirds|dragonflies|damselflies|moths|grasshoppers|winged termites|sandflies|mosquitoes|gnats|crickets|flying ants|locusts|horseflies|cicadas|bees|wasps|hornets|elephant beetles|assassin bugs) surrounding you scatter in different directions and fly off\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_BUG_Y_D"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?The last of the injured (?>lacewings|stick insects|mayflies|praying mantids|butterflies|ladybirds|dragonflies|damselflies|moths|grasshoppers|winged termites|sandflies|mosquitoes|gnats|crickets|flying ants|locusts|horseflies|cicadas|bees|wasps|hornets|elephant beetles|assassin bugs) surrounding you crash to the ground\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields2_BUG_Y_D"
+   group="shields"
+  ></trigger>
+  <!-- Major for YOU -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* You are (?>(?>barely |really |perfectly )?protected|shielded) by the (?>power |protective armour |grace )of (?>Pishe|Gufnork|Gapp|Sandelfon|Fish|Hat|Sek|Aegadon|Cubal|Reebox)\.  You will be protected for "
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_MS__Y_A"
+   group="shields"
+   ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?You are protected by the power of (?>Pishe|Gufnork|Gapp|Sandelfon|Fish|Hat|Sek|Aegadon|Cubal|Reebox)\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_MS__Y_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?Your divine protection expires\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_MS__Y_D"
+   group="shields"
+  ></trigger>
+  <!-- EFF for YOU -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* (?P<effitem>(?:\w+\b\W*?){1,6}) is floating around you\:$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_EFF_Y_A"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<effitem>(?:\w+\b\W*?){1,6}) begins to float around you\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_EFF_Y_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?In blocking the attack (?P<effitem>(?:\w+\b\W*?){1,6}) floating around you is knocked out of orbit\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields1_EFF_Y_D"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?You realise that (?P<effitem>(?:\w+\b\W*?){1,6}) is no longer floating around you\.$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields2_EFF_Y_D"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<effitem>(?:\w+\b\W*?){1,6}) floating around you breaks!$"
+   regexp="y"
+   sequence="12"
+   script="on_trigger_shields_update"
+   name="shields3_EFF_Y_D"
+   group="shields"
+  ></trigger>
+  <!-- CCC Type 1 for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* (?>His|Her|Its) skin (?>has been|has|is) (?>hardened to a rock-like form|hardened with numerous layers of a mineral-like substance|hardened with a chalk-like substance|covered with several layers of a chalk-like substance|covered with a thin layer of chalk|covered with a thick metal net|metal bands running all over it, forming a kind of net|covered with a thin metal net|covered with a thin, net-like metal coating|solidified into a rubberous form|made elastic with numerous layers of a rubber-like substance|treated with a latex-like substance|covered with several layers of a latex-like substance|covered with a thin layer of latex), although "
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_CCC_O_A"
+   group="shields"
+  ></trigger>
+  <!-- CCC Type 2 for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* Tiny threads of metal run criss-cross all over (?>her|his|its) skin, although "
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields2_CCC_O_A"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<player>(?:\w+\b\W*?){1,8})'s skin becomes (?>elastic as rubber|rock hard)\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_CCC_O_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?The metal powder fuses together into metal bands on (?P<player>(?:\w+\b\W*?){1,8})'s skin\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields2_CCC_O_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<player>(?:\w+\b\W*?){1,8})'s skin is now as (?>elastic|thickly covered|hard) as it can get\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields3_CCC_O_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<player>(?:\w+\b\W*?){1,8}) scratches (?>himself|herself|itself), and large pieces of skin flake off\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_CCC_O_D"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?There is a brief flash of magic, and something falls away from (?P<player>(?:\w+\b\W*?){1,8})'s skin\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields2_CCC_O_D"
+   group="shields"
+  ></trigger>
+  <!-- TPA for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="y"
+   match="^ \* (?>She|He|It) is surrounded by a (?P<colour>|dull red |bright red |wobbling orange |flickering yellow )magical impact shield\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_TPA_O_A"
+   group="shields"
+   ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?With a noise that sounds like &quot;Plink!&quot;, the air around (?P<player>(?:\w+\b\W*?){1,8}) flashes (?>yellow|red) for a moment\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_TPA_O_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?There is a sudden white flash around (?P<player>(?!a passing wizard)(?:\w+\b\W*?){1,8})\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_TPA_O_D"
+   group="shields"
+  ></trigger>
+  <!-- Bugs for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* (?>She|He|It) is surrounded by a (?>handful|cloud|small swarm|large swarm|vast swarm|plague) of "
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_BUG_O_A"
+   group="shields"
+   ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?>Buzzing drowsily, t|Buzzing loudly, t|Buzzing threateningly, t|Clicking and buzzing, t|Whirring gently, t|Rather clumsily, t|With a rasping noise, t|With a high-pitched whining noise, t|With a low, menacing buzzing, t|With a buzzing sound so loud and meaty it's almost like a dog growling, t|T)he (?>handful|cloud|small swarm|large swarm|vast swarm|plague) of (?>lacewings|stick insects|mayflies|praying mantids|butterflies|ladybirds|dragonflies|damselflies|moths|grasshoppers|winged termites|sandflies|mosquitoes|gnats|crickets|flying ants|locusts|horseflies|cicadas|bees|wasps|hornets|elephant beetles|assassin bugs) (?>flutters into a loosely-formed orbit around |forms a chaotic web of small white bodies around |starts to hover near |begins to circle |begins to circle around |begins to orbit |clusters haphazardly |begins to cluster around |begins to buzz erratically around |begins to buzz around |flutters into a chaotic formation around )(?P<player>(?:\w+\b\W*?){1,8})(?:| happily| slowly|, chirping gently|, buzzing hungrily)\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_BUG_O_U"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?The (?>lacewings|stick insects|mayflies|praying mantids|butterflies|ladybirds|dragonflies|damselflies|moths|grasshoppers|winged termites|sandflies|mosquitoes|gnats|crickets|flying ants|locusts|horseflies|cicadas|bees|wasps|hornets|elephant beetles|assassin bugs) surrounding (?P<player>(?:\w+\b\W*?){1,8}) scatter in different directions and fly off\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_BUG_O_D"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?The last of the injured (?>lacewings|stick insects|mayflies|praying mantids|butterflies|ladybirds|dragonflies|damselflies|moths|grasshoppers|winged termites|sandflies|mosquitoes|gnats|crickets|flying ants|locusts|horseflies|cicadas|bees|wasps|hornets|elephant beetles|assassin bugs) surrounding (?P<player>(?:\w+\b\W*?){1,8}) crash to the ground\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields2_BUG_O_D"
+   group="shields"
+  ></trigger>
+  <!-- Major for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* (?>She|He|It) is (?>really )?protected by the power of (?>Pishe|Gufnork|Gapp|Sandelfon|Fish|Hat|Sek|Aegadon|Cubal|Reebox)"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_MS__O_A"
+   group="shields"
+   ></trigger>
+  <!-- EFF for OTHER players -->
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^ \* (?P<effitem>(?:\w+\b\W*?){1,6}) is floating around (?>him|her|it)\:$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_EFF_O_A"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<effitem>(?:\w+\b\W*?){1,6}) begins to float around (?P<player>(?:\w+\b\W*?){1,8})\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_EFF_O_U"
+   group="shields"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?In blocking the attack (?P<effitem>(?:\w+\b\W*?){1,6}) floating around (?P<player>(?:\w+\b\W*?){1,8}) is knocked out of orbit\.$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields1_EFF_O_D"
+   group="shields"
+  ></trigger>
+  <trigger
+   enabled="y"
+   keep_evaluating="n"
+   match="^(?:> )?(?P<effitem>(?:\w+\b\W*?){1,6}) floating around (?P<player>(?:\w+\b\W*?){1,8}) breaks!$"
+   regexp="y"
+   sequence="14"
+   script="on_trigger_shields_update"
+   name="shields2_EFF_O_D"
+   group="shields"
+  ></trigger>
+</triggers>
  <!--  Aliases  -->
  <aliases> 
-
+ </aliases>
 </muclient>	
 

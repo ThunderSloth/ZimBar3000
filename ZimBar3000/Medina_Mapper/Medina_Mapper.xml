@@ -122,7 +122,7 @@ dofile( MED_PATH .. (GetPluginInfo (MED, 1)) .. ".lua")
   <alias
    group="medina"
    name="medina_stop"
-   match="^stop$"
+   match="^(stop|restart)$"
    regexp="y"
    ignore_case="y"
    sequence="100"

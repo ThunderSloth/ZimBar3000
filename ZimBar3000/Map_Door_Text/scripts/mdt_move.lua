@@ -14,7 +14,7 @@ function mdt_get_exit_room(start_id, exit)
 end
 -- handle movement commands
 function OnPluginSent(text)
-    if text == "stop" then
+    if text == "stop" or text == "restart" then
         mdt.commands.move.count, mdt.commands.look.count = 0, 0
     else
         local directions = {n = "n", ne = "ne", e = "e", s = "s", se = "se", s = "s", sw = "sw", w = "w", nw = "nw", north = "n", northeast = "ne", east = "e", southeast = "se", south = "s", southwest = "sw", west = "w", northwest = "nw",}

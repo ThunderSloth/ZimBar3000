@@ -1108,7 +1108,7 @@ dofile (GetPluginInfo (GetPluginID (), 20) .. (GetPluginInfo (GetPluginID (), 1)
   <alias
    group="voyage"
    name="voyage_stop"
-   match="^stop$"
+   match="^(stop|restart)$"
    regexp="y"
    ignore_case="y"
    sequence="100"

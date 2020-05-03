@@ -25,27 +25,15 @@ dofile(SLD_PATH.."Shields.lua")
 <!--  Triggers  -->
 <!-- Group shield triggers courtesy of Quow: https://quow.co.uk/ -->
 
-  <!-- Player has joined your group -->
+  <!-- Player has joined/left your group -->
   <trigger
    enabled="y"
    keep_evaluating="n"
-   match="^(?:> )?\[(?P<groupname>[^\]]+)\] (?P<player>[A-Za-z]+) ha(s|ve) joined the group\.$"
+   match="^(?:> )?\[(?P<groupname>[^\]]+)\] (?P<player>[A-Za-z]+) ha(s|ve) (?<status>joined|left) the group\.$"
    regexp="y"
    sequence="10"
    script="on_trigger_shields_group_update"
-   name="shields_group_join"
-   group="shields"
-  ></trigger>
-  <!--Player has left your group -->
-  <trigger
-   enabled="y"
-   keep_evaluating="n"
-   match="^(?:> )?\[(?P<groupname>[^\]]+)\] (?P<player>[A-Za-z]+) ha(s|ve) left the group\.$"
-   regexp="y"
-   omit_from_output="n"
-   sequence="10"
-   script="on_trigger_shields_group_update"
-   name="shields_group_leave"
+   name="shields_group_update"
    group="shields"
   ></trigger>
   <!-- Start of Arcane line gathering for YOU -->
@@ -69,7 +57,7 @@ dofile(SLD_PATH.."Shields.lua")
    omit_from_output="n"
    sequence="13"
    script="on_trigger_shields_gather"
-   name="shields_gather_group"
+   name="shields_gather"
    group="shields"
   ></trigger>
   <!-- No shields at all for YOU -->
@@ -83,7 +71,6 @@ dofile(SLD_PATH.."Shields.lua")
    name="shields1_nil_Y"
    group="shields"
   ></trigger>
-  </trigger>
   <!-- No shields at all for OTHER players -->
   <trigger
    enabled="y"

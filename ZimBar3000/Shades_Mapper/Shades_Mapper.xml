@@ -92,7 +92,7 @@ dofile( SHA_PATH .. (GetPluginInfo (SHA, 1)) .. ".lua")
   <alias
    group="shades"
    name="shades_stop"
-   match="^stop$"
+   match="^(stop|restart)$"
    regexp="y"
    ignore_case="y"
    sequence="100"

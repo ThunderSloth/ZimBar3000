@@ -1130,6 +1130,7 @@ function spots_enter(spot_name)
 	spt.last_visited = spot_name
 	spt.current_spot[spot_name] = true
 	spt.need_final_xp[spot_name] = nil
+	
 	-- don't reset if last exited was within 2 minutes
 	-- (reshielding crocs, giants toss etc.)
 	if (not spt.spots[spot_name].time_entered) or (spt.spots[spot_name].time_exited and os.time() - spt.spots[spot_name].time_exited >= 120) then
@@ -1137,28 +1138,23 @@ function spots_enter(spot_name)
 		spt.spots[spot_name].kill_count = 0
 		spt.spots[spot_name].initial_xp = spt.current_xp
 		spt.spots[spot_name].final_xp = spt.current_xp
-		spt.spots[spot_name].time_exited = false
 	end
-
+	spt.spots[spot_name].time_exited = false
 end
 
 function spots_leave(spot)
 	local function leave_spot(spot_name)
 		if spot_name == "medina" then
 			if spt.current_spot.boss then
-				leave_spot("boss")
-				EnableTrigger("spots_enter_boss", false)
+				leave_spot("boss")			
 			end
 			spt.last_visited = "medina"
 		elseif spot_name == "smugs" then
 			if spt.current_spot.captain then
-				leave_spot(captain)
-				EnableTrigger("spots_enter_captain", false)		
+				leave_spot(captain)	
 			end
 			spt.last_visited = "smugs"
-		elseif spot_name == "shades" then
-			EnableTrigger("spots_shades_bury", false)
-		end	
+		end
 		if spt.notes.on and spt.notes.enter then
 			local time_since_entered = "-:--"
 			if spt.spots[spot_name].time_entered then
@@ -1180,6 +1176,13 @@ function spots_leave(spot)
 				spt.spots[spot_name].is_big_spawn = true
 			end
 		end
+		if spot_name == "boss" then
+			EnableTrigger("spots_enter_boss", false)
+		elseif spot_name == "cpatain" then
+			EnableTrigger("spots_enter_captain", false)	
+		elseif spot_name == "shades" then
+			EnableTrigger("spots_shades_bury", false)
+		end	
 	end
 	if type(spot) == "table" then
 		for k in pairs(spot) do
@@ -1644,7 +1647,7 @@ function on_trigger_spots_sync(name, line, wildcards, styles)
 				spt.spots[spot_name].time_exited = spt.spots[spot_name].time_killed
 				spt.spots[spot_name].kill_count = sync_kill_count
 			elseif (new_time_entered and new_time_killed and new_time_exited) and 
-				((new_time_entered <= new_time_killed) and (new_time_killed >= new_time_exited))then
+				((new_time_entered <= new_time_killed) and (new_time_killed <= new_time_exited))then
 				spt.spots[spot_name].kill_count = sync_kill_count
 			end
 			if (new_time_entered and new_time_killed) and 

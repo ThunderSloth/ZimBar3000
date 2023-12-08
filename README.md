@@ -19,10 +19,6 @@ Various Discworld MUD Plugins for MUSHclient
 * https://regex101.com/r/zL2VVE/4/ --> map door text
 ### mushclient forums:
 * http://www.mushclient.com/forum/bbshowbio.php?bbuser_id=13507
-### online compiler:
-* https://repl.it/@Zimbus3000/ZimBar3000staging
 ### dwmud wiki:
 * https://dwwiki.mooo.com/wiki/Main_Page
-### git help:
-* http://ndpsoftware.com/git-cheatsheet.html#loc=workspace --> cheatsheet
-* https://stuckinvim.com/
+
